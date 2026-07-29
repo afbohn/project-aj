@@ -1,0 +1,64 @@
+{%- comment -%}
+  Gift card eligibility hint (product pages).
+
+  When a visitor unlocked the store with a code scoped to a specific collection
+  (see giftcard-gate.liquid — the handle is stored in localStorage as
+  `txgc_gate_collection`), and they navigate to a product that is NOT in that
+  collection, their code won't apply and checkout will be blocked by the
+  require-discount-code validation function with a generic message. That
+  function can't render a link, so we surface a friendly, linked banner here so
+  the customer understands why and can get back to their eligible products.
+
+  Pure client-side: the product's collection handles are emitted to JS and
+  compared against the stored collection. Shows nothing for unscoped codes or
+  eligible products.
+{%- endcomment -%}
+{%- if settings.gate_enabled and template.name == 'product' and product != blank -%}
+  <style>
+    .txgc-eligibility{
+      display:none;margin:0 0 1rem;padding:.85rem 1rem;border-radius:8px;
+      border:1px solid #e6c200;background:#fff8db;color:#5c4a00;
+      font-size:.95rem;line-height:1.4;
+    }
+    .txgc-eligibility a{color:#5c4a00;font-weight:600;text-decoration:underline;white-space:nowrap;}
+  </style>
+  <div class="txgc-eligibility" id="txgc-eligibility" role="status" aria-live="polite">
+    <span id="txgc-eligibility-msg">This item isn’t included with your gift card code.</span>
+    <a id="txgc-eligibility-link" href="#">Shop your eligible products →</a>
+  </div>
+  <script>
+    (function () {
+      var COLL_KEY = 'txgc_gate_collection';
+      var productCollections = [
+        {%- for c in product.collections -%}
+          {{ c.handle | json }}{%- unless forloop.last -%},{%- endunless -%}
+        {%- endfor -%}
+      ];
+
+      function init() {
+        var coll = null;
+        try { coll = localStorage.getItem(COLL_KEY); } catch (e) {}
+        // No collection-scoped code, or this product IS eligible → say nothing.
+        if (!coll || productCollections.indexOf(coll) !== -1) return;
+
+        var banner = document.getElementById('txgc-eligibility');
+        var link = document.getElementById('txgc-eligibility-link');
+        if (!banner || !link) return;
+        link.href = '/collections/' + coll;
+
+        // Place it right above the add-to-cart form so it reads in context.
+        var form = document.querySelector('product-form-component, product-form, form[action*="/cart/add"]');
+        if (form && form.parentNode) {
+          form.parentNode.insertBefore(banner, form);
+        }
+        banner.style.display = 'block';
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
+  </script>
+{%- endif -%}

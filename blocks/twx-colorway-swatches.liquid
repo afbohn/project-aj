@@ -1,0 +1,82 @@
+{%- comment -%}
+  TWX Colorway Swatches — Horizon theme block.
+  Renders the sibling-color products linked via the product-reference list metafield
+  `custom.colorway_group`, plus the current product, as clickable image swatches.
+  (Horizon's native swatches block is for variant OPTIONS; this links separate
+  color-sibling PRODUCTS, the way the legacy Twisted X PDP did.)
+
+  Backfill `custom.colorway_group` first AND remap its references to the redemption
+  store's product GIDs — see scripts/backfill-metafields.mjs (it handles the remap).
+  Install at: blocks/twx-colorway-swatches.liquid in the theme.
+{%- endcomment -%}
+
+{%- liquid
+  assign p = closest.product
+  assign siblings = p.metafields.custom.colorway_group.value
+-%}
+
+{%- if siblings and siblings.size > 0 -%}
+  <div
+    class="twx-swatches spacing-style"
+    style="{% render 'spacing-style', settings: block.settings %}"
+    {{ block.shopify_attributes }}
+  >
+    {% if block.settings.heading != blank %}
+      <p class="twx-swatches__heading">{{ block.settings.heading | escape }}</p>
+    {% endif %}
+
+    <div class="twx-swatches__grid">
+      {%- comment -%} Current product first {%- endcomment -%}
+      <a class="twx-swatch is-active" href="{{ p.url }}" title="{{ p.metafields.custom.colorway.value | default: p.title | escape }}" aria-current="true">
+        <span class="twx-swatch__img">
+          <img src="{{ p.featured_image | image_url: width: 160 }}" alt="{{ p.metafields.custom.colorway.value | default: p.title | escape }}" width="80" height="80" loading="lazy">
+        </span>
+      </a>
+      {%- for sibling in siblings -%}
+        {%- if sibling.id == p.id -%}{%- continue -%}{%- endif -%}
+        <a class="twx-swatch" href="{{ sibling.url }}" title="{{ sibling.metafields.custom.colorway.value | default: sibling.title | escape }}">
+          <span class="twx-swatch__img">
+            <img src="{{ sibling.featured_image | image_url: width: 160 }}" alt="{{ sibling.metafields.custom.colorway.value | default: sibling.title | escape }}" width="80" height="80" loading="lazy">
+          </span>
+        </a>
+      {%- endfor -%}
+    </div>
+  </div>
+{%- endif -%}
+
+{% stylesheet %}
+  .twx-swatches__heading {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0 0 var(--padding-sm);
+  }
+  .twx-swatches__grid { display: flex; flex-wrap: wrap; gap: var(--padding-sm); }
+  .twx-swatch {
+    display: block;
+    border: 2px solid transparent;
+    border-radius: var(--style-border-radius-inputs, 6px);
+    overflow: hidden;
+    line-height: 0;
+  }
+  .twx-swatch.is-active { border-color: rgb(var(--color-foreground-rgb)); }
+  .twx-swatch__img img { display: block; width: 80px; height: 80px; object-fit: cover; }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "TWX Colorway Swatches",
+  "tag": "twx-colorway-swatches",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Available Colors" },
+    { "type": "header", "content": "Padding" },
+    { "type": "range", "id": "padding-block-start", "label": "Top", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 8 },
+    { "type": "range", "id": "padding-block-end", "label": "Bottom", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 8 },
+    { "type": "range", "id": "padding-inline-start", "label": "Left", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding-inline-end", "label": "Right", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 }
+  ],
+  "presets": [
+    { "name": "TWX Colorway Swatches", "category": "Product" }
+  ]
+}
+{% endschema %}

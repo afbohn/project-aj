@@ -1,0 +1,230 @@
+{%- comment -%}
+  TWX Partner Logo — Horizon theme block.
+
+  Renders a company / trade-school logo at the top of a collection page, using
+  the collection's BUILT-IN featured image (Collections -> [collection] -> Image
+  in the admin). No metafields, no custom data setup, no per-partner theme
+  template: adding a new partner is one image upload on the collection itself.
+
+  TRADE-OFF: `collection.image` is Shopify's general-purpose collection image,
+  so this block claims it for logos. If a collection later needs a photographic
+  banner AND a partner logo, they compete for the same field — at that point add
+  a `custom.partner_logo` metafield and prefer it here, falling back to
+  collection.image. Nothing else in this theme currently reads collection.image.
+
+  Renders NOTHING when a collection has no image, so it is safe to leave on the
+  shared collection template — unbranded collections are unaffected.
+{%- endcomment -%}
+
+{%- liquid
+  assign block_settings = block.settings
+  assign collection_resource = closest.collection
+
+  assign logo_image = collection_resource.image
+  assign partner_name = collection_resource.title
+
+  assign logo_height = block_settings.logo_height | default: 64
+-%}
+
+{%- if logo_image != blank -%}
+  <div
+    class="
+      twx-partner-logo spacing-style
+      twx-partner-logo--{{ block_settings.alignment | default: 'left' }}
+      twx-partner-logo--backdrop-{{ block_settings.backdrop | default: 'none' }}
+    "
+    style="{% render 'spacing-style', settings: block_settings %}--twx-partner-logo-height: {{ logo_height }}px;"
+    {{ block.shopify_attributes }}
+  >
+    {%- render 'image',
+      image: logo_image,
+      height: logo_height,
+      class: 'twx-partner-logo__image',
+      alt_text_fallback: partner_name
+    -%}
+
+    {%- if block_settings.show_name and partner_name != blank -%}
+      <p class="twx-partner-logo__name">{{ partner_name | escape }}</p>
+    {%- endif -%}
+  </div>
+{%- endif -%}
+
+{% stylesheet %}
+  .twx-partner-logo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--padding-2xs, 0.25rem);
+  }
+
+  .twx-partner-logo--left {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .twx-partner-logo--center {
+    align-items: center;
+    text-align: center;
+  }
+
+  .twx-partner-logo--right {
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  .twx-partner-logo__image {
+    height: var(--twx-partner-logo-height, 64px);
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+  }
+
+  /* Partner artwork frequently arrives as a white-knockout logo (Forge Now, and
+     Twisted X's own primary mark), which is invisible on the white collection
+     page. The backdrop paints a panel behind the logo so those files read.
+     Sized to the logo via inline-flex, so it never spans the full page width. */
+  .twx-partner-logo--backdrop-dark .twx-partner-logo__image,
+  .twx-partner-logo--backdrop-light .twx-partner-logo__image {
+    display: block;
+    padding: var(--padding-sm, 0.75rem) var(--padding-md, 1rem);
+    border-radius: 4px;
+    box-sizing: content-box;
+  }
+
+  /* Neutral dark grey rather than brand navy: the panel sits behind OTHER
+     companies' logos, and a branded colour behind partner artwork reads as a
+     colour clash (NWTI) rather than as a neutral plate. */
+  .twx-partner-logo--backdrop-dark .twx-partner-logo__image {
+    background: #333333;
+  }
+
+  .twx-partner-logo--backdrop-light .twx-partner-logo__image {
+    background: #f1f1f1;
+  }
+
+  .twx-partner-logo__name {
+    margin: 0;
+    font-size: 0.875rem;
+    color: rgb(var(--color-foreground-rgb) / var(--opacity-subdued-text, 0.7));
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "TWX Partner Logo",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Shows the company or trade school logo for this collection, using the collection's featured image (set it under Collections in the admin). Collections without an image show nothing, so this is safe to leave on every collection."
+    },
+    {
+      "type": "range",
+      "id": "logo_height",
+      "label": "Logo height",
+      "min": 24,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "select",
+      "id": "backdrop",
+      "label": "Logo backdrop",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "dark",
+          "label": "Dark grey"
+        },
+        {
+          "value": "light",
+          "label": "Light grey"
+        }
+      ],
+      "default": "dark",
+      "info": "White-knockout logos are invisible on the white page without a dark backdrop. This applies to every collection, so pick the one that suits most partner artwork."
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "Alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_name",
+      "label": "Show partner name under the logo",
+      "default": false,
+      "info": "Uses the collection title."
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-start",
+      "label": "Left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-end",
+      "label": "Right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "TWX Partner Logo",
+      "category": "Collection"
+    }
+  ]
+}
+{% endschema %}

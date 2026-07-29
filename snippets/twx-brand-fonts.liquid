@@ -1,0 +1,18 @@
+{%- comment -%}
+  Twisted X brand fonts for the gift card store: Bebas Neue (headings/accent)
+  + Montserrat (body/subheading). Overrides Horizon's font CSS variables so the
+  whole store — including the product page — uses the brand type. Rendered late
+  in <head> so it wins over the theme's own font-variable definitions.
+{%- endcomment -%}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root, body {
+    --font-heading--family: 'Bebas Neue', sans-serif;
+    --font-accent--family: 'Bebas Neue', sans-serif;
+    --font-subheading--family: 'Montserrat', sans-serif;
+    --font-body--family: 'Montserrat', sans-serif;
+    --font-paragraph--family: 'Montserrat', sans-serif;
+  }
+</style>

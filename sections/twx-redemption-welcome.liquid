@@ -1,0 +1,466 @@
+{%- comment -%}
+  TWX Redemption Welcome — home page section.
+
+  Greets a visitor who has already unlocked the store with a gift card code and
+  tells them what to do next. Everything is client-side because the code lives
+  in localStorage (`txgc_gate_code`, set by snippets/giftcard-gate.liquid) — the
+  server has no idea who the visitor is.
+
+  WHO SEES THIS: only visitors whose code is NOT scoped to a collection.
+  Collection-scoped codes are redirected off the home page to their collection
+  by the gate itself (giftcard-gate.liquid, the storedColl branch), so they
+  never reach this section. The CTA therefore points at the general shop link;
+  there is deliberately no "your collection" link here because that case cannot
+  occur on this page.
+
+  There is intentionally NO code-entry field: the visitor already typed their
+  code at the gate, so re-entry would be a chore that can only go wrong. The
+  code is shown read-only, with a link to swap it.
+
+  The value line ("Your code is worth $X") stays hidden until the gate worker
+  actually returns a value. Today gate-worker/src/index.js returns only
+  { valid, collection }; when it also returns a value, the gate stores it as
+  `txgc_gate_value` and this section shows it with no further theme work.
+{%- endcomment -%}
+
+{%- liquid
+  assign s = section.settings
+  assign gate_on = settings.gate_enabled
+-%}
+
+{%- if gate_on or request.design_mode -%}
+  <div class="section-background color-{{ s.color_scheme }}"></div>
+  <div
+    class="section section--{{ s.section_width }} spacing-style {% if s.color_scheme != blank %}color-{{ s.color_scheme }}{% endif %}"
+    style="{% render 'spacing-padding', settings: s %}"
+  >
+    {%- comment -%}
+      Hidden until the script confirms a stored code, so visitors without one
+      never see a flash of "your code" content. Shown unconditionally in the
+      theme editor so the section is editable.
+    {%- endcomment -%}
+    <div
+      class="twx-redeem"
+      id="twx-redeem"
+      {% unless request.design_mode %}
+        hidden
+      {% endunless %}
+    >
+      {%- if s.heading != blank -%}
+        <h2 class="twx-redeem__heading">{{ s.heading | escape }}</h2>
+      {%- endif -%}
+
+      {%- if s.intro != blank -%}
+        <div class="twx-redeem__intro rte">{{ s.intro }}</div>
+      {%- endif -%}
+
+      <div class="twx-redeem__code-panel">
+        <p class="twx-redeem__code-label">{{ s.code_label | escape }}</p>
+        <p class="twx-redeem__code" id="twx-redeem-code" translate="no"></p>
+        <p class="twx-redeem__value" id="twx-redeem-value" hidden></p>
+        <button class="twx-redeem__swap" id="twx-redeem-swap" type="button">
+          {{ s.swap_label | escape }}
+        </button>
+      </div>
+
+      {%- if section.blocks.size > 0 -%}
+        <ol class="twx-redeem__steps">
+          {%- for block in section.blocks -%}
+            <li class="twx-redeem__step" {{ block.shopify_attributes }}>
+              <span class="twx-redeem__step-icon" aria-hidden="true">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  focusable="false"
+                  aria-hidden="true"
+                >
+                  {%- render 'twx-step-icon', icon: block.settings.icon -%}
+                </svg>
+              </span>
+              {%- if block.settings.title != blank -%}
+                <span class="twx-redeem__step-title">{{ block.settings.title | escape }}</span>
+              {%- endif -%}
+              {%- if block.settings.text != blank -%}
+                <span class="twx-redeem__step-text">{{ block.settings.text | escape }}</span>
+              {%- endif -%}
+            </li>
+          {%- endfor -%}
+        </ol>
+      {%- endif -%}
+
+      {%- if s.cta_label != blank -%}
+        <a class="twx-redeem__cta button" id="twx-redeem-cta" href="{{ s.cta_link | default: routes.all_products_collection_url }}">
+          {{- s.cta_label | escape -}}
+        </a>
+      {%- endif -%}
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var CODE_KEY = 'txgc_gate_code';
+      var VALUE_KEY = 'txgc_gate_value';
+      var COLL_KEY = 'txgc_gate_collection';
+      var root = document.getElementById('twx-redeem');
+      if (!root) return;
+
+      var inEditor = {{ request.design_mode | json }};
+
+      var code = null;
+      var value = null;
+      var collection = null;
+      try {
+        code = localStorage.getItem(CODE_KEY);
+        value = localStorage.getItem(VALUE_KEY);
+        collection = localStorage.getItem(COLL_KEY);
+      } catch (e) {}
+
+      if (!code) {
+        // No code on this device. Leave the section hidden (the editor keeps it
+        // visible so the merchant can still select and edit it).
+        if (!inEditor) root.setAttribute('hidden', '');
+        return;
+      }
+
+      var codeEl = document.getElementById('twx-redeem-code');
+      if (codeEl) codeEl.textContent = code;
+
+      if (value) {
+        var valueEl = document.getElementById('twx-redeem-value');
+        if (valueEl) {
+          valueEl.textContent = {{ s.value_prefix | default: 'Your code is worth' | json }} + ' ' + value;
+          valueEl.removeAttribute('hidden');
+        }
+      }
+
+      // Defensive: a collection-scoped code should have been redirected away by
+      // the gate before reaching the home page. If one somehow lands here, send
+      // the CTA to that collection rather than the generic shop link.
+      if (collection) {
+        var cta = document.getElementById('twx-redeem-cta');
+        if (cta) cta.setAttribute('href', '/collections/' + collection);
+      }
+
+      var swap = document.getElementById('twx-redeem-swap');
+      if (swap) {
+        swap.addEventListener('click', function () {
+          try {
+            localStorage.removeItem(CODE_KEY);
+            localStorage.removeItem(VALUE_KEY);
+            localStorage.removeItem(COLL_KEY);
+          } catch (e) {}
+          // Full reload so the gate re-renders and takes over the page.
+          window.location.reload();
+        });
+      }
+
+      root.removeAttribute('hidden');
+    })();
+  </script>
+{%- endif -%}
+
+{% stylesheet %}
+  .twx-redeem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--padding-md, 1rem);
+    text-align: center;
+  }
+
+  .twx-redeem[hidden] {
+    display: none;
+  }
+
+  .twx-redeem__heading {
+    margin: 0;
+  }
+
+  .twx-redeem__intro {
+    max-width: 60ch;
+    margin: 0;
+  }
+
+  .twx-redeem__steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--padding-lg, 1.5rem);
+    width: 100%;
+    max-width: 60rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: twx-step;
+  }
+
+  .twx-redeem__step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--padding-2xs, 0.25rem);
+    counter-increment: twx-step;
+  }
+
+  .twx-redeem__step-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    margin-bottom: var(--padding-2xs, 0.25rem);
+    border-radius: 50%;
+    background: rgb(var(--color-foreground-rgb) / 0.06);
+  }
+
+  .twx-redeem__step-icon svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    fill: currentColor;
+  }
+
+  /* Numbered without relying on <ol> markers, which the flex layout hides. */
+  .twx-redeem__step-title::before {
+    content: counter(twx-step) ". ";
+  }
+
+  .twx-redeem__step-title {
+    font-weight: 600;
+  }
+
+  .twx-redeem__step-text {
+    font-size: 0.9375rem;
+    color: rgb(var(--color-foreground-rgb) / var(--opacity-subdued-text, 0.7));
+  }
+
+  .twx-redeem__code-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--padding-2xs, 0.25rem);
+    padding: var(--padding-md, 1rem) var(--padding-lg, 1.5rem);
+    border: 1px solid rgb(var(--color-foreground-rgb) / 0.15);
+    border-radius: 8px;
+  }
+
+  .twx-redeem__code-label {
+    margin: 0;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgb(var(--color-foreground-rgb) / var(--opacity-subdued-text, 0.7));
+  }
+
+  .twx-redeem__code {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    word-break: break-all;
+  }
+
+  .twx-redeem__value {
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  .twx-redeem__value[hidden] {
+    display: none;
+  }
+
+  .twx-redeem__swap {
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 0.8125rem;
+    text-decoration: underline;
+    cursor: pointer;
+    color: rgb(var(--color-foreground-rgb) / var(--opacity-subdued-text, 0.7));
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "TWX Redemption Welcome",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Shown only to visitors who have already unlocked the store with a gift card code. Everyone else sees nothing. Codes tied to a specific collection never reach the home page — the gate sends them straight to their collection."
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Welcome to the Twisted X gift card redemption"
+    },
+    {
+      "type": "richtext",
+      "id": "intro",
+      "label": "Intro",
+      "default": "<p>Your code is applied and ready to use. Pick your footwear and it comes off automatically at checkout.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Code panel"
+    },
+    {
+      "type": "text",
+      "id": "code_label",
+      "label": "Code label",
+      "default": "Your code"
+    },
+    {
+      "type": "text",
+      "id": "value_prefix",
+      "label": "Value prefix",
+      "default": "Your code is worth",
+      "info": "Only appears once the gate worker returns a code value. Hidden until then."
+    },
+    {
+      "type": "text",
+      "id": "swap_label",
+      "label": "Change code link",
+      "default": "Use a different code"
+    },
+    {
+      "type": "header",
+      "content": "Call to action"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Button label",
+      "default": "Start shopping"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Appearance"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Width",
+      "options": [
+        {
+          "value": "page-width",
+          "label": "Page"
+        },
+        {
+          "value": "full-width",
+          "label": "Full"
+        }
+      ],
+      "default": "page-width"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 40
+    }
+  ],
+  "blocks": [
+    {
+      "type": "step",
+      "name": "Step",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "shoe", "label": "Shoe" },
+            { "value": "cart-add", "label": "Add to cart" },
+            { "value": "register", "label": "Cash register" },
+            { "value": "discount-tag", "label": "Discount tag" },
+            { "value": "box", "label": "Box" },
+            { "value": "clipboard", "label": "Clipboard" },
+            { "value": "lock", "label": "Lock" },
+            { "value": "star", "label": "Star" },
+            { "value": "heart", "label": "Heart" },
+            { "value": "truck", "label": "Truck" },
+            { "value": "return", "label": "Return" },
+            { "value": "ruler", "label": "Ruler" },
+            { "value": "leather", "label": "Leather" },
+            { "value": "stopwatch", "label": "Stopwatch" },
+            { "value": "eye", "label": "Eye" }
+          ],
+          "default": "shoe"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Step"
+        },
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Text"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 4,
+  "presets": [
+    {
+      "name": "TWX Redemption Welcome",
+      "category": "Storefront",
+      "blocks": [
+        {
+          "type": "step",
+          "settings": {
+            "icon": "shoe",
+            "title": "Choose your footwear",
+            "text": "Browse the full range and pick the pair you want."
+          }
+        },
+        {
+          "type": "step",
+          "settings": {
+            "icon": "cart-add",
+            "title": "Add it to your cart",
+            "text": "Your gift card covers one pair."
+          }
+        },
+        {
+          "type": "step",
+          "settings": {
+            "icon": "register",
+            "title": "Check out",
+            "text": "Your code is already applied — nothing to re-enter."
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

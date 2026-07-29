@@ -1,0 +1,63 @@
+{%- comment -%}
+  TWX Tech Promos — Horizon parent block.
+  Renders the technology icon row (the legacy `ocs-product-promos` equivalent). Add it ONCE to
+  the Product template; inside it, add a "TWX Tech Promo" child per technology, mapping a product
+  tag to an uploaded icon image. Each child renders only when the current product has that tag, so
+  one configuration covers every product.
+
+  Install: blocks/twx-tech-promos.liquid + blocks/_twx-tech-promo.liquid in the theme.
+{%- endcomment -%}
+
+<div
+  class="twx-tech spacing-style"
+  style="{% render 'spacing-style', settings: block.settings %}"
+  {{ block.shopify_attributes }}
+>
+  {% if block.settings.heading != blank %}
+    <p class="twx-tech__heading">{{ block.settings.heading | escape }}</p>
+  {% endif %}
+  <div class="twx-tech__grid">
+    {% content_for 'blocks' %}
+  </div>
+</div>
+
+{% stylesheet %}
+  .twx-tech__heading {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0 0 var(--padding-sm);
+  }
+  .twx-tech__grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--padding-md);
+    align-items: flex-start;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "TWX Tech Promos",
+  "tag": null,
+  "blocks": [{ "type": "_twx-tech-promo" }],
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Technology" },
+    { "type": "header", "content": "Padding" },
+    { "type": "range", "id": "padding-block-start", "label": "Top", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 16 },
+    { "type": "range", "id": "padding-block-end", "label": "Bottom", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 16 },
+    { "type": "range", "id": "padding-inline-start", "label": "Left", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding-inline-end", "label": "Right", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 }
+  ],
+  "presets": [
+    {
+      "name": "TWX Tech Promos",
+      "category": "Product",
+      "blocks": [
+        { "type": "_twx-tech-promo" },
+        { "type": "_twx-tech-promo" }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,62 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */{
+  "sections": {
+    "twx_redemption_welcome": {
+      "type": "twx-redemption-welcome",
+      "settings": {
+        "heading": "Welcome to the Twisted X gift card redemption",
+        "intro": "<p>Your code is applied and ready to use. Pick your footwear and it comes off automatically at checkout.</p>",
+        "code_label": "Your code",
+        "value_prefix": "Your code is worth",
+        "swap_label": "Use a different code",
+        "cta_label": "Start shopping",
+        "cta_link": "",
+        "color_scheme": "scheme-1",
+        "section_width": "page-width",
+        "padding-block-start": 40,
+        "padding-block-end": 40
+      },
+      "blocks": {
+        "step_1": {
+          "type": "step",
+          "settings": {
+            "icon": "shoe",
+            "title": "Choose your footwear",
+            "text": "Browse the full range and pick the pair you want."
+          }
+        },
+        "step_2": {
+          "type": "step",
+          "settings": {
+            "icon": "cart-add",
+            "title": "Add it to your cart",
+            "text": "Your gift card covers one pair."
+          }
+        },
+        "step_3": {
+          "type": "step",
+          "settings": {
+            "icon": "register",
+            "title": "Check out",
+            "text": "Your code is already applied — nothing to re-enter."
+          }
+        }
+      },
+      "block_order": [
+        "step_1",
+        "step_2",
+        "step_3"
+      ]
+    }
+  },
+  "order": [
+    "twx_redemption_welcome"
+  ]
+}
