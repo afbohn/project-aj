@@ -1,0 +1,138 @@
+{%- comment -%}
+  AJ Deal Urgency — the countdown and claimed bar, for a product page.
+
+  Closes a gap in the funnel: the homepage deal's call to action sends anyone
+  buying a multi-variant product to the PDP to choose options, and until now
+  that page carried none of the urgency that got them to click. The clock
+  effectively stopped at the moment of highest intent.
+
+  Renders ONLY when the product being viewed is the deal that is live right
+  now. On every other product, and on the deal product outside its window, it
+  renders nothing — so it can be left in the product template permanently.
+
+  Resolution is duplicated from sections/aj-daily-deal.liquid rather than
+  shared, because `render` gives a snippet its own scope and cannot hand
+  variables back to the caller. Keep the two in step.
+{%- endcomment -%}
+
+<script src="{{ 'aj-daily-deal.js' | asset_url }}" type="module" fetchpriority="low"></script>
+
+{%- liquid
+  assign this_product = closest.product
+  assign now = 'now' | date: '%s' | plus: 0
+  assign deal = null
+
+  for entry in shop.metaobjects.daily_deal.values
+    assign starts = entry.starts_at.value | date: '%s' | plus: 0
+    assign ends = entry.ends_at.value | date: '%s' | plus: 0
+    if starts <= now and ends > now
+      comment
+        Compare ids, not handles — a handle can be edited on either side and
+        would silently stop matching.
+      endcomment
+      if entry.product.value.id == this_product.id
+        assign deal = entry
+      endif
+      break
+    endif
+  endfor
+-%}
+
+{%- if deal != blank -%}
+  <div
+    class="aj-pdp-urgency spacing-style"
+    style="{% render 'spacing-style', settings: block.settings %}"
+    {{ block.shopify_attributes }}
+  >
+    {%- if block.settings.show_countdown and deal.ends_at.value != blank -%}
+      {% render 'aj-deal-countdown',
+        ends_at: deal.ends_at.value,
+        reload_on_expire: false,
+        heading: block.settings.countdown_heading
+      %}
+    {%- endif -%}
+
+    {%- if block.settings.show_claimed -%}
+      {% render 'aj-deal-claimed',
+        product: this_product,
+        units_allocated: deal.units_allocated.value,
+        starting_inventory: deal.starting_inventory.value
+      %}
+    {%- endif -%}
+  </div>
+{%- endif -%}
+
+{% stylesheet %}
+  .aj-pdp-urgency {
+    display: block;
+  }
+
+  /* The countdown and claimed bar carry their own styles from the daily deal
+     section. Only the [hidden] override has to be repeated here: without it
+     the flex rules beat the UA rule for [hidden] and the placeholder digits
+     show through before the first tick. */
+  .aj-pdp-urgency .aj-countdown [hidden] {
+    display: none !important;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "AJ Deal Urgency",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Shows the countdown and % claimed, but only when the product being viewed is the deal running right now. Safe to leave in the template permanently."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_countdown",
+      "label": "Show countdown",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "countdown_heading",
+      "label": "Countdown label",
+      "default": "Deal ends in"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_claimed",
+      "label": "Show % claimed",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 8
+    }
+  ],
+  "presets": [
+    {
+      "name": "AJ Deal Urgency",
+      "category": "Product"
+    }
+  ]
+}
+{% endschema %}

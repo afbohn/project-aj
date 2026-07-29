@@ -1,0 +1,202 @@
+{%- comment -%}
+  AJ Shop by Price — the browsing entry point.
+
+  Price is the one axis this catalogue can actually be navigated by. Supplier
+  categories arrive from Collective as whatever each supplier called them
+  ("Ceramic" for 43 of 54 products, blank for five more), so a category nav
+  built on them would be incoherent. Price is uniform, meaningful to a bargain
+  shopper, and survives any mix of vendors.
+
+  Tiles are typographic rather than image-led on purpose: a price band has no
+  representative image, and picking one product's photo to stand for "$20 to
+  $30" would misrepresent the other eighteen.
+
+  Counts come from `collection.all_products_count`, so a band that empties out
+  says so rather than leading to a dead page. Empty bands are skipped entirely.
+{%- endcomment -%}
+
+{%- liquid
+  assign chosen = section.settings.collections
+  assign renderable = 0
+  for collection in chosen
+    if collection.all_products_count > 0
+      assign renderable = renderable | plus: 1
+    endif
+  endfor
+-%}
+
+{%- if renderable > 0 -%}
+  <div
+    class="aj-price-nav color-{{ section.settings.color_scheme }} section spacing-style"
+    style="{% render 'spacing-style', settings: section.settings %}"
+  >
+    <div class="page-width">
+      {%- if section.settings.heading != blank -%}
+        <h2 class="aj-price-nav__heading">{{ section.settings.heading | escape }}</h2>
+      {%- endif -%}
+      {%- if section.settings.subheading != blank -%}
+        <p class="aj-price-nav__subheading">{{ section.settings.subheading | escape }}</p>
+      {%- endif -%}
+
+      <ul class="aj-price-nav__grid" role="list">
+        {%- for collection in chosen -%}
+          {%- if collection.all_products_count == 0 -%}
+            {%- continue -%}
+          {%- endif -%}
+          <li class="aj-price-nav__item">
+            <a class="aj-price-nav__tile" href="{{ collection.url }}">
+              <span class="aj-price-nav__label">{{ collection.title | escape }}</span>
+              <span class="aj-price-nav__count">
+                {{ collection.all_products_count }}
+                {%- if collection.all_products_count == 1 %} item{% else %} items{% endif -%}
+              </span>
+            </a>
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  </div>
+{%- elsif request.design_mode -%}
+  <div class="aj-price-nav aj-price-nav--empty page-width">
+    <p>
+      <strong>No collections selected.</strong>
+      Pick your price band collections in this section's settings. Bands with no
+      products in them are skipped automatically.
+    </p>
+  </div>
+{%- endif -%}
+
+{% stylesheet %}
+  .aj-price-nav__heading {
+    margin: 0 0 0.25rem;
+  }
+
+  .aj-price-nav__subheading {
+    margin: 0 0 var(--padding-md, 1.5rem);
+    opacity: 0.75;
+  }
+
+  .aj-price-nav__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--padding-sm, 1rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media screen and (min-width: 750px) {
+    .aj-price-nav__grid {
+      /* auto-fit rather than a fixed count so adding or removing a band does
+         not leave a ragged final row */
+      grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    }
+  }
+
+  .aj-price-nav__tile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    height: 100%;
+    padding: 1.4rem 1.2rem;
+    border: 1px solid rgb(var(--color-foreground-rgb) / 0.18);
+    border-radius: 3px;
+    color: inherit;
+    text-decoration: none;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+  }
+
+  .aj-price-nav__tile:hover,
+  .aj-price-nav__tile:focus-visible {
+    border-color: rgb(var(--color-foreground-rgb) / 0.5);
+    background: rgb(var(--color-foreground-rgb) / 0.04);
+  }
+
+  .aj-price-nav__label {
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.15;
+    /* Bands read as "$10 to $20" — tabular figures keep the tiles aligned. */
+    font-variant-numeric: tabular-nums;
+  }
+
+  .aj-price-nav__count {
+    font-size: 0.8125rem;
+    opacity: 0.7;
+  }
+
+  .aj-price-nav--empty {
+    padding-block: var(--padding-xl, 3rem);
+    text-align: center;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aj-price-nav__tile { transition: none; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "AJ Shop by Price",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Links to your price band collections. Bands with no products are hidden automatically."
+    },
+    {
+      "type": "collection_list",
+      "id": "collections",
+      "label": "Price bands",
+      "limit": 8
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Shop by price"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "New finds added all the time."
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 32
+    }
+  ],
+  "presets": [
+    {
+      "name": "AJ Shop by Price"
+    }
+  ]
+}
+{% endschema %}

@@ -240,13 +240,37 @@
                 "padding-inline-end": 0
               },
               "blocks": {}
+            },
+            "aj_deal_urgency": {
+              "type": "aj-deal-urgency",
+              "settings": {
+                "show_countdown": true,
+                "countdown_heading": "Deal ends in",
+                "show_claimed": true,
+                "padding-block-start": 0,
+                "padding-block-end": 8
+              },
+              "blocks": {}
+            },
+            "aj_ships_from": {
+              "type": "aj-ships-from",
+              "settings": {
+                "prefix": "Ships from",
+                "show_separate_note": true,
+                "separate_note": "Made to order by an independent maker. Items from different makers ship separately.",
+                "padding-block-start": 0,
+                "padding-block-end": 0
+              },
+              "blocks": {}
             }
           },
           "block_order": [
             "group_icgrde",
             "divider_VJhene",
+            "aj_deal_urgency",
             "variant_picker_R3rGDr",
             "buy_buttons_eYQEYi",
+            "aj_ships_from",
             "text_aEtTtq"
           ]
         },

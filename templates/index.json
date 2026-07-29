@@ -302,10 +302,28 @@
         "padding-block-start": 48,
         "padding-block-end": 48
       }
+    },
+    "aj_shop_by_price": {
+      "type": "aj-shop-by-price",
+      "settings": {
+        "collections": [
+          "under-10",
+          "10-to-20",
+          "20-to-30",
+          "30-to-50",
+          "50-and-up"
+        ],
+        "heading": "Shop by price",
+        "subheading": "New finds added all the time.",
+        "color_scheme": "scheme-1",
+        "padding-block-start": 32,
+        "padding-block-end": 32
+      }
     }
   },
   "order": [
     "aj_daily_deal",
+    "aj_shop_by_price",
     "aj_cross_sell",
     "hero_jVaWmY",
     "product_list_fa6P9H"

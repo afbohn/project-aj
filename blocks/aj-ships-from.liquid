@@ -1,0 +1,131 @@
+{%- comment -%}
+  AJ Ships From — supplier attribution on the product page.
+
+  Two jobs, both specific to selling other people's brands.
+
+  TRUST. Nobody arrives at this store knowing who "prodigalpottery" or
+  "Blessed Bayou Candles" are. Naming the maker turns an anonymous listing into
+  someone's product, which matters far more here than it would for a
+  single-brand store.
+
+  EXPECTATION. Every Collective supplier fulfils its own items, so a cart
+  mixing vendors arrives as separate parcels on separate days. Said before
+  purchase that is a normal fact about buying from independent makers; found
+  out afterwards it is a support ticket, and the most common one for
+  multi-vendor dropship.
+
+  DELIVERY ESTIMATES ARE NOT AVAILABLE. Collective attaches no metafields to
+  imported products — no ship time, no dispatch window, nothing the theme can
+  read. Anything specific here would have to be typed in by hand per vendor and
+  kept accurate, and a stale delivery promise is worse than none. So the copy
+  deliberately sets a shape ("ships separately") without inventing a date.
+{%- endcomment -%}
+
+{%- liquid
+  assign product_resource = closest.product
+  assign vendor = product_resource.vendor
+
+  comment
+    The tag is what Collective itself applies on import, so it is the honest
+    test for "is this fulfilled by someone else" rather than guessing from the
+    vendor name.
+  endcomment
+  assign is_collective = false
+  if product_resource.tags contains 'Shopify Collective'
+    assign is_collective = true
+  endif
+-%}
+
+{%- if vendor != blank -%}
+  <div
+    class="aj-ships-from spacing-style"
+    style="{% render 'spacing-style', settings: block.settings %}"
+    {{ block.shopify_attributes }}
+  >
+    <p class="aj-ships-from__line">
+      {{ block.settings.prefix | default: 'Ships from' }}
+      <strong>{{ vendor | escape }}</strong>
+    </p>
+
+    {%- if is_collective and block.settings.show_separate_note -%}
+      <p class="aj-ships-from__note">{{ block.settings.separate_note | escape }}</p>
+    {%- endif -%}
+  </div>
+{%- endif -%}
+
+{% stylesheet %}
+  .aj-ships-from__line {
+    margin: 0;
+    font-size: var(--font-paragraph--size);
+  }
+
+  .aj-ships-from__note {
+    margin: 0.15rem 0 0;
+    font-size: 0.8125rem;
+    opacity: 0.7;
+    max-width: 46ch;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "AJ Ships From",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Names the maker fulfilling this product. Hidden when a product has no vendor set."
+    },
+    {
+      "type": "text",
+      "id": "prefix",
+      "label": "Prefix",
+      "default": "Ships from"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_separate_note",
+      "label": "Note that items ship separately",
+      "default": true,
+      "info": "Shown only on Shopify Collective products. Each supplier ships its own items, so a mixed order arrives in more than one parcel."
+    },
+    {
+      "type": "text",
+      "id": "separate_note",
+      "label": "Separate shipment note",
+      "default": "Made to order by an independent maker. Items from different makers ship separately.",
+      "info": "Avoid naming a delivery date here — Collective does not give the theme real ship times, so any date would be guesswork."
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "AJ Ships From",
+      "category": "Product"
+    }
+  ]
+}
+{% endschema %}
