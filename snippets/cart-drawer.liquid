@@ -113,6 +113,21 @@
               >
                 <scroll-hint class="cart-drawer__items">
                   {% render 'cart-products', context: 'drawer' %}
+
+                  {%- comment -%}
+                    Rendered inside the scrolling item list rather than pinned
+                    near checkout on purpose: suggestions belong with the
+                    things being bought, and anything sitting between a shopper
+                    and the checkout button is an obstacle, not an offer.
+                  {%- endcomment -%}
+                  {%- if settings.cart_upsell_enabled -%}
+                    {% render 'aj-cart-upsell',
+                      context: 'drawer',
+                      limit: settings.cart_upsell_count,
+                      heading: settings.cart_upsell_heading,
+                      fallback: settings.cart_upsell_fallback
+                    %}
+                  {%- endif -%}
                 </scroll-hint>
 
                 <div class="cart-drawer__summary">

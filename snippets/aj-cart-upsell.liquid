@@ -1,0 +1,156 @@
+{% doc %}
+  Renders add-on suggestions inside the cart.
+
+  This is where the business actually makes money. The daily deal is priced at
+  or near cost to bring people in, so the margin has to come from what else
+  ends up in the basket — and the cart is the highest-intent moment there is.
+  Someone here has already decided to buy.
+
+  WHY SAME-VENDOR FIRST. Every Shopify Collective supplier fulfils its own
+  items, so a cart mixing vendors arrives as separate parcels on separate days.
+  Something from a supplier ALREADY in the cart is the one suggestion that adds
+  no extra shipment. That is a genuine reason to say yes rather than a nudge,
+  and it turns the multi-parcel problem into an argument for adding more. It
+  also gives "similar" for free: a pottery studio's other work resembles the
+  pottery already being bought.
+
+  Falls back to a curated collection when no vendor collection resolves, so the
+  cart is never left with nothing to suggest.
+
+  Vendor collections are created by scripts/vendors.py and handled
+  `vendor-<handleized name>`. The `handleize` filter here has to agree with the
+  slug that script writes, or the lookup silently returns nothing.
+
+  @param {string} [fallback] - Handle of a curated collection to use when no
+    vendor collection resolves. Put higher-margin items in it.
+  @param {number} [limit] - How many suggestions to show. Default 3.
+  @param {string} [heading] - Section heading.
+  @param {string} [context] - 'drawer' or 'page', used for layout only.
+{% enddoc %}
+
+{%- liquid
+  assign max_items = limit | default: 3 | plus: 0
+  assign layout = context | default: 'drawer'
+
+  comment
+    Ids already in the cart, wrapped in commas so a substring cannot match
+    (id 12 must not match 123).
+  endcomment
+  assign in_cart = ','
+  for line in cart.items
+    assign in_cart = in_cart | append: line.product.id | append: ','
+  endfor
+
+  comment
+    Vendors present in the cart, most recently added first — the last thing
+    someone added is the freshest signal of what they are shopping for.
+  endcomment
+  assign vendor_handles = ''
+  assign reversed_items = cart.items | reverse
+  for line in reversed_items
+    assign vendor_handle = line.product.vendor | handleize
+    if vendor_handle != blank
+      assign probe = '|' | append: vendor_handle | append: '|'
+      unless vendor_handles contains probe
+        assign vendor_handles = vendor_handles | append: '|' | append: vendor_handle | append: '|'
+      endunless
+    endif
+  endfor
+  assign vendor_list = vendor_handles | split: '||'
+-%}
+
+{%- capture candidate_ids -%}
+  {%- for vendor_handle in vendor_list -%}
+    {%- assign clean = vendor_handle | remove: '|' -%}
+    {%- if clean == blank -%}{%- continue -%}{%- endif -%}
+    {%- assign vendor_collection = collections['vendor-' | append: clean] -%}
+    {%- for candidate in vendor_collection.products limit: 12 -%}
+      {%- assign probe = ',' | append: candidate.id | append: ',' -%}
+      {%- unless in_cart contains probe or candidate.available == false -%}
+        {{ candidate.id }},
+      {%- endunless -%}
+    {%- endfor -%}
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- liquid
+  assign candidate_list = candidate_ids | split: ','
+  assign found = 0
+  for id in candidate_list
+    assign trimmed = id | strip
+    if trimmed != blank
+      assign found = found | plus: 1
+    endif
+  endfor
+
+  comment
+    Nothing from the cart's own vendors — a single-item cart from a supplier we
+    only carry one product from. Fall back to the curated list rather than
+    showing an empty block.
+  endcomment
+  assign use_fallback = false
+  if found == 0 and fallback != blank
+    assign use_fallback = true
+    assign fallback_collection = collections[fallback]
+  endif
+-%}
+
+{%- if found > 0 or use_fallback -%}
+  <div class="aj-cart-upsell aj-cart-upsell--{{ layout }}">
+    <p class="aj-cart-upsell__heading">
+      {{ heading | default: 'Add to your order' }}
+    </p>
+
+    {%- if found > 0 -%}
+      {%- comment -%}
+        Only claim combined shipping when the suggestion genuinely comes from a
+        vendor already in the cart. The fallback list has no such guarantee.
+      {%- endcomment -%}
+      <p class="aj-cart-upsell__note">Ships with what's already in your cart.</p>
+    {%- endif -%}
+
+    <ul class="aj-cart-upsell__list" role="list">
+      {%- assign shown = 0 -%}
+
+      {%- if use_fallback -%}
+        {%- for item in fallback_collection.products limit: 12 -%}
+          {%- assign probe = ',' | append: item.id | append: ',' -%}
+          {%- if in_cart contains probe or item.available == false -%}
+            {%- continue -%}
+          {%- endif -%}
+          {%- if shown >= max_items -%}{%- break -%}{%- endif -%}
+          {%- assign shown = shown | plus: 1 -%}
+          {% render 'aj-cart-upsell-item', item: item %}
+        {%- endfor -%}
+      {%- else -%}
+        {%- comment -%}
+          Walk the vendor collections directly rather than collecting ids and
+          resolving them back to products: `all_products` is keyed by handle,
+          so an id round-trip would mean re-walking these same collections
+          anyway. Dedupe as we go — a product can sit in two vendor
+          collections only if a vendor name changed, but the guard is cheap.
+        {%- endcomment -%}
+        {%- assign seen = ',' -%}
+        {%- for vendor_handle in vendor_list -%}
+          {%- if shown >= max_items -%}{%- break -%}{%- endif -%}
+          {%- assign clean = vendor_handle | remove: '|' -%}
+          {%- if clean == blank -%}{%- continue -%}{%- endif -%}
+          {%- assign vendor_key = 'vendor-' | append: clean -%}
+          {%- assign vendor_collection = collections[vendor_key] -%}
+
+          {%- for candidate in vendor_collection.products limit: 12 -%}
+            {%- if shown >= max_items -%}{%- break -%}{%- endif -%}
+            {%- assign probe = ',' | append: candidate.id | append: ',' -%}
+            {%- if in_cart contains probe or seen contains probe -%}
+              {%- continue -%}
+            {%- endif -%}
+            {%- if candidate.available == false -%}{%- continue -%}{%- endif -%}
+            {%- assign seen = seen | append: candidate.id | append: ',' -%}
+            {%- assign shown = shown | plus: 1 -%}
+            {% render 'aj-cart-upsell-item', item: candidate %}
+          {%- endfor -%}
+        {%- endfor -%}
+      {%- endif -%}
+    </ul>
+  </div>
+{%- endif -%}

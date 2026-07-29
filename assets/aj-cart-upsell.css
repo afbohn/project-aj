@@ -1,0 +1,139 @@
+/* Cart upsell.
+ *
+ * Lives in an asset rather than a section stylesheet because it renders in two
+ * templates — the cart drawer and the cart page — and Shopify compiles section
+ * styles per template. A stylesheet declared in one would simply not load in
+ * the other. (Same trap that left the PDP countdown unstyled.)
+ *
+ * Deliberately quieter than the cart lines themselves: these are suggestions,
+ * and an upsell that shouts over the thing someone already chose to buy reads
+ * as pressure.
+ */
+
+.aj-cart-upsell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-block: var(--padding-sm, 1rem);
+  border-block-start: 1px solid rgb(var(--color-foreground-rgb) / 0.12);
+}
+
+.aj-cart-upsell__heading {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.aj-cart-upsell__note {
+  margin: -0.25rem 0 0;
+  font-size: 0.8125rem;
+  opacity: 0.7;
+}
+
+.aj-cart-upsell__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0.2rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.aj-cart-upsell__item {
+  display: grid;
+  /* Fixed thumb, elastic middle, intrinsic button — so the action never gets
+     squeezed out on a narrow drawer. */
+  grid-template-columns: 3.25rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.aj-cart-upsell__media {
+  display: block;
+  line-height: 0;
+}
+
+.aj-cart-upsell__image {
+  width: 3.25rem;
+  height: 3.25rem;
+  object-fit: cover;
+  border-radius: 2px;
+  display: block;
+}
+
+.aj-cart-upsell__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.aj-cart-upsell__title {
+  color: inherit;
+  text-decoration: none;
+  font-size: 0.875rem;
+  line-height: 1.3;
+  /* Two lines keeps rows from growing unevenly; the full title is a tap away. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.aj-cart-upsell__title:hover {
+  text-decoration: underline;
+}
+
+.aj-cart-upsell__price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.aj-cart-upsell__price s {
+  font-weight: 400;
+  opacity: 0.55;
+}
+
+.aj-cart-upsell__form {
+  margin: 0;
+}
+
+.aj-cart-upsell__add {
+  display: inline-block;
+  padding: 0.4em 0.85em;
+  border: 1px solid rgb(var(--color-foreground-rgb) / 0.45);
+  border-radius: 3px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 0.8125rem;
+  line-height: 1.3;
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.aj-cart-upsell__add:hover,
+.aj-cart-upsell__add:focus-visible {
+  border-color: rgb(var(--color-foreground-rgb));
+  background: rgb(var(--color-foreground-rgb) / 0.07);
+}
+
+/* The cart page has room to breathe; the drawer does not. */
+.aj-cart-upsell--page {
+  padding-block: var(--padding-md, 1.5rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aj-cart-upsell__add {
+    transition: none;
+  }
+}

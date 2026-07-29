@@ -2116,5 +2116,42 @@
         "default": "equal-width-buttons"
       }
     ]
+  },
+  {
+    "name": "Cart upsell",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "Suggests add-ons inside the cart. Prefers items from a supplier already in the cart, because those ship together — the one suggestion that does not add another parcel."
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_upsell_enabled",
+        "label": "Show cart upsell",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "cart_upsell_heading",
+        "label": "Heading",
+        "default": "Add to your order"
+      },
+      {
+        "type": "range",
+        "id": "cart_upsell_count",
+        "label": "Suggestions shown",
+        "min": 1,
+        "max": 6,
+        "step": 1,
+        "default": 3
+      },
+      {
+        "type": "text",
+        "id": "cart_upsell_fallback",
+        "label": "Fallback collection handle",
+        "default": "",
+        "info": "Used only when nothing matches the cart's own suppliers. Put higher-margin items in it."
+      }
+    ]
   }
 ]

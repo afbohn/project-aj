@@ -1,0 +1,70 @@
+{% doc %}
+  One suggestion row inside the cart upsell.
+
+  Single-variant products get a real add button that posts straight to
+  /cart/add — the whole value of a cart upsell is that adding costs nothing,
+  and sending someone to a product page at this point loses most of them.
+  Anything with options links out instead, because silently choosing a size or
+  colour on a shopper's behalf produces returns, and returns on a dropshipped
+  order are expensive.
+
+  @param {object} item - The product to suggest.
+{% enddoc %}
+
+{%- liquid
+  assign suggest_variant = item.selected_or_first_available_variant
+  assign single = false
+  if item.variants.size == 1
+    assign single = true
+  endif
+-%}
+
+{{ 'aj-cart-upsell.css' | asset_url | stylesheet_tag }}
+
+<li class="aj-cart-upsell__item">
+  <a class="aj-cart-upsell__media" href="{{ item.url }}" tabindex="-1" aria-hidden="true">
+    {%- if item.featured_media -%}
+      {{
+        item.featured_media
+        | image_url: width: 160
+        | image_tag:
+          loading: 'lazy',
+          widths: '80, 120, 160',
+          sizes: '64px',
+          class: 'aj-cart-upsell__image',
+          alt: ''
+      }}
+    {%- endif -%}
+  </a>
+
+  <div class="aj-cart-upsell__body">
+    <a class="aj-cart-upsell__title" href="{{ item.url }}">{{ item.title | escape }}</a>
+    <p class="aj-cart-upsell__price">
+      <span>{{ suggest_variant.price | money }}</span>
+      {%- if suggest_variant.compare_at_price > suggest_variant.price -%}
+        <s>{{ suggest_variant.compare_at_price | money }}</s>
+      {%- endif -%}
+    </p>
+  </div>
+
+  {%- if single -%}
+    {%- form 'product', item, class: 'aj-cart-upsell__form' -%}
+      <input type="hidden" name="id" value="{{ suggest_variant.id }}">
+      <button
+        type="submit"
+        class="aj-cart-upsell__add"
+        aria-label="{{ 'actions.add_to_cart' | t }}: {{ item.title | escape }}"
+      >
+        {{ 'actions.add_to_cart' | t }}
+      </button>
+    {%- endform -%}
+  {%- else -%}
+    <a
+      class="aj-cart-upsell__add aj-cart-upsell__add--link"
+      href="{{ item.url }}"
+      aria-label="{{ 'actions.choose' | t }}: {{ item.title | escape }}"
+    >
+      {{ 'actions.choose' | t }}
+    </a>
+  {%- endif -%}
+</li>

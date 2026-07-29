@@ -94,7 +94,11 @@
       "color1": "#333333",
       "color2": "#EEF1EA",
       "color3": "#DFDFDF"
-    }
+    },
+    "cart_upsell_enabled": true,
+    "cart_upsell_heading": "Add to your order",
+    "cart_upsell_count": 3,
+    "cart_upsell_fallback": ""
   },
   "presets": {
     "Default": {
