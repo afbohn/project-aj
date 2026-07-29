@@ -42,12 +42,13 @@
   endfor
 
   comment
-    Vendors present in the cart, most recently added first — the last thing
-    someone added is the freshest signal of what they are shopping for.
+    Vendors present in the cart, in cart order. Do NOT reverse this hoping to
+    get "most recently added first" — cart.items is not ordered by when things
+    were added, so reversing just picks a different arbitrary vendor to favour.
+    Fair representation is handled below instead.
   endcomment
   assign vendor_handles = ''
-  assign reversed_items = cart.items | reverse
-  for line in reversed_items
+  for line in cart.items
     assign vendor_handle = line.product.vendor | handleize
     if vendor_handle != blank
       assign probe = '|' | append: vendor_handle | append: '|'
@@ -136,24 +137,40 @@
           anyway. Dedupe as we go — a product can sit in two vendor
           collections only if a vendor name changed, but the guard is cheap.
         {%- endcomment -%}
-        {%- assign seen = ',' -%}
-        {%- for vendor_handle in vendor_list -%}
-          {%- if shown >= max_items -%}{%- break -%}{%- endif -%}
-          {%- assign clean = vendor_handle | remove: '|' -%}
-          {%- if clean == blank -%}{%- continue -%}{%- endif -%}
-          {%- assign vendor_key = 'vendor-' | append: clean -%}
-          {%- assign vendor_collection = collections[vendor_key] -%}
+        {%- comment -%}
+          Two passes so a cart holding several suppliers sees several
+          suppliers. The first gives every vendor one slot; the second fills
+          whatever is left over. Without this the first vendor iterated takes
+          every slot, and a two-vendor cart gets three suggestions from one of
+          them — which is both less useful and looks broken.
 
-          {%- for candidate in vendor_collection.products limit: 12 -%}
+          `cap` is 1 on the first pass and the full limit on the second.
+        {%- endcomment -%}
+        {%- assign seen = ',' -%}
+        {%- assign passes = '1,99' | split: ',' -%}
+
+        {%- for cap_raw in passes -%}
+          {%- assign cap = cap_raw | plus: 0 -%}
+          {%- for vendor_handle in vendor_list -%}
             {%- if shown >= max_items -%}{%- break -%}{%- endif -%}
-            {%- assign probe = ',' | append: candidate.id | append: ',' -%}
-            {%- if in_cart contains probe or seen contains probe -%}
-              {%- continue -%}
-            {%- endif -%}
-            {%- if candidate.available == false -%}{%- continue -%}{%- endif -%}
-            {%- assign seen = seen | append: candidate.id | append: ',' -%}
-            {%- assign shown = shown | plus: 1 -%}
-            {% render 'aj-cart-upsell-item', item: candidate %}
+            {%- assign clean = vendor_handle | remove: '|' -%}
+            {%- if clean == blank -%}{%- continue -%}{%- endif -%}
+            {%- assign vendor_key = 'vendor-' | append: clean -%}
+            {%- assign vendor_collection = collections[vendor_key] -%}
+            {%- assign from_vendor = 0 -%}
+
+            {%- for candidate in vendor_collection.products limit: 12 -%}
+              {%- if shown >= max_items or from_vendor >= cap -%}{%- break -%}{%- endif -%}
+              {%- assign probe = ',' | append: candidate.id | append: ',' -%}
+              {%- if in_cart contains probe or seen contains probe -%}
+                {%- continue -%}
+              {%- endif -%}
+              {%- if candidate.available == false -%}{%- continue -%}{%- endif -%}
+              {%- assign seen = seen | append: candidate.id | append: ',' -%}
+              {%- assign shown = shown | plus: 1 -%}
+              {%- assign from_vendor = from_vendor | plus: 1 -%}
+              {% render 'aj-cart-upsell-item', item: candidate %}
+            {%- endfor -%}
           {%- endfor -%}
         {%- endfor -%}
       {%- endif -%}
