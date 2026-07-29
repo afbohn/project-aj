@@ -1,0 +1,61 @@
+{% doc %}
+  Renders the live countdown for a daily deal.
+
+  The deadline is absolute and server-rendered, so the clock is the same for
+  everyone and does not restart on refresh. Without JS the markup degrades to a
+  plain "Ends <date>" line rather than an empty box.
+
+  @param {string} ends_at - The deal's end datetime (from the metaobject).
+  @param {boolean} [reload_on_expire] - Reload the page 5s after the deal ends,
+    so the server can resolve the next one. Only sensible where the deal is the
+    whole point of the page.
+  @param {string} [heading] - Small label above the digits.
+{% enddoc %}
+
+{%- liquid
+  assign ends_ms = ends_at | date: '%s' | times: 1000
+  assign heading_text = heading | default: 'Deal ends in'
+-%}
+
+<aj-countdown
+  class="aj-countdown"
+  data-ends-at="{{ ends_ms }}"
+  {% if reload_on_expire %}data-reload-on-expire{% endif %}
+>
+  <p class="aj-countdown__heading">{{ heading_text }}</p>
+
+  {%- comment -%}
+    No-JS fallback. Hidden by the component as soon as it connects.
+  {%- endcomment -%}
+  <p class="aj-countdown__fallback" data-countdown-fallback>
+    Ends {{ ends_at | date: '%B %-d at %-I:%M %p' }}
+  </p>
+
+  {%- comment -%}
+    Starts hidden so it never flashes 00:00:00 before the first tick.
+  {%- endcomment -%}
+  <div class="aj-countdown__display" data-countdown-display hidden>
+    <span class="visually-hidden" data-countdown-label role="status"></span>
+
+    <span class="aj-countdown__group" data-unit-group hidden aria-hidden="true">
+      <span class="aj-countdown__value" data-unit="days">0</span>
+      <span class="aj-countdown__unit">d</span>
+    </span>
+    <span class="aj-countdown__group" aria-hidden="true">
+      <span class="aj-countdown__value" data-unit="hours">00</span>
+      <span class="aj-countdown__unit">h</span>
+    </span>
+    <span class="aj-countdown__group" aria-hidden="true">
+      <span class="aj-countdown__value" data-unit="minutes">00</span>
+      <span class="aj-countdown__unit">m</span>
+    </span>
+    <span class="aj-countdown__group" aria-hidden="true">
+      <span class="aj-countdown__value" data-unit="seconds">00</span>
+      <span class="aj-countdown__unit">s</span>
+    </span>
+  </div>
+
+  <p class="aj-countdown__expired" data-countdown-expired hidden>
+    This deal has ended.
+  </p>
+</aj-countdown>

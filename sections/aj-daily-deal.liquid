@@ -1,0 +1,465 @@
+{%- comment -%}
+  AJ Daily Deal — the featured deal of the day.
+
+  Resolves the active deal itself rather than making someone pick one every
+  morning: it walks the `daily_deal` metaobject entries and takes the one whose
+  start/end window contains "now". Queue a week of deals in advance and they
+  rotate on their own.
+
+  Requires a `daily_deal` metaobject definition with these fields:
+
+    product          product_reference   the deal item
+    starts_at        date_time           when it goes live (UTC)
+    ends_at          date_time           when it stops (UTC) — drives the clock
+    units_allocated  number_integer      units set aside; the % claimed divisor
+    headline         single_line_text    optional eyebrow, e.g. "Today only"
+
+  Renders nothing on the storefront when no deal is active, so an empty queue
+  degrades to an absent section rather than a broken one. In the theme editor it
+  falls back to the first entry so there is something to design against.
+
+  NOTE ON CACHING: the active-deal lookup happens server-side at render time. At
+  a deal boundary a visitor may briefly see the outgoing deal from cache; the
+  countdown is client-side against an absolute timestamp, so it stays correct
+  regardless and hits zero on schedule.
+{%- endcomment -%}
+
+<script src="{{ 'aj-daily-deal.js' | asset_url }}" type="module" fetchpriority="low"></script>
+
+{%- liquid
+  assign now = 'now' | date: '%s' | plus: 0
+  assign deal = null
+
+  for entry in shop.metaobjects.daily_deal.values
+    assign starts = entry.starts_at.value | date: '%s' | plus: 0
+    assign ends = entry.ends_at.value | date: '%s' | plus: 0
+    if starts <= now and ends > now
+      assign deal = entry
+      break
+    endif
+  endfor
+
+  comment
+    Editor-only fallback. Never applies on the live storefront — a merchant
+    designing the section needs to see it, a customer must not see an expired
+    or unstarted deal.
+  endcomment
+  if deal == null and request.design_mode
+    assign deal = shop.metaobjects.daily_deal.values.first
+  endif
+
+  assign product = deal.product.value
+  assign variant = product.selected_or_first_available_variant
+
+  assign on_sale = false
+  if variant.compare_at_price > variant.price
+    assign on_sale = true
+    assign savings = variant.compare_at_price | minus: variant.price
+    assign savings_percent = savings | times: 100 | divided_by: variant.compare_at_price
+  endif
+-%}
+
+{%- if product != blank -%}
+  <div
+    class="aj-deal color-{{ section.settings.color_scheme }} section spacing-style"
+    style="{% render 'spacing-style', settings: section.settings %}"
+  >
+    <div class="aj-deal__inner page-width">
+      <div class="aj-deal__media">
+        {%- if product.featured_media -%}
+          <a href="{{ product.url }}" tabindex="-1" aria-hidden="true">
+            {{
+              product.featured_media
+              | image_url: width: 1200
+              | image_tag:
+                loading: 'lazy',
+                sizes: '(min-width: 750px) 50vw, 100vw',
+                widths: '400, 600, 800, 1000, 1200',
+                class: 'aj-deal__image',
+                alt: product.featured_media.alt
+            }}
+          </a>
+        {%- endif -%}
+
+        {%- if on_sale -%}
+          <span class="aj-deal__badge">Save {{ savings_percent }}%</span>
+        {%- endif -%}
+      </div>
+
+      <div class="aj-deal__content">
+        {%- assign eyebrow = deal.headline.value | default: section.settings.default_headline -%}
+        {%- if eyebrow != blank -%}
+          <p class="aj-deal__eyebrow">{{ eyebrow | escape }}</p>
+        {%- endif -%}
+
+        <h2 class="aj-deal__title">
+          <a href="{{ product.url }}">{{ product.title | escape }}</a>
+        </h2>
+
+        <div class="aj-deal__pricing">
+          <span class="aj-deal__price">{{ variant.price | money }}</span>
+          {%- if on_sale -%}
+            <s class="aj-deal__compare">{{ variant.compare_at_price | money }}</s>
+            <span class="aj-deal__savings">You save {{ savings | money }}</span>
+          {%- endif -%}
+        </div>
+
+        {%- if section.settings.show_countdown and deal.ends_at.value != blank -%}
+          {% render 'aj-deal-countdown',
+            ends_at: deal.ends_at.value,
+            reload_on_expire: section.settings.reload_on_expire,
+            heading: section.settings.countdown_heading
+          %}
+        {%- endif -%}
+
+        {%- if section.settings.show_claimed -%}
+          {%- liquid
+            assign floor = nil
+            if section.settings.use_floor
+              assign floor = section.settings.floor_percent
+            endif
+          -%}
+          {% render 'aj-deal-claimed',
+            product: product,
+            units_allocated: deal.units_allocated.value,
+            floor_percent: floor
+          %}
+        {%- endif -%}
+
+        <div class="aj-deal__cta">
+          {%- comment -%}
+            Single-variant deals get a real add-to-cart — one less click on the
+            item we most want people to buy. Anything with options goes to the
+            PDP, because guessing a variant for someone is worse than a click.
+          {%- endcomment -%}
+          {%- if product.variants.size == 1 and variant.available -%}
+            {%- form 'product', product, class: 'aj-deal__form' -%}
+              <input type="hidden" name="id" value="{{ variant.id }}">
+              <button type="submit" class="button aj-deal__button">
+                {{ 'actions.add_to_cart' | t | default: 'Add to cart' }}
+              </button>
+            {%- endform -%}
+          {%- elsif variant.available -%}
+            <a href="{{ product.url }}" class="button aj-deal__button">
+              Shop the deal
+            </a>
+          {%- else -%}
+            <p class="aj-deal__soldout">Sold out</p>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+  </div>
+{%- elsif request.design_mode -%}
+  {%- comment -%}
+    Editor-only setup hint. Customers never see this branch.
+  {%- endcomment -%}
+  <div class="aj-deal aj-deal--empty page-width">
+    <p>
+      <strong>No daily deal is set up yet.</strong>
+      Create a <code>daily_deal</code> metaobject entry with a product,
+      <code>starts_at</code>, <code>ends_at</code>, and
+      <code>units_allocated</code>, and it will appear here automatically.
+    </p>
+  </div>
+{%- endif -%}
+
+{% stylesheet %}
+  .aj-deal__inner {
+    display: grid;
+    gap: var(--padding-lg, 2rem);
+    align-items: center;
+  }
+
+  @media screen and (min-width: 750px) {
+    .aj-deal__inner {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .aj-deal__media {
+    position: relative;
+  }
+
+  .aj-deal__image {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .aj-deal__badge {
+    position: absolute;
+    inset-block-start: var(--padding-sm, 1rem);
+    inset-inline-start: var(--padding-sm, 1rem);
+    padding: 0.3em 0.7em;
+    border-radius: 3px;
+    background: rgb(var(--color-foreground-rgb));
+    color: rgb(var(--color-background-rgb));
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .aj-deal__eyebrow {
+    margin: 0 0 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+
+  .aj-deal__title {
+    margin: 0 0 0.75rem;
+  }
+
+  .aj-deal__title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .aj-deal__pricing {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin-block-end: var(--padding-md, 1.5rem);
+  }
+
+  .aj-deal__price {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+
+  .aj-deal__compare {
+    opacity: 0.6;
+  }
+
+  .aj-deal__savings {
+    font-weight: 600;
+  }
+
+  .aj-deal__cta {
+    margin-block-start: var(--padding-md, 1.5rem);
+  }
+
+  .aj-deal__button {
+    width: 100%;
+  }
+
+  @media screen and (min-width: 750px) {
+    .aj-deal__button {
+      width: auto;
+      min-width: 16rem;
+    }
+  }
+
+  .aj-deal__soldout {
+    margin: 0;
+    font-weight: 600;
+    opacity: 0.7;
+  }
+
+  .aj-deal--empty {
+    padding-block: var(--padding-xl, 3rem);
+    text-align: center;
+  }
+
+  /* Countdown ------------------------------------------------------------ */
+
+  .aj-countdown {
+    display: block;
+    margin-block-end: var(--padding-md, 1.5rem);
+  }
+
+  .aj-countdown__heading {
+    margin: 0 0 0.4rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+
+  .aj-countdown__fallback {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .aj-countdown__display {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+
+  .aj-countdown__group {
+    display: flex;
+    align-items: baseline;
+    gap: 0.1rem;
+  }
+
+  .aj-countdown__value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1;
+    /* Tabular figures stop the row from jittering as digits change. */
+    font-variant-numeric: tabular-nums;
+  }
+
+  .aj-countdown__unit {
+    font-size: 0.875rem;
+    opacity: 0.7;
+  }
+
+  .aj-countdown__expired {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  /* Claimed bar ---------------------------------------------------------- */
+
+  .aj-claimed {
+    margin-block-end: var(--padding-md, 1.5rem);
+  }
+
+  .aj-claimed__track {
+    height: 0.5rem;
+    border-radius: 999px;
+    background: rgb(var(--color-foreground-rgb) / 0.15);
+    overflow: hidden;
+  }
+
+  .aj-claimed__fill {
+    height: 100%;
+    border-radius: inherit;
+    background: rgb(var(--color-foreground-rgb));
+    transition: width 0.4s ease;
+  }
+
+  .aj-claimed__text {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0.4rem 0 0;
+    font-size: 0.875rem;
+  }
+
+  .aj-claimed__remaining {
+    opacity: 0.7;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aj-claimed__fill {
+      transition: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "AJ Daily Deal",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Shows whichever daily_deal metaobject entry is active right now. Hidden on the storefront when nothing is scheduled."
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "text",
+      "id": "default_headline",
+      "label": "Default headline",
+      "default": "Today's deal",
+      "info": "Used when the metaobject entry has no headline of its own."
+    },
+    {
+      "type": "header",
+      "content": "Countdown"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_countdown",
+      "label": "Show countdown",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "countdown_heading",
+      "label": "Countdown label",
+      "default": "Deal ends in"
+    },
+    {
+      "type": "checkbox",
+      "id": "reload_on_expire",
+      "label": "Reload when the deal ends",
+      "default": true,
+      "info": "Refreshes 5 seconds after the clock hits zero so the next deal loads."
+    },
+    {
+      "type": "header",
+      "content": "Claimed bar"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_claimed",
+      "label": "Show % claimed",
+      "default": true,
+      "info": "Calculated from real inventory against the units allocated on the metaobject. Hidden automatically when the product does not track inventory."
+    },
+    {
+      "type": "checkbox",
+      "id": "use_floor",
+      "label": "Use a minimum displayed percentage",
+      "default": false,
+      "info": "Keeps a brand-new deal from showing 0%. This makes the low end cosmetic rather than literal — leave it off if you want the bar to be strictly accurate."
+    },
+    {
+      "type": "range",
+      "id": "floor_percent",
+      "label": "Minimum shown",
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "%",
+      "default": 15,
+      "visible_if": "{{ section.settings.use_floor }}"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    }
+  ],
+  "presets": [
+    {
+      "name": "AJ Daily Deal"
+    }
+  ]
+}
+{% endschema %}
