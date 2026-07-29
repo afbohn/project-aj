@@ -281,6 +281,15 @@
     margin-block-end: var(--padding-md, 1.5rem);
   }
 
+  /* The `hidden` attribute is how this component toggles its three states
+     (fallback / live clock / expired), but the UA rule for [hidden] is a bare
+     attribute selector and loses to any class rule that sets `display`. The
+     flex rules below would otherwise leak the placeholder 00:00:00 through
+     before the first tick — and permanently if the JS never loads. */
+  .aj-countdown [hidden] {
+    display: none !important;
+  }
+
   .aj-countdown__heading {
     margin: 0 0 0.4rem;
     font-size: 0.8125rem;
