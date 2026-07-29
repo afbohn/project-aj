@@ -29,12 +29,13 @@
       "settings": {
         "collection": "all",
         "heading": "Add these to your order",
-        "subheading": "Ships together — one order, one delivery.",
+        "subheading": "Popular with today's deal.",
         "color_scheme": "scheme-1",
         "max_products": 4,
         "columns": 4,
         "padding-block-start": 16,
-        "padding-block-end": 48
+        "padding-block-end": 48,
+        "show_vendor": true
       }
     },
     "hero_jVaWmY": {

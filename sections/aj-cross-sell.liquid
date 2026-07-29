@@ -15,6 +15,12 @@
 
   Excludes whatever product is already in context (the deal, or the PDP being
   viewed), so the strip never suggests the thing already being bought.
+
+  DO NOT reintroduce any "ships together" / "one delivery" copy here. Every
+  Collective supplier fulfils its own items, so a cart mixing vendors arrives
+  as separate parcels on separate days. Promising a single delivery would be
+  false for most multi-item orders. The per-item "Ships from <vendor>" line
+  exists to set that expectation before the order, not after it.
 {%- endcomment -%}
 
 {%- liquid
@@ -99,6 +105,10 @@
                 <s class="aj-cross__compare">{{ item_variant.compare_at_price | money }}</s>
               {%- endif -%}
             </p>
+
+            {%- if section.settings.show_vendor and item.vendor != blank -%}
+              <p class="aj-cross__vendor">Ships from {{ item.vendor | escape }}</p>
+            {%- endif -%}
 
             {%- if item.variants.size == 1 -%}
               {%- form 'product', item, class: 'aj-cross__form' -%}
@@ -194,6 +204,12 @@
     opacity: 0.6;
   }
 
+  .aj-cross__vendor {
+    margin: 0;
+    font-size: 0.8125rem;
+    opacity: 0.7;
+  }
+
   .aj-cross__button {
     width: 100%;
     /* Pin the action to the bottom so buttons line up across cards of
@@ -231,7 +247,15 @@
       "type": "text",
       "id": "subheading",
       "label": "Subheading",
-      "default": "Ships together — one order, one delivery."
+      "default": "Popular with today's deal.",
+      "info": "Do not promise combined shipping here. Each Collective supplier ships its own items, so a mixed cart arrives as separate parcels."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "label": "Show \"Ships from\" per product",
+      "default": true,
+      "info": "Sets the expectation that items from different suppliers arrive separately."
     },
     {
       "type": "color_scheme",
