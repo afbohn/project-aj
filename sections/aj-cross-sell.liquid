@@ -1,0 +1,291 @@
+{%- comment -%}
+  AJ Cross-sell — curated attachments to raise order value.
+
+  Deliberately merchant-picked (a collection) rather than algorithmic. On a
+  loss-leader model the deal itself makes little or no margin, so the whole
+  economics depend on what rides along with it. Shopify's related-product
+  recommendations optimise for relevance, which is not the same as optimising
+  for margin — an algorithm will happily attach another break-even item.
+  Curating the collection lets you put the high-margin things here on purpose.
+
+  Products with a single variant get a real add-to-cart, so attaching is one
+  click and never leaves the page context. Anything with options links to its
+  product page instead, because silently picking a size or colour for someone
+  is worse than the extra click.
+
+  Excludes whatever product is already in context (the deal, or the PDP being
+  viewed), so the strip never suggests the thing already being bought.
+{%- endcomment -%}
+
+{%- liquid
+  assign source = section.settings.collection
+  assign limit = section.settings.max_products | plus: 0
+
+  comment
+    `closest.product` resolves on a product page; on the homepage it is nil and
+    nothing gets excluded, which is correct.
+  endcomment
+  assign exclude_id = closest.product.id
+
+  comment
+    Count what will actually render BEFORE opening any markup, so an empty or
+    fully-excluded collection produces no stray heading or padding.
+  endcomment
+  assign renderable = 0
+  for candidate in source.products limit: 50
+    unless candidate.id == exclude_id or candidate.available == false
+      assign renderable = renderable | plus: 1
+    endunless
+  endfor
+-%}
+
+{%- if renderable > 0 -%}
+  <div
+    class="aj-cross color-{{ section.settings.color_scheme }} section spacing-style"
+    style="{% render 'spacing-style', settings: section.settings %}"
+  >
+    <div class="page-width">
+      {%- if section.settings.heading != blank -%}
+        <h2 class="aj-cross__heading">{{ section.settings.heading | escape }}</h2>
+      {%- endif -%}
+
+      {%- if section.settings.subheading != blank -%}
+        <p class="aj-cross__subheading">{{ section.settings.subheading | escape }}</p>
+      {%- endif -%}
+
+      <ul
+        class="aj-cross__grid"
+        role="list"
+        style="--aj-cross-columns: {{ section.settings.columns }};"
+      >
+        {%- assign shown = 0 -%}
+        {%- for item in source.products limit: 50 -%}
+          {%- if item.id == exclude_id or item.available == false -%}
+            {%- continue -%}
+          {%- endif -%}
+          {%- if shown >= limit -%}
+            {%- break -%}
+          {%- endif -%}
+          {%- assign shown = shown | plus: 1 -%}
+
+          {%- liquid
+            assign item_variant = item.selected_or_first_available_variant
+            assign item_on_sale = false
+            if item_variant.compare_at_price > item_variant.price
+              assign item_on_sale = true
+            endif
+          -%}
+
+          <li class="aj-cross__item">
+            <a class="aj-cross__link" href="{{ item.url }}">
+              {%- if item.featured_media -%}
+                {{
+                  item.featured_media
+                  | image_url: width: 600
+                  | image_tag:
+                    loading: 'lazy',
+                    sizes: '(min-width: 750px) 25vw, 45vw',
+                    widths: '200, 300, 400, 600',
+                    class: 'aj-cross__image',
+                    alt: item.featured_media.alt
+                }}
+              {%- endif -%}
+              <span class="aj-cross__title">{{ item.title | escape }}</span>
+            </a>
+
+            <p class="aj-cross__price">
+              <span>{{ item_variant.price | money }}</span>
+              {%- if item_on_sale -%}
+                <s class="aj-cross__compare">{{ item_variant.compare_at_price | money }}</s>
+              {%- endif -%}
+            </p>
+
+            {%- if item.variants.size == 1 -%}
+              {%- form 'product', item, class: 'aj-cross__form' -%}
+                <input type="hidden" name="id" value="{{ item_variant.id }}">
+                <button type="submit" class="button button-secondary aj-cross__button">
+                  {{ 'actions.add_to_cart' | t }}
+                </button>
+              {%- endform -%}
+            {%- else -%}
+              <a href="{{ item.url }}" class="button button-secondary aj-cross__button">
+                {{ 'actions.choose' | t }}
+              </a>
+            {%- endif -%}
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  </div>
+{%- elsif request.design_mode -%}
+  <div class="aj-cross aj-cross--empty page-width">
+    <p>
+      <strong>Cross-sell has nothing to show.</strong>
+      Pick a collection in this section's settings. Products that are sold out,
+      or that are already being viewed, are skipped automatically.
+    </p>
+  </div>
+{%- endif -%}
+
+{% stylesheet %}
+  .aj-cross__heading {
+    margin: 0 0 0.25rem;
+  }
+
+  .aj-cross__subheading {
+    margin: 0 0 var(--padding-md, 1.5rem);
+    opacity: 0.75;
+  }
+
+  .aj-cross__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--padding-md, 1.5rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media screen and (min-width: 750px) {
+    .aj-cross__grid {
+      grid-template-columns: repeat(var(--aj-cross-columns, 4), minmax(0, 1fr));
+    }
+  }
+
+  .aj-cross__item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .aj-cross__link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .aj-cross__image {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .aj-cross__title {
+    /* Two lines max keeps the cards on a shared baseline; the full title is
+       one tap away on the product page. */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .aj-cross__price {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .aj-cross__compare {
+    font-weight: 400;
+    opacity: 0.6;
+  }
+
+  .aj-cross__button {
+    width: 100%;
+    /* Pin the action to the bottom so buttons line up across cards of
+       differing title length. */
+    margin-block-start: auto;
+  }
+
+  .aj-cross--empty {
+    padding-block: var(--padding-xl, 3rem);
+    text-align: center;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "AJ Cross-sell",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Curated add-ons to attach to an order. Put your higher-margin products in the chosen collection — on a loss-leader deal this is where the margin comes from."
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Add these to your order"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Ships together — one order, one delivery."
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "range",
+      "id": "max_products",
+      "label": "Products shown",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "Columns on desktop",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    }
+  ],
+  "presets": [
+    {
+      "name": "AJ Cross-sell"
+    }
+  ]
+}
+{% endschema %}

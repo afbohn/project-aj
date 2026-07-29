@@ -24,6 +24,19 @@
         "padding-block-end": 48
       }
     },
+    "aj_cross_sell": {
+      "type": "aj-cross-sell",
+      "settings": {
+        "collection": "all",
+        "heading": "Add these to your order",
+        "subheading": "Ships together — one order, one delivery.",
+        "color_scheme": "scheme-1",
+        "max_products": 4,
+        "columns": 4,
+        "padding-block-start": 16,
+        "padding-block-end": 48
+      }
+    },
     "hero_jVaWmY": {
       "type": "hero",
       "blocks": {
@@ -292,6 +305,7 @@
   },
   "order": [
     "aj_daily_deal",
+    "aj_cross_sell",
     "hero_jVaWmY",
     "product_list_fa6P9H"
   ]
