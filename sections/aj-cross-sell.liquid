@@ -8,10 +8,10 @@
   for margin — an algorithm will happily attach another break-even item.
   Curating the collection lets you put the high-margin things here on purpose.
 
-  Products with a single variant get a real add-to-cart, so attaching is one
-  click and never leaves the page context. Anything with options links to its
-  product page instead, because silently picking a size or colour for someone
-  is worse than the extra click.
+  Adding is Horizon's own quick-add, so these cards behave exactly like every
+  other product card on the site. A second add-to-cart pattern inside a grid
+  reads as a bug even when it works. The purpose-built variant picker lives in
+  the cart instead — that is the one place worth its own control.
 
   Excludes whatever product is already in context (the deal, or the PDP being
   viewed), so the strip never suggests the thing already being bought.
@@ -22,6 +22,9 @@
   false for most multi-item orders. The per-item "Ships from <vendor>" line
   exists to set that expectation before the order, not after it.
 {%- endcomment -%}
+
+{% render 'quick-add-styles' %}
+{% render 'quick-add-modal-styles' %}
 
 {%- liquid
   assign source = section.settings.collection
@@ -110,18 +113,20 @@
               <p class="aj-cross__vendor">Ships from {{ item.vendor | escape }}</p>
             {%- endif -%}
 
-            {%- if item.variants.size == 1 -%}
-              {%- form 'product', item, class: 'aj-cross__form' -%}
-                <input type="hidden" name="id" value="{{ item_variant.id }}">
-                <button type="submit" class="button button-secondary aj-cross__button">
-                  {{ 'actions.add_to_cart' | t }}
-                </button>
-              {%- endform -%}
-            {%- else -%}
-              <a href="{{ item.url }}" class="button button-secondary aj-cross__button">
-                {{ 'actions.choose' | t }}
-              </a>
-            {%- endif -%}
+            {%- comment -%}
+              Horizon's own quick-add rather than a bespoke button. It adds
+              single-variant products in place, and for single-option products
+              flips "Choose" to "Add" once a swatch resolves the variant. Using
+              it here means these cards behave exactly like every other product
+              card on the site — a second add-to-cart pattern in a grid reads
+              as a bug even when it works.
+
+              The cart gets the bespoke picker instead, because that is the one
+              place worth a purpose-built control.
+            {%- endcomment -%}
+            <div class="aj-cross__action">
+              {% render 'quick-add', product: item, section_id: section.id %}
+            </div>
           </li>
         {%- endfor -%}
       </ul>
@@ -210,9 +215,8 @@
     opacity: 0.7;
   }
 
-  .aj-cross__button {
-    width: 100%;
-    /* Pin the action to the bottom so buttons line up across cards of
+  .aj-cross__action {
+    /* Pin the action to the bottom so controls line up across cards of
        differing title length. */
     margin-block-start: auto;
   }

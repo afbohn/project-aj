@@ -137,3 +137,45 @@
     transition: none;
   }
 }
+
+/* Variant picker ----------------------------------------------------------- */
+
+.aj-cart-upsell__variants {
+  display: block;
+  margin-block-start: 0.15rem;
+}
+
+.aj-cart-upsell__select {
+  width: 100%;
+  max-width: 100%;
+  padding: 0.25em 1.6em 0.25em 0.45em;
+  border: 1px solid rgb(var(--color-foreground-rgb) / 0.3);
+  border-radius: 3px;
+  background-color: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  /* Native select arrow varies wildly across platforms and the default is too
+     large for a 13px control in a drawer, so draw our own. */
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+                    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 0.85em) 0.62em, calc(100% - 0.55em) 0.62em;
+  background-size: 0.3em 0.3em, 0.3em 0.3em;
+  background-repeat: no-repeat;
+}
+
+.aj-cart-upsell__select:focus-visible {
+  outline: 2px solid rgb(var(--color-foreground-rgb));
+  outline-offset: 1px;
+}
+
+.aj-cart-upsell__form-component {
+  display: block;
+}
+
+.aj-cart-upsell__add[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

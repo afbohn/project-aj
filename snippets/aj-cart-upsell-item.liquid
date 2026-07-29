@@ -1,18 +1,29 @@
 {% doc %}
   One suggestion row inside the cart upsell.
 
-  Single-variant products get a real add button that posts straight to
-  /cart/add — the whole value of a cart upsell is that adding costs nothing,
-  and sending someone to a product page at this point loses most of them.
-  Anything with options links out instead, because silently choosing a size or
-  colour on a shopper's behalf produces returns, and returns on a dropshipped
-  order are expensive.
+  Everything here can be added without leaving the cart, including
+  multi-variant products. That is the point: the cart is where this store
+  makes its margin, and sending someone to a product page to pick a colour
+  loses most of them.
+
+  The add itself is Horizon's `product-form-component`. It intercepts the
+  submit, posts to the cart, requests the cart sections back and morphs them
+  in, so the drawer updates in place. It takes the variant from the hidden
+  input marked `ref="variantId"` — which is all <aj-variant-select> writes to.
+  No parallel cart plumbing.
+
+  Variants are listed in one <select> rather than one control per option.
+  A row in a drawer has no room for two dropdowns, and every product here has
+  a small enough variant count to enumerate. Unavailable variants stay in the
+  list but are disabled, so a shopper can see the colour exists and is sold
+  out rather than wondering why it is missing.
 
   @param {object} item - The product to suggest.
 {% enddoc %}
 
 {%- liquid
-  assign suggest_variant = item.selected_or_first_available_variant
+  assign selected = item.selected_or_first_available_variant
+  assign form_id = 'AjUpsell-' | append: item.id
   assign single = false
   if item.variants.size == 1
     assign single = true
@@ -20,8 +31,11 @@
 -%}
 
 {{ 'aj-cart-upsell.css' | asset_url | stylesheet_tag }}
+{%- unless single -%}
+  <script src="{{ 'aj-variant-select.js' | asset_url }}" type="module" fetchpriority="low"></script>
+{%- endunless -%}
 
-<li class="aj-cart-upsell__item">
+<li class="aj-cart-upsell__item" data-aj-upsell-row>
   <a class="aj-cart-upsell__media" href="{{ item.url }}" tabindex="-1" aria-hidden="true">
     {%- if item.featured_media -%}
       {{
@@ -39,32 +53,73 @@
 
   <div class="aj-cart-upsell__body">
     <a class="aj-cart-upsell__title" href="{{ item.url }}">{{ item.title | escape }}</a>
+
     <p class="aj-cart-upsell__price">
-      <span>{{ suggest_variant.price | money }}</span>
-      {%- if suggest_variant.compare_at_price > suggest_variant.price -%}
-        <s>{{ suggest_variant.compare_at_price | money }}</s>
+      <span data-aj-upsell-price>{{ selected.price | money }}</span>
+      {%- if selected.compare_at_price > selected.price -%}
+        <s>{{ selected.compare_at_price | money }}</s>
       {%- endif -%}
     </p>
+
+    {%- unless single -%}
+      <aj-variant-select class="aj-cart-upsell__variants">
+        <label class="visually-hidden" for="{{ form_id }}-variant">
+          Option for {{ item.title | escape }}
+        </label>
+        <select
+          id="{{ form_id }}-variant"
+          class="aj-cart-upsell__select"
+          aria-describedby="{{ form_id }}-status"
+        >
+          {%- for v in item.variants -%}
+            <option
+              value="{{ v.id }}"
+              data-price="{{ v.price | money }}"
+              data-available="{{ v.available }}"
+              {% if v.id == selected.id %}selected{% endif %}
+              {% unless v.available %}disabled{% endunless %}
+            >
+              {{ v.title | escape }}
+              {%- unless v.available %} — sold out{% endunless -%}
+            </option>
+          {%- endfor -%}
+        </select>
+      </aj-variant-select>
+    {%- endunless -%}
   </div>
 
-  {%- if single -%}
-    {%- form 'product', item, class: 'aj-cart-upsell__form' -%}
-      <input type="hidden" name="id" value="{{ suggest_variant.id }}">
+  <product-form-component
+    data-section-id="{{ section.id | default: 'aj-cart-upsell' }}"
+    data-product-id="{{ item.id }}"
+    on:submit="/handleSubmit"
+    class="aj-cart-upsell__form-component"
+  >
+    <div
+      class="visually-hidden"
+      id="{{ form_id }}-status"
+      aria-live="assertive"
+      role="status"
+      aria-atomic="true"
+      ref="liveRegion"
+    ></div>
+
+    {%- form 'product', item, id: form_id, novalidate: 'novalidate', data-type: 'add-to-cart-form' -%}
+      <input
+        type="hidden"
+        name="id"
+        ref="variantId"
+        value="{{ selected.id }}"
+        {% unless selected.available %}disabled{% endunless %}
+      >
+      <input type="hidden" name="quantity" value="1">
       <button
         type="submit"
         class="aj-cart-upsell__add"
+        {% unless selected.available %}disabled{% endunless %}
         aria-label="{{ 'actions.add_to_cart' | t }}: {{ item.title | escape }}"
       >
-        {{ 'actions.add_to_cart' | t }}
+        {{ 'actions.add' | t | default: 'Add' }}
       </button>
     {%- endform -%}
-  {%- else -%}
-    <a
-      class="aj-cart-upsell__add aj-cart-upsell__add--link"
-      href="{{ item.url }}"
-      aria-label="{{ 'actions.choose' | t }}: {{ item.title | escape }}"
-    >
-      {{ 'actions.choose' | t }}
-    </a>
-  {%- endif -%}
+  </product-form-component>
 </li>
