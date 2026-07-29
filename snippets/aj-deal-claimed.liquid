@@ -1,39 +1,48 @@
 {% doc %}
   Renders a "X% claimed" progress bar for a daily deal, from real inventory.
 
-  The math is deliberately honest and has no client-side animation or random
-  seeding:
+  There are two honest ways to count what has been claimed, and which one
+  applies depends on who is holding the stock.
 
-      claimed = units_allocated - (inventory still on hand)
+  DROPSHIP / COLLECTIVE (the normal case here). The supplier holds the
+  inventory and it is enormous relative to the deal — a Collective product on
+  this store carries 14,357 units. Inventory does not start at our allocation,
+  so we snapshot it when the deal opens and measure the delta:
+
+      claimed = starting_inventory - inventory on hand now
       percent = claimed / units_allocated
 
-  `units_allocated` is the merchant's own cap for the deal, set on the
-  metaobject — not the supplier's total stock. That is the number that makes
-  the claim truthful: we are saying "N units were set aside for this deal and
-  this many are gone", which is a fact we can actually stand behind.
+  That delta is real units sold while the deal was running.
+
+  SELF-STOCKED. When no snapshot is recorded we assume the allocation IS the
+  stock, which is true if you hold it yourself:
+
+      claimed = units_allocated - inventory on hand now
 
   Renders NOTHING when it cannot be truthful:
     * no allocation set
-    * the product does not track inventory in Shopify (common for dropship /
-      Collective items, where the supplier holds the stock)
+    * the product does not track inventory in Shopify
 
-  In those cases the caller falls back to whatever else it wants to show.
+  A caveat worth knowing: the supplier can restock mid-deal, which would make
+  the delta understate what sold. It cannot overstate it, so the bar errs
+  toward showing less urgency than is real — the safe direction.
 
   @param {object} product - The deal product.
-  @param {number} units_allocated - Units set aside for this deal.
-  @param {number} [floor_percent] - Never display below this. Off by default;
-    see the note in the section schema before turning it on.
+  @param {number} units_allocated - Units committed to this deal. The divisor.
+  @param {number} [starting_inventory] - Inventory on hand when the deal opened.
+  @param {number} [floor_percent] - Never display below this. Off by default.
 {% enddoc %}
 
 {%- liquid
   assign allocated = units_allocated | plus: 0
+  assign snapshot = starting_inventory | plus: 0
   assign tracked = false
   assign remaining = 0
 
   comment
-    Sum across variants. A variant with inventory_management unset is untracked
-    (Shopify reports inventory_quantity 0 for those, which would otherwise read
-    as "sold out" and inflate the bar to 100%).
+    Sum across variants. A variant with inventory_management unset is untracked,
+    and Shopify reports inventory_quantity 0 for those — counting it would read
+    as "sold out" and wrongly push the bar to 100%.
   endcomment
   for variant in product.variants
     if variant.inventory_management == 'shopify'
@@ -44,12 +53,17 @@
     endif
   endfor
 
-  assign claimed = allocated | minus: remaining
+  if snapshot > 0
+    assign claimed = snapshot | minus: remaining
+  else
+    assign claimed = allocated | minus: remaining
+  endif
+
+  comment
+    Negative means stock went UP since the snapshot (a supplier restock), or the
+    allocation is stale. Report nothing sold rather than a negative bar.
+  endcomment
   if claimed < 0
-    comment
-      On-hand exceeds the allocation — the allocation is stale or was raised.
-      Report nothing sold rather than a negative bar.
-    endcomment
     assign claimed = 0
   endif
 
@@ -59,6 +73,16 @@
     if percent > 100
       assign percent = 100
     endif
+  endif
+
+  comment
+    Units left in OUR allocation — not the supplier's shelf. On a dropship deal
+    "Only 14,357 left" is absurd; "Only 12 left" is the number that is both
+    true and meaningful, because the allocation is what we will honour.
+  endcomment
+  assign units_left = allocated | minus: claimed
+  if units_left < 0
+    assign units_left = 0
   endif
 
   assign display_percent = percent
@@ -86,8 +110,8 @@
     </div>
     <p class="aj-claimed__text">
       <strong>{{ display_percent }}% claimed</strong>
-      {%- if remaining > 0 and remaining <= 25 -%}
-        <span class="aj-claimed__remaining">Only {{ remaining }} left</span>
+      {%- if units_left > 0 and units_left <= 25 -%}
+        <span class="aj-claimed__remaining">Only {{ units_left }} left</span>
       {%- endif -%}
     </p>
   </div>

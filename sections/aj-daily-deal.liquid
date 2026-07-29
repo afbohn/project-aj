@@ -8,11 +8,17 @@
 
   Requires a `daily_deal` metaobject definition with these fields:
 
-    product          product_reference   the deal item
-    starts_at        date_time           when it goes live (UTC)
-    ends_at          date_time           when it stops (UTC) — drives the clock
-    units_allocated  number_integer      units set aside; the % claimed divisor
-    headline         single_line_text    optional eyebrow, e.g. "Today only"
+    product             product_reference  the deal item
+    starts_at           date_time          when it goes live
+    ends_at             date_time          when it stops — drives the clock
+    units_allocated     number_integer     units committed; the % claimed divisor
+    starting_inventory  number_integer     stock on hand at open; see below
+    headline            single_line_text   optional eyebrow, e.g. "Today only"
+
+  `starting_inventory` is what makes the claimed bar work on dropshipped
+  products. The supplier holds the stock and it dwarfs any allocation we make,
+  so the bar measures the drop from this snapshot rather than assuming we
+  started with our allocation on the shelf.
 
   Renders nothing on the storefront when no deal is active, so an empty queue
   degrades to an absent section rather than a broken one. In the theme editor it
@@ -122,6 +128,7 @@
           {% render 'aj-deal-claimed',
             product: product,
             units_allocated: deal.units_allocated.value,
+            starting_inventory: deal.starting_inventory.value,
             floor_percent: floor
           %}
         {%- endif -%}
