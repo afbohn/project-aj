@@ -262,6 +262,11 @@ def cmd_start(args):
     # never on deal.
     price_snapshot = json.dumps({str(r["id"]): str(r["regular"]) for r in rows})
 
+    # The lowest price the deal actually ran at. Kept so the past-deals list
+    # can show what was on offer after the product has gone back to full price
+    # — by then nothing on the product itself remembers.
+    deal_price = min(r["deal"] for r in rows)
+
     fields = [
         ("product", product["id"]),
         ("starts_at", starts.strftime(fmt)),
@@ -269,6 +274,7 @@ def cmd_start(args):
         ("units_allocated", str(args.units)),
         ("starting_inventory", str(snapshot)),
         ("price_snapshot", price_snapshot),
+        ("deal_price", str(deal_price)),
     ]
     if args.headline:
         fields.append(("headline", args.headline))
@@ -481,18 +487,55 @@ def cmd_sweep(args):
     now = datetime.now(timezone.utc)
     swept = 0
 
+    def window(fields):
+        return (
+            datetime.fromisoformat(fields["starts_at"].replace("Z", "+00:00")),
+            datetime.fromisoformat(fields["ends_at"].replace("Z", "+00:00")),
+        )
+
+    # Products with a deal running RIGHT NOW must not be touched. Without this
+    # guard an old expired entry restores its own snapshot over the top of the
+    # current deal — Monday's finished deal quietly undoing Friday's live one,
+    # on a schedule, with nobody watching. Observed in testing.
+    live_products = set()
+    latest_expired = {}
     for node in data["metaobjects"]["nodes"]:
+        f = {x["key"]: x["value"] for x in node["fields"]}
+        if not f.get("product"):
+            continue
+        try:
+            starts, ends = window(f)
+        except (KeyError, ValueError):
+            continue
+        if starts <= now < ends:
+            live_products.add(f["product"])
+        elif ends <= now:
+            # Keyed on starts_at, not ends_at: the deal that most recently
+            # STARTED is the one whose repricing is currently in effect, and so
+            # the only one whose snapshot describes the prices to restore. An
+            # earlier deal can carry a later ends_at once a window is edited,
+            # and picking by ends_at then selects a stale entry and sweeps
+            # nothing. Observed in testing.
+            prev = latest_expired.get(f["product"])
+            if prev is None or starts > prev[0]:
+                latest_expired[f["product"]] = (starts, node)
+
+    candidates = [node for gid, (_, node) in latest_expired.items()
+                  if gid not in live_products]
+
+    skipped = len(latest_expired) - len(candidates)
+    if skipped:
+        print(f"Skipping {skipped} product(s) with a deal currently running.")
+
+    for node in candidates:
         f = {x["key"]: x["value"] for x in node["fields"]}
         raw = f.get("price_snapshot")
         if not raw:
             continue
         try:
-            ends = datetime.fromisoformat(f["ends_at"].replace("Z", "+00:00"))
             snapshot = json.loads(raw)
-        except (KeyError, ValueError, json.JSONDecodeError):
+        except json.JSONDecodeError:
             continue
-        if ends > now:
-            continue  # still running
 
         product = gql("""
         {

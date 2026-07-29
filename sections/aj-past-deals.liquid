@@ -1,0 +1,303 @@
+{%- comment -%}
+  AJ Past Deals — what you missed.
+
+  Two jobs on a store whose whole proposition is "come back tomorrow".
+
+  PROOF. A first-time visitor has no way to know whether the daily deal is a
+  real daily rhythm or a banner that has sat there for a month. A visible run
+  of previous deals, each with a date, answers that without claiming anything.
+
+  RETURN VISITS. Showing a genuinely good deal that has closed is the honest
+  version of urgency — nothing is being withheld or faked, the offer simply
+  happened and the next one will too.
+
+  Deals are marked ENDED and priced at their CURRENT price, with the old deal
+  price shown struck through as history. That ordering matters: the live price
+  is the one a shopper can act on, and presenting an expired price as though it
+  were purchasable would be a bait-and-switch.
+
+  Sorting is done by hand because Liquid's `sort` cannot reach a metaobject
+  field, so entries are packed into "epoch^index" strings, sorted as text
+  (fixed-width epochs sort correctly), and reversed for newest-first.
+{%- endcomment -%}
+
+{%- liquid
+  assign now = 'now' | date: '%s' | plus: 0
+  assign limit = section.settings.max_deals | plus: 0
+-%}
+
+{%- capture packed -%}
+  {%- for entry in shop.metaobjects.daily_deal.values -%}
+    {%- assign ends = entry.ends_at.value | date: '%s' | plus: 0 -%}
+    {%- if ends <= now and entry.product.value != blank -%}
+      {{ ends }}^{{ forloop.index0 }}~
+    {%- endif -%}
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- liquid
+  assign packed_list = packed | split: '~'
+  assign sorted = packed_list | sort | reverse
+  assign shown_count = 0
+-%}
+
+{%- if sorted.size > 0 -%}
+  <div
+    class="aj-past color-{{ section.settings.color_scheme }} section spacing-style"
+    style="{% render 'spacing-style', settings: section.settings %}"
+  >
+    <div class="page-width">
+      {%- if section.settings.heading != blank -%}
+        <h2 class="aj-past__heading">{{ section.settings.heading | escape }}</h2>
+      {%- endif -%}
+      {%- if section.settings.subheading != blank -%}
+        <p class="aj-past__subheading">{{ section.settings.subheading | escape }}</p>
+      {%- endif -%}
+
+      <ul class="aj-past__grid" role="list">
+        {%- for key in sorted -%}
+          {%- if shown_count >= limit -%}
+            {%- break -%}
+          {%- endif -%}
+          {%- assign wanted = key | split: '^' | last | plus: 0 -%}
+
+          {%- for entry in shop.metaobjects.daily_deal.values -%}
+            {%- unless forloop.index0 == wanted -%}
+              {%- continue -%}
+            {%- endunless -%}
+
+            {%- liquid
+              assign past_product = entry.product.value
+              assign past_price = entry.deal_price.value
+              assign current_variant = past_product.selected_or_first_available_variant
+              assign shown_count = shown_count | plus: 1
+            -%}
+
+            <li class="aj-past__item">
+              <a class="aj-past__link" href="{{ past_product.url }}">
+                <span class="aj-past__media">
+                  {%- if past_product.featured_media -%}
+                    {{
+                      past_product.featured_media
+                      | image_url: width: 500
+                      | image_tag:
+                        loading: 'lazy',
+                        sizes: '(min-width: 750px) 25vw, 45vw',
+                        widths: '200, 300, 400, 500',
+                        class: 'aj-past__image',
+                        alt: past_product.featured_media.alt
+                    }}
+                  {%- endif -%}
+                  <span class="aj-past__stamp">Ended</span>
+                </span>
+                <span class="aj-past__title">{{ past_product.title | escape }}</span>
+              </a>
+
+              <p class="aj-past__meta">
+                {%- comment -%}
+                  Current price first and unstruck — it is the only one anyone
+                  can actually pay today. The deal price is struck through
+                  because it is over, which is the opposite of the usual
+                  strikethrough convention and deliberately so.
+                {%- endcomment -%}
+                <span class="aj-past__now">{{ current_variant.price | money }}</span>
+                {%- if past_price != blank -%}
+                  <s class="aj-past__was">was {{ past_price | times: 100 | money }}</s>
+                {%- endif -%}
+              </p>
+
+              <p class="aj-past__date">
+                {{ entry.ends_at.value | date: '%b %-d' }}
+              </p>
+            </li>
+          {%- endfor -%}
+        {%- endfor -%}
+      </ul>
+    </div>
+  </div>
+{%- elsif request.design_mode -%}
+  <div class="aj-past aj-past--empty page-width">
+    <p>
+      <strong>No deals have finished yet.</strong>
+      Past deals appear here automatically once their end time passes.
+    </p>
+  </div>
+{%- endif -%}
+
+{% stylesheet %}
+  .aj-past__heading {
+    margin: 0 0 0.25rem;
+  }
+
+  .aj-past__subheading {
+    margin: 0 0 var(--padding-md, 1.5rem);
+    opacity: 0.75;
+  }
+
+  .aj-past__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--padding-md, 1.5rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media screen and (min-width: 750px) {
+    .aj-past__grid {
+      grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    }
+  }
+
+  .aj-past__item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .aj-past__link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .aj-past__media {
+    position: relative;
+    display: block;
+  }
+
+  .aj-past__image {
+    width: 100%;
+    height: auto;
+    display: block;
+    /* Past deals are history, not merchandise. Muting them keeps the live
+       deal above unmistakably the thing to act on. */
+    opacity: 0.72;
+  }
+
+  .aj-past__link:hover .aj-past__image,
+  .aj-past__link:focus-visible .aj-past__image {
+    opacity: 1;
+  }
+
+  .aj-past__stamp {
+    position: absolute;
+    inset-block-start: 0.5rem;
+    inset-inline-start: 0.5rem;
+    padding: 0.15em 0.5em;
+    border-radius: 2px;
+    background: rgb(var(--color-foreground-rgb) / 0.82);
+    color: rgb(var(--color-background-rgb));
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .aj-past__title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 0.9375rem;
+  }
+
+  .aj-past__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem;
+    margin: 0;
+    font-size: 0.875rem;
+  }
+
+  .aj-past__now {
+    font-weight: 600;
+  }
+
+  .aj-past__was {
+    opacity: 0.6;
+  }
+
+  .aj-past__date {
+    margin: 0;
+    font-size: 0.75rem;
+    opacity: 0.6;
+  }
+
+  .aj-past--empty {
+    padding-block: var(--padding-xl, 3rem);
+    text-align: center;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "AJ Past Deals",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Shows recently finished deals, newest first. Hidden until at least one deal has ended."
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Recent deals"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "A new one every day. Here's what you missed."
+    },
+    {
+      "type": "range",
+      "id": "max_deals",
+      "label": "Deals shown",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    }
+  ],
+  "presets": [
+    {
+      "name": "AJ Past Deals"
+    }
+  ]
+}
+{% endschema %}

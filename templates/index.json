@@ -319,12 +319,24 @@
         "padding-block-start": 32,
         "padding-block-end": 32
       }
+    },
+    "aj_past_deals": {
+      "type": "aj-past-deals",
+      "settings": {
+        "heading": "Recent deals",
+        "subheading": "A new one every day. Here's what you missed.",
+        "max_deals": 4,
+        "color_scheme": "scheme-1",
+        "padding-block-start": 32,
+        "padding-block-end": 48
+      }
     }
   },
   "order": [
     "aj_daily_deal",
     "aj_shop_by_price",
     "aj_cross_sell",
+    "aj_past_deals",
     "hero_jVaWmY",
     "product_list_fa6P9H"
   ]
