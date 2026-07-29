@@ -35,12 +35,16 @@ Auth comes from the Shopify CLI, so there are no tokens in this file:
 
 import argparse
 import json
+import os
 import subprocess
 import sys
+import urllib.error
+import urllib.request
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, ROUND_CEILING, ROUND_HALF_UP
 
 STORE = "9wgxci-qu.myshopify.com"
+API_VERSION = "2025-07"
 
 CENTS = Decimal("0.01")
 
@@ -50,12 +54,17 @@ CENTS = Decimal("0.01")
 # --------------------------------------------------------------------------
 
 def gql(query, mutation=False):
-    """Run a GraphQL operation through the Shopify CLI and return parsed JSON.
+    """Run a GraphQL operation and return parsed JSON.
 
-    The CLI prints progress chatter ("Loading stored store auth ...") before the
-    payload, so we slice from the first brace rather than parsing the whole
-    stream.
+    Two auth paths, because this runs in two very different places. Locally it
+    shells out to the Shopify CLI, so there is no token to manage. On a
+    schedule (GitHub Actions) there is no CLI login, so SHOPIFY_ADMIN_TOKEN is
+    used directly against the Admin API.
     """
+    token = os.environ.get("SHOPIFY_ADMIN_TOKEN")
+    if token:
+        return _gql_http(query, token)
+
     cmd = ["shopify", "store", "execute", "-s", STORE, "--json", "-q", query]
     if mutation:
         cmd.append("--allow-mutations")
@@ -70,6 +79,24 @@ def gql(query, mutation=False):
         return json.loads(out[out.index("{"):])
     except json.JSONDecodeError:
         sys.exit(f"Could not parse Shopify response:\n{out[:2000]}")
+
+
+def _gql_http(query, token):
+    """Direct Admin API call. Used when running unattended."""
+    req = urllib.request.Request(
+        f"https://{STORE}/admin/api/{API_VERSION}/graphql.json",
+        data=json.dumps({"query": query}).encode(),
+        headers={"X-Shopify-Access-Token": token, "Content-Type": "application/json"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            payload = json.loads(resp.read())
+    except urllib.error.URLError as exc:
+        sys.exit(f"Admin API request failed: {exc}")
+
+    if "errors" in payload:
+        sys.exit(f"Admin API returned errors: {payload['errors']}")
+    return payload.get("data", {})
 
 
 def fetch_product(handle):
@@ -227,17 +254,28 @@ def cmd_start(args):
     ends = starts + timedelta(hours=args.hours)
     fmt = "%Y-%m-%dT%H:%M:%SZ"
 
+    # Record exactly what each variant cost before the deal. Ending the deal
+    # replays this, rather than inferring the old price from compare_at_price.
+    # That inference breaks the moment compare-at is populated by anything
+    # other than us — enabling Collective's MSRP sync would do it — and an
+    # unattended sweep acting on that would raise prices on products that were
+    # never on deal.
+    price_snapshot = json.dumps({str(r["id"]): str(r["regular"]) for r in rows})
+
     fields = [
         ("product", product["id"]),
         ("starts_at", starts.strftime(fmt)),
         ("ends_at", ends.strftime(fmt)),
         ("units_allocated", str(args.units)),
         ("starting_inventory", str(snapshot)),
+        ("price_snapshot", price_snapshot),
     ]
     if args.headline:
         fields.append(("headline", args.headline))
 
-    field_gql = ", ".join('{ key: "%s", value: "%s" }' % (k, v) for k, v in fields)
+    field_gql = ", ".join(
+        '{ key: "%s", value: %s }' % (k, json.dumps(v)) for k, v in fields
+    )
     result = gql("""
     mutation {
       metaobjectCreate(metaobject: { type: "daily_deal", fields: [%s] }) {
@@ -259,8 +297,80 @@ def cmd_start(args):
           f"discounted price stays on the product.")
 
 
+def entries_for_product(product_gid):
+    """Every daily_deal entry pointing at this product, newest window last."""
+    data = gql("""
+    {
+      metaobjects(type: "daily_deal", first: 100) {
+        nodes { id handle fields { key value } }
+      }
+    }
+    """)
+    out = []
+    for node in data["metaobjects"]["nodes"]:
+        f = {x["key"]: x["value"] for x in node["fields"]}
+        if f.get("product") == product_gid:
+            out.append({"id": node["id"], "handle": node["handle"], "fields": f})
+    return out
+
+
+def restore_prices(product, snapshot):
+    """Put variant prices back and clear the strikethrough.
+
+    `snapshot` maps variant gid -> original price. Variants missing from it are
+    left alone: a variant added mid-deal was never repriced by us, so we have
+    no business writing to it.
+    """
+    targets = [
+        v for v in product["variants"]["nodes"]
+        if v["id"] in snapshot and (
+            v["price"] != snapshot[v["id"]] or v["compareAtPrice"] is not None
+        )
+    ]
+    if not targets:
+        return 0
+
+    updates = ",\n".join(
+        '{ id: "%s", price: "%s", compareAtPrice: null }' % (v["id"], snapshot[v["id"]])
+        for v in targets
+    )
+    result = gql("""
+    mutation {
+      productVariantsBulkUpdate(productId: "%s", variants: [%s]) {
+        userErrors { field message }
+      }
+    }
+    """ % (product["id"], updates), mutation=True)
+
+    errors = result["productVariantsBulkUpdate"]["userErrors"]
+    if errors:
+        sys.exit(f"Restore failed: {errors}")
+    return len(targets)
+
+
 def cmd_end(args):
     product = fetch_product(args.handle)
+
+    # Prefer the snapshot recorded at start. Fall back to compare_at_price only
+    # for deals started before snapshots existed.
+    snapshot = {}
+    for entry in entries_for_product(product["id"]):
+        raw = entry["fields"].get("price_snapshot")
+        if raw:
+            try:
+                snapshot = json.loads(raw)
+            except json.JSONDecodeError:
+                pass
+
+    if snapshot:
+        n = restore_prices(product, snapshot)
+        print(f"{product['title']}: restored {n} variant(s) from the price snapshot."
+              if n else f"{product['title']}: prices already match the snapshot.")
+        closed = close_active_entries(product["id"])
+        print(f"Closed {closed} active deal entr{'y' if closed == 1 else 'ies'}."
+              if closed else "No active deal entry was pointing at this product.")
+        return
+
     rows = [v for v in product["variants"]["nodes"] if v["compareAtPrice"] is not None]
 
     if not rows:
@@ -347,6 +457,66 @@ def close_active_entries(product_gid):
     return closed
 
 
+def cmd_sweep(args):
+    """End every deal whose window has closed.
+
+    This is the safety net, meant to run unattended on a schedule. The theme
+    stops SHOWING a deal the moment ends_at passes, but the discounted price
+    stays on the product until something puts it back — so a deal that ends
+    while nobody is watching keeps selling at deal price indefinitely. That is
+    the single most expensive way this system can fail, and it fails silently.
+
+    Only touches products with a recorded price snapshot, and only writes
+    variants whose current price differs from it. Running it repeatedly is
+    harmless: the second run finds nothing to do.
+    """
+    data = gql("""
+    {
+      metaobjects(type: "daily_deal", first: 100) {
+        nodes { id handle fields { key value } }
+      }
+    }
+    """)
+
+    now = datetime.now(timezone.utc)
+    swept = 0
+
+    for node in data["metaobjects"]["nodes"]:
+        f = {x["key"]: x["value"] for x in node["fields"]}
+        raw = f.get("price_snapshot")
+        if not raw:
+            continue
+        try:
+            ends = datetime.fromisoformat(f["ends_at"].replace("Z", "+00:00"))
+            snapshot = json.loads(raw)
+        except (KeyError, ValueError, json.JSONDecodeError):
+            continue
+        if ends > now:
+            continue  # still running
+
+        product = gql("""
+        {
+          product(id: "%s") {
+            id
+            title
+            variants(first: 100) { nodes { id price compareAtPrice } }
+          }
+        }
+        """ % f["product"]).get("product")
+
+        if not product:
+            print(f"{node['handle']}: product no longer exists, skipping.")
+            continue
+
+        n = restore_prices(product, snapshot)
+        if n:
+            swept += 1
+            print(f"{node['handle']}: restored {n} variant(s) on {product['title'][:48]}.")
+
+    print(f"Swept {swept} expired deal(s)." if swept
+          else "Nothing to sweep — no expired deal is still discounted.")
+
+
 def cmd_status(args):
     data = gql("""
     {
@@ -397,6 +567,9 @@ def main():
     sp = sub.add_parser("end")
     sp.add_argument("handle", help="product handle")
     sp.set_defaults(func=cmd_end)
+
+    sp = sub.add_parser("sweep", help="end every deal whose window has closed")
+    sp.set_defaults(func=cmd_sweep)
 
     sp = sub.add_parser("status")
     sp.set_defaults(func=cmd_status)

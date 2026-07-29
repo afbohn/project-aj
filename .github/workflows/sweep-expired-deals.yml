@@ -1,0 +1,63 @@
+# Restores regular pricing on deals whose window has closed.
+#
+# WHY THIS EXISTS. The theme stops showing a deal the moment ends_at passes,
+# but the discounted price stays on the product until something puts it back.
+# A deal that ends overnight therefore keeps selling at deal price — sometimes
+# at cost — and nothing surfaces that it is happening. It is the most expensive
+# way this system can fail and the only one that fails silently.
+#
+# Runs here rather than on a laptop deliberately: a cron job that only fires
+# when someone's Mac happens to be awake is not a safety net.
+#
+# SETUP (one time):
+#   1. Shopify admin -> Settings -> Apps and sales channels -> Develop apps
+#      -> Create an app -> Configure Admin API scopes:
+#           read_products, write_products, read_metaobjects
+#      -> Install app -> reveal the Admin API access token (shpat_...)
+#   2. GitHub -> repo Settings -> Secrets and variables -> Actions
+#      -> New repository secret, named SHOPIFY_ADMIN_TOKEN
+#
+# The token is never printed; it reaches the script through the environment.
+
+name: Sweep expired deals
+
+on:
+  schedule:
+    # Every hour on the half hour. Hourly is the useful granularity here —
+    # the exposure window is at most an hour of selling at deal price, and
+    # GitHub's scheduler is approximate anyway under load.
+    - cron: "30 * * * *"
+  # Lets you run it by hand from the Actions tab, which is also how you verify
+  # the token works without waiting for the hour to turn.
+  workflow_dispatch:
+
+# Two runs repricing the same product at once would be pointless rather than
+# harmful — sweep is idempotent — but serialising keeps the logs readable.
+concurrency:
+  group: sweep-expired-deals
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # No dependencies to install: deal.py uses only the standard library,
+      # specifically so this job stays a checkout and a run.
+      - name: Sweep
+        env:
+          SHOPIFY_ADMIN_TOKEN: ${{ secrets.SHOPIFY_ADMIN_TOKEN }}
+        run: |
+          if [ -z "$SHOPIFY_ADMIN_TOKEN" ]; then
+            echo "SHOPIFY_ADMIN_TOKEN is not set — see the setup notes at the"
+            echo "top of this workflow file. Failing loudly rather than"
+            echo "reporting a clean sweep that never ran."
+            exit 1
+          fi
+          python3 scripts/deal.py sweep
