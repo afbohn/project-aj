@@ -84,7 +84,22 @@ def fetch_existing():
 
 
 def publication_ids():
-    data = gql("{ publications(first: 10) { nodes { id name } } }")
+    """Sales channels to publish new collections to.
+
+    Returns [] rather than exiting when the credentials cannot read
+    publications, which a minimal custom app cannot — that needs
+    read_publications. Failing hard here used to abort the whole run BEFORE
+    anything was created, so the script reported collections it had not made.
+    Unattended, a partial run that says so is far better than a clean-looking
+    run that did nothing.
+    """
+    try:
+        data = gql("{ publications(first: 10) { nodes { id name } } }")
+    except SystemExit:
+        print("  note: cannot read publications (needs read_publications).\n"
+              "        Collections will be created but NOT published, so they\n"
+              "        will 404 on the storefront until published by hand.")
+        return []
     wanted = {"Online Store", "Shop"}
     return [n["id"] for n in data["publications"]["nodes"] if n["name"] in wanted]
 
@@ -112,6 +127,7 @@ def main():
         return
 
     pubs = publication_ids()
+    unpublished = []
     print()
 
     for v in missing:
@@ -144,6 +160,11 @@ def main():
         # A collection created through the API is published to nothing, so it
         # 404s on the storefront until this runs. Learned the hard way with the
         # price bands.
+        if not pubs:
+            unpublished.append(handle)
+            print(f"  created {handle}  (NOT PUBLISHED)")
+            continue
+
         inputs = ", ".join('{publicationId: "%s"}' % p for p in pubs)
         pub = gql("""
         mutation {
@@ -151,9 +172,21 @@ def main():
         }
         """ % (gid, inputs), mutation=True)
         perrs = pub["publishablePublish"]["userErrors"]
+        if perrs:
+            unpublished.append(handle)
         print(f"  created {handle}" + (f" (publish warning: {perrs})" if perrs else ""))
 
     print(f"\nCreated {len(missing)} collection(s).")
+
+    if unpublished:
+        # Exit non-zero so a scheduled run shows up as failed rather than
+        # green. A collection nobody can reach is a silent gap in navigation.
+        print(f"\n{len(unpublished)} collection(s) are NOT published and will 404:")
+        for h in unpublished:
+            print(f"  - {h}")
+        print("\nPublish them in the Shopify admin, or grant the app\n"
+              "read_publications + write_publications and re-run.")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
