@@ -13,9 +13,9 @@
       "type": "aj-daily-deal",
       "settings": {
         "color_scheme": "scheme-1",
-        "default_headline": "Today's deal",
+        "default_headline": "Yoink of the Day",
         "show_countdown": true,
-        "countdown_heading": "Deal ends in",
+        "countdown_heading": "Yoink ends in",
         "reload_on_expire": true,
         "show_claimed": true,
         "use_floor": false,
@@ -323,7 +323,7 @@
     "aj_past_deals": {
       "type": "aj-past-deals",
       "settings": {
-        "heading": "Recent deals",
+        "heading": "Recent Yoinks",
         "subheading": "A new one every day. Here's what you missed.",
         "max_deals": 4,
         "color_scheme": "scheme-1",
