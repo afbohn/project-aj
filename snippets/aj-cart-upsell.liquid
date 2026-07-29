@@ -63,7 +63,13 @@
   {%- for vendor_handle in vendor_list -%}
     {%- assign clean = vendor_handle | remove: '|' -%}
     {%- if clean == blank -%}{%- continue -%}{%- endif -%}
-    {%- assign vendor_collection = collections['vendor-' | append: clean] -%}
+    {%- comment -%}
+      Build the handle first. A filter cannot run inside a bracket lookup —
+      `collections['vendor-' | append: x]` parses as far as the pipe and then
+      throws at RENDER time, which theme check does not catch.
+    {%- endcomment -%}
+    {%- assign vendor_key = 'vendor-' | append: clean -%}
+    {%- assign vendor_collection = collections[vendor_key] -%}
     {%- for candidate in vendor_collection.products limit: 12 -%}
       {%- assign probe = ',' | append: candidate.id | append: ',' -%}
       {%- unless in_cart contains probe or candidate.available == false -%}

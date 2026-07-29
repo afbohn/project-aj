@@ -47,6 +47,20 @@
 
       <div class="cart-page__items">
         {%- content_for 'block', id: 'cart-page-items', type: '_cart-products' %}
+
+        {%- comment -%}
+          Same upsell as the cart drawer. Rendered under the items rather than
+          beside the summary so it reads as part of the order being built, not
+          as something standing between the shopper and checkout.
+        {%- endcomment -%}
+        {%- if settings.cart_upsell_enabled and cart.item_count > 0 -%}
+          {% render 'aj-cart-upsell',
+            context: 'page',
+            limit: settings.cart_upsell_count,
+            heading: settings.cart_upsell_heading,
+            fallback: settings.cart_upsell_fallback
+          %}
+        {%- endif -%}
       </div>
 
       {%- unless cart.empty? -%}
