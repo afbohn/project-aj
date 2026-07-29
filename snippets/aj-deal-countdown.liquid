@@ -17,6 +17,8 @@
   assign heading_text = heading | default: 'Deal ends in'
 -%}
 
+{{ "aj-deal.css" | asset_url | stylesheet_tag }}
+
 <aj-countdown
   class="aj-countdown"
   data-ends-at="{{ ends_ms }}"
