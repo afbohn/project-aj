@@ -10,14 +10,21 @@
 # when someone's Mac happens to be awake is not a safety net.
 #
 # SETUP (one time):
-#   1. Shopify admin -> Settings -> Apps and sales channels -> Develop apps
-#      -> Create an app -> Configure Admin API scopes:
-#           read_products, write_products, read_metaobjects
-#      -> Install app -> reveal the Admin API access token (shpat_...)
-#   2. GitHub -> repo Settings -> Secrets and variables -> Actions
-#      -> New repository secret, named SHOPIFY_ADMIN_TOKEN
+#   1. Create a custom app in the Shopify Dev Dashboard with Admin API scopes
+#      covering products and metaobjects, and install it on the store.
+#      (Custom apps can no longer be created in the Shopify admin, and an Admin
+#      API token is no longer shown in the UI.)
+#   2. GitHub -> repo Settings -> Secrets and variables -> Actions, add two:
+#           SHOPIFY_CLIENT_ID
+#           SHOPIFY_CLIENT_SECRET
 #
-# The token is never printed; it reaches the script through the environment.
+# WHY NOT A TOKEN. Shopify's client credentials grant returns a token that
+# expires after 24 HOURS. A token pasted into a secret would work today and
+# quietly stop working tomorrow — and the failure would look like "the job ran
+# and found nothing to do" rather than an error. So the secrets are the ID and
+# secret, and scripts/shopify_auth.py mints a fresh token on every run.
+#
+# Neither value is ever printed; both reach the script through the environment.
 
 name: Sweep expired deals
 
@@ -52,12 +59,13 @@ jobs:
       # specifically so this job stays a checkout and a run.
       - name: Sweep
         env:
-          SHOPIFY_ADMIN_TOKEN: ${{ secrets.SHOPIFY_ADMIN_TOKEN }}
+          SHOPIFY_CLIENT_ID: ${{ secrets.SHOPIFY_CLIENT_ID }}
+          SHOPIFY_CLIENT_SECRET: ${{ secrets.SHOPIFY_CLIENT_SECRET }}
         run: |
-          if [ -z "$SHOPIFY_ADMIN_TOKEN" ]; then
-            echo "SHOPIFY_ADMIN_TOKEN is not set — see the setup notes at the"
-            echo "top of this workflow file. Failing loudly rather than"
-            echo "reporting a clean sweep that never ran."
+          if [ -z "$SHOPIFY_CLIENT_ID" ] || [ -z "$SHOPIFY_CLIENT_SECRET" ]; then
+            echo "::error::SHOPIFY_CLIENT_ID / SHOPIFY_CLIENT_SECRET are not set."
+            echo "See the setup notes at the top of this workflow. Failing loudly"
+            echo "rather than reporting a clean sweep that never ran."
             exit 1
           fi
           python3 scripts/deal.py sweep

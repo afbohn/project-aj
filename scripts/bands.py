@@ -23,11 +23,11 @@ one, and a product already correct is left alone.
 
 import argparse
 import json
-import subprocess
 import sys
+
+sys.path.insert(0, __import__("os").path.dirname(__import__("os").path.abspath(__file__)))
 from decimal import Decimal
 
-STORE = "9wgxci-qu.myshopify.com"
 TAG_PREFIX = "band-"
 
 # (tag suffix, lower bound inclusive, upper bound exclusive or None)
@@ -40,18 +40,7 @@ BANDS = [
 ]
 
 
-def gql(query, mutation=False):
-    cmd = ["shopify", "store", "execute", "-s", STORE, "--json", "-q", query]
-    if mutation:
-        cmd.append("--allow-mutations")
-    proc = subprocess.run(cmd, capture_output=True, text=True)
-    out = proc.stdout
-    if "{" not in out:
-        sys.exit(f"Shopify CLI returned no data.\n{out}\n{proc.stderr}")
-    try:
-        return json.loads(out[out.index("{"):])
-    except json.JSONDecodeError:
-        sys.exit(f"Could not parse response:\n{out[:1500]}")
+from shopify_auth import gql  # noqa: E402  (see module docstring for auth order)
 
 
 def band_for(price):

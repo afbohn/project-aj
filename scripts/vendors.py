@@ -24,44 +24,14 @@ import argparse
 import json
 import os
 import re
-import subprocess
 import sys
-import urllib.error
-import urllib.request
 
-STORE = "9wgxci-qu.myshopify.com"
-API_VERSION = "2025-07"
+sys.path.insert(0, __import__("os").path.dirname(__import__("os").path.abspath(__file__)))
+
 PREFIX = "vendor-"
 
 
-def gql(query, mutation=False):
-    token = os.environ.get("SHOPIFY_ADMIN_TOKEN")
-    if token:
-        req = urllib.request.Request(
-            f"https://{STORE}/admin/api/{API_VERSION}/graphql.json",
-            data=json.dumps({"query": query}).encode(),
-            headers={"X-Shopify-Access-Token": token, "Content-Type": "application/json"},
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                payload = json.loads(resp.read())
-        except urllib.error.URLError as exc:
-            sys.exit(f"Admin API request failed: {exc}")
-        if "errors" in payload:
-            sys.exit(f"Admin API errors: {payload['errors']}")
-        return payload.get("data", {})
-
-    cmd = ["shopify", "store", "execute", "-s", STORE, "--json", "-q", query]
-    if mutation:
-        cmd.append("--allow-mutations")
-    proc = subprocess.run(cmd, capture_output=True, text=True)
-    out = proc.stdout
-    if "{" not in out:
-        sys.exit(f"Shopify CLI returned no data.\n{out}\n{proc.stderr}")
-    try:
-        return json.loads(out[out.index("{"):])
-    except json.JSONDecodeError:
-        sys.exit(f"Could not parse response:\n{out[:1500]}")
+from shopify_auth import gql  # noqa: E402  (see module docstring for auth order)
 
 
 def handleize(value):

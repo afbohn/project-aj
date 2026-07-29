@@ -36,15 +36,12 @@ Auth comes from the Shopify CLI, so there are no tokens in this file:
 import argparse
 import json
 import os
-import subprocess
 import sys
-import urllib.error
-import urllib.request
+
+sys.path.insert(0, __import__("os").path.dirname(__import__("os").path.abspath(__file__)))
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, ROUND_CEILING, ROUND_HALF_UP
 
-STORE = "9wgxci-qu.myshopify.com"
-API_VERSION = "2025-07"
 
 CENTS = Decimal("0.01")
 
@@ -53,50 +50,7 @@ CENTS = Decimal("0.01")
 # Shopify CLI plumbing
 # --------------------------------------------------------------------------
 
-def gql(query, mutation=False):
-    """Run a GraphQL operation and return parsed JSON.
-
-    Two auth paths, because this runs in two very different places. Locally it
-    shells out to the Shopify CLI, so there is no token to manage. On a
-    schedule (GitHub Actions) there is no CLI login, so SHOPIFY_ADMIN_TOKEN is
-    used directly against the Admin API.
-    """
-    token = os.environ.get("SHOPIFY_ADMIN_TOKEN")
-    if token:
-        return _gql_http(query, token)
-
-    cmd = ["shopify", "store", "execute", "-s", STORE, "--json", "-q", query]
-    if mutation:
-        cmd.append("--allow-mutations")
-
-    proc = subprocess.run(cmd, capture_output=True, text=True)
-    out = proc.stdout
-
-    if "{" not in out:
-        sys.exit(f"Shopify CLI returned no data.\n{proc.stdout}\n{proc.stderr}")
-
-    try:
-        return json.loads(out[out.index("{"):])
-    except json.JSONDecodeError:
-        sys.exit(f"Could not parse Shopify response:\n{out[:2000]}")
-
-
-def _gql_http(query, token):
-    """Direct Admin API call. Used when running unattended."""
-    req = urllib.request.Request(
-        f"https://{STORE}/admin/api/{API_VERSION}/graphql.json",
-        data=json.dumps({"query": query}).encode(),
-        headers={"X-Shopify-Access-Token": token, "Content-Type": "application/json"},
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            payload = json.loads(resp.read())
-    except urllib.error.URLError as exc:
-        sys.exit(f"Admin API request failed: {exc}")
-
-    if "errors" in payload:
-        sys.exit(f"Admin API returned errors: {payload['errors']}")
-    return payload.get("data", {})
+from shopify_auth import gql  # noqa: E402  (see module docstring for auth order)
 
 
 def fetch_product(handle):
