@@ -33,7 +33,13 @@ on:
     # Every hour on the half hour. Hourly is the useful granularity here —
     # the exposure window is at most an hour of selling at deal price, and
     # GitHub's scheduler is approximate anyway under load.
-    - cron: "30 * * * *"
+    # Every 15 minutes, not hourly. An hourly cron means a deal that opens at
+    # :36 is not priced until the next :30 — nearly an hour with the homepage
+    # showing a countdown next to a full price, and an ended deal still selling
+    # at its discount. Neither errors; both are just wrong for that long. Four
+    # runs an hour caps the exposure at 15 minutes and costs nothing, since both
+    # commands no-op when there is nothing due.
+    - cron: "*/15 * * * *"
   # Lets you run it by hand from the Actions tab, which is also how you verify
   # the token works without waiting for the hour to turn.
   workflow_dispatch:
