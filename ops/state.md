@@ -61,6 +61,46 @@ The scheduler (`scheduler.mjs`, its own Fly machine) calls:
 
 - `/cron/lifecycle` every 15 min — activate what is due, restore what has ended
 - `/cron/catalog` every 30 min — price-band tags, vendor collections, sold-out sweep
+- `/cron/bargain-bin` every 60 min — rotate the weekly bin when its week has closed
+
+## The Bargain Bin
+
+New this session. A weekly rotating collection, everything at least 25% off,
+selected so every product stays profitable at that discount.
+
+- **Own everything**: module (`bargain-bin.server.ts`), metaobject type
+  (`bargain_bin`), cron endpoint, heartbeat, scheduler tick. It shares
+  `pricing.server.ts` with the Yoink and nothing else.
+- **Margin is measured on the WORST variant**, at a default floor of 20% after
+  the discount. On this catalogue that is 565 products across 12 vendors —
+  fourteen distinct weeks before anything repeats. 25% costs half the vendors;
+  **nothing at all survives a 35% floor**, so 25% off is near this supplier
+  mix's ceiling.
+- **Selection interleaves by vendor.** One supplier is 54% of the eligible pool.
+  Ranked purely by margin the bin comes out 2 vendors and 90% one maker;
+  round-robin returns all 12 with the largest at 10%.
+- **Polled hourly, not scheduled weekly.** It asks the metaobject "has this week
+  closed?", so a deploy or restart costs at most an hour of latency rather than
+  skipping a rotation entirely.
+- **Gated on `BARGAIN_BIN_ENABLED`** (a Fly secret). While off, every tick still
+  builds and reports the proposal without touching a price. `?dry=1` does the
+  same on demand.
+
+**The one coupling to the Yoink**, and the reason it needed care: a product can
+be in only one discount state at a time. The bin refuses anything live or queued
+inside the 7-day deal horizon, and `candidates.server.ts` refuses anything tagged
+`bargain-bin`. Without both, two systems each believe they own the restore
+snapshot, and whichever restores second writes the other's discounted price back
+as the regular one — silently, and permanently.
+
+Two things to watch:
+
+- **About half the bin already carries a supplier MSRP**, so those show a saving
+  larger than 25%. Truthful, which is why the collection says "at least 25% off".
+- **There is no price cap.** The first proposed week included a $450 night-vision
+  monocle. At a 20% floor a high-ticket return eats a large share of the margin —
+  see *Returns* above. `BinOptions` takes a floor and a size; a max price is
+  about five lines if the bin should stay bin-shaped.
 
 ## Sold-out products come off the storefront
 
@@ -122,14 +162,17 @@ per-variant sellability check, and it is expected.
 
 ## Returns, and what it means for discounts
 
-Answered this session, except for one thing you have to look up in the admin.
+Answered and closed this session.
 
-Shopify Collective's **default** returns policy for retailers who joined after
-10 December 2024: supplier creates the return label, 2-day processing, 30-day
-window, no label fee, no restocking fee, declined returns auto-cancel, refunds
-auto-refund. Retailers who joined **before** that date have a legacy default of
-*no action taken*, which is a completely different risk profile. **Check which
-one this store is on** — Collective app → Settings → Policies.
+**This store is on the current default**, not the legacy one. Collective applies a
+legacy default of *no action taken* to retailers who joined before 10 December
+2024; the shop was created **2026-07-29**, so that cannot apply — you cannot join
+Collective before your store exists. No need to go looking.
+
+The default in force: supplier creates the return label, 2-day processing,
+30-day window, no label fee, no restocking fee, declined returns auto-cancel,
+refunds auto-refund. The only thing still worth a glance is whether anyone has
+since *changed* it from that default, which is a much smaller question.
 
 Three things that are structural and cannot be fixed by policy wording:
 

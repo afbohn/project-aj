@@ -46,6 +46,35 @@ is purpose-built and updates the displayed price (variants are not uniformly
 priced — one product runs $36 to $125). Everywhere else uses the theme's own
 quick-add, because two add-to-cart patterns in one grid reads as a bug.
 
+## The Bargain Bin is separate machinery from the Yoink
+They answer different questions. The Yoink asks what single thing to discount
+hardest today; the bin asks what forty things can be held at 25% off for a week
+without losing money. Folding the second into the first would have meant one
+selector serving two incompatible objectives, and the bin's weekly restore-and-
+reprice sitting in front of the job that changes the day's price.
+
+So: separate module, metaobject type, cron endpoint, heartbeat and scheduler
+tick. They share `pricing.server.ts` for the price writes, because that is where
+the never-below-cost floor lives and there must be exactly one of those.
+
+The coupling is deliberately two filters and no more. **A product can be in only
+one discount state at a time**: the bin refuses anything live or queued inside
+the deal horizon, and the deal candidate pool refuses anything already in the
+bin. Without both, each system holds a restore snapshot for the same product and
+whichever restores second writes the other's discounted price back as the
+regular one. That failure is silent, and it compounds every cycle.
+
+## Bin selection interleaves by vendor rather than ranking by margin
+Ranked purely by margin this catalogue returns a bin that is two vendors and 90%
+one maker, because a single supplier is 54% of the eligible pool. Round-robin
+across vendors, best margin first within each, returns all twelve with the
+largest at 10%.
+
+This is the same lesson the deal candidate pool learned when ranking by discount
+collapsed eighteen suppliers to three. A bin that is mostly one maker is a shelf,
+not a bin — and on a dropship catalogue it also tells a shopper exactly which
+supplier to go buy from directly.
+
 ## Sold-out products are unpublished, not tagged
 The ask was that they not show up. A tag plus a collection rule hides a product
 from the price bands and the category collections and nothing else — it stays in
