@@ -5,8 +5,12 @@
   first order" here, and this store cannot afford it: the Yoink is already
   clamped near cost and the Bargain Bin runs at a 20% margin floor, so another
   discount on top comes straight out of a contribution that is $12.67 on a median
-  order. "Tomorrow's deal before it goes live" costs nothing and is worth more to
-  someone who came here from an ad about a daily deal.
+  order. Early access costs nothing.
+
+  AND IT PROMISES NO SEND FREQUENCY. An earlier version said "one email a day",
+  which committed the business to a cadence nobody had decided on. The list is
+  the asset; the schedule is a decision for later, and the copy should not have
+  spent it in advance.
 
   IT ASKS FOR ONE THING. Every extra field costs conversion, and the whole point
   of the page is the email address — the business monetises on repeat visits, so
@@ -18,7 +22,7 @@
 {%- endcomment -%}
 
 {%- liquid
-  assign heading = section.settings.heading | default: 'Get tomorrow''s Yoink before anyone else'
+  assign heading = section.settings.heading | default: 'Get first look at the good stuff'
   assign posted = false
   if form.posted_successfully?
     assign posted = true
@@ -187,22 +191,22 @@
       "type": "paragraph",
       "content": "The capture page for ads and link-in-bio. Submissions create a customer subscribed to email marketing, which Shopify Email sends to."
     },
-    { "type": "text", "id": "heading", "label": "Heading", "default": "Get tomorrow's Yoink before anyone else" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Get first look at the good stuff" },
     {
       "type": "text", "id": "subheading", "label": "Subheading",
-      "default": "One thing, deeply discounted, every morning. We'll send it to you before it goes live."
+      "default": "A new deal every morning and a Bargain Bin that rotates weekly. Join the list and we'll show you how it works."
     },
-    { "type": "text", "id": "point_1", "label": "Point 1", "default": "A new deal every morning — you see it first" },
-    { "type": "text", "id": "point_2", "label": "Point 2", "default": "One email a day. No drip, no filler" },
-    { "type": "text", "id": "point_3", "label": "Point 3", "default": "Unsubscribe in one click, whenever" },
-    { "type": "text", "id": "button_text", "label": "Button", "default": "Send me the daily Yoink" },
+    { "type": "text", "id": "point_1", "label": "Point 1", "default": "A new deal every morning, deeply discounted" },
+    { "type": "text", "id": "point_2", "label": "Point 2", "default": "The Bargain Bin, refreshed weekly — always at least 25% off" },
+    { "type": "text", "id": "point_3", "label": "Point 3", "default": "We email when it's worth it, not on a timer" },
+    { "type": "text", "id": "button_text", "label": "Button", "default": "Count me in" },
     {
       "type": "text", "id": "fine_print", "label": "Fine print",
-      "default": "One email a day. Unsubscribe anytime."
+      "default": "No spam. Unsubscribe in one click, whenever."
     },
     {
       "type": "text", "id": "success_text", "label": "Success message",
-      "default": "You're in. Tomorrow's Yoink lands in your inbox before it goes live."
+      "default": "You're in. Check your inbox — we'll explain how this works."
     },
     {
       "type": "text", "id": "tag", "label": "Customer tag", "default": "join-page",
