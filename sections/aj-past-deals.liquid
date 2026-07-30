@@ -11,6 +11,13 @@
   version of urgency — nothing is being withheld or faked, the offer simply
   happened and the next one will too.
 
+  DEMAND. Each card can register interest in a return. Deliberately a SIGNAL and
+  not a sale: letting someone buy an expired Yoink at its old price would make
+  the countdown on today's deal a lie — nothing would ever really be gone, and a
+  repeat visitor learns that fast. That spends the one mechanism the store runs
+  on. Asking "do people want this back?" gets the same information and keeps the
+  promise.
+
   Deals are marked ENDED and priced at their CURRENT price, with the old deal
   price shown struck through as history. That ordering matters: the live price
   is the one a shopper can act on, and presenting an expired price as though it
@@ -21,9 +28,16 @@
   (fixed-width epochs sort correctly), and reversed for newest-first.
 {%- endcomment -%}
 
+<script src="{{ 'aj-bring-back.js' | asset_url }}" type="module" fetchpriority="low"></script>
+
 {%- liquid
   assign now = 'now' | date: '%s' | plus: 0
   assign limit = section.settings.max_deals | plus: 0
+  comment
+    Within the last week a weekday reads the way someone actually thinks about it
+    ("Saturday's Yoink"); older than that a weekday is ambiguous, so use a date.
+  endcomment
+  assign week_ago = now | minus: 604800
 -%}
 
 {%- capture packed -%}
@@ -60,6 +74,7 @@
             {%- break -%}
           {%- endif -%}
           {%- assign wanted = key | split: '^' | last | plus: 0 -%}
+          {%- assign ended_epoch = key | split: '^' | first | plus: 0 -%}
 
           {%- for entry in shop.metaobjects.daily_deal.values -%}
             {%- unless forloop.index0 == wanted -%}
@@ -70,10 +85,20 @@
               assign past_product = entry.product.value
               assign past_price = entry.deal_price.value
               assign current_variant = past_product.selected_or_first_available_variant
+              assign votes = entry.bring_back_votes.value | plus: 0
               assign shown_count = shown_count | plus: 1
+
+              if ended_epoch >= week_ago
+                assign day_label = entry.ends_at.value | date: '%A'
+                assign day_suffix = "'s Yoink"
+              else
+                assign day_label = entry.ends_at.value | date: '%b %-d'
+                assign day_suffix = ''
+              endif
             -%}
 
             <li class="aj-past__item">
+              <p class="aj-past__day">{{ day_label }}{{ day_suffix }}</p>
               <a class="aj-past__link" href="{{ past_product.url }}">
                 <span class="aj-past__media">
                   {%- if past_product.featured_media -%}
@@ -106,9 +131,24 @@
                 {%- endif -%}
               </p>
 
-              <p class="aj-past__date">
-                {{ entry.ends_at.value | date: '%b %-d' }}
-              </p>
+              {%- if section.settings.show_bring_back -%}
+                <aj-bring-back class="aj-past__bringback" data-deal-id="{{ entry.system.id }}">
+                  <button type="button" class="aj-past__vote">
+                    {{ section.settings.bring_back_label | default: 'Bring it back' }}
+                  </button>
+                  <span
+                    class="aj-past__votes"
+                    data-vote-count
+                    {% if votes == 0 %}hidden{% endif %}
+                  >
+                    {%- if votes == 1 -%}
+                      1 person wants this back
+                    {%- else -%}
+                      {{ votes }} people want this back
+                    {%- endif -%}
+                  </span>
+                </aj-bring-back>
+              {%- endif -%}
             </li>
           {%- endfor -%}
         {%- endfor -%}
@@ -172,14 +212,63 @@
     width: 100%;
     height: auto;
     display: block;
-    /* Past deals are history, not merchandise. Muting them keeps the live
-       deal above unmistakably the thing to act on. */
-    opacity: 0.72;
+    /* History, not merchandise. Greyed so today's live deal stays unmistakably
+       the thing to act on; restored on hover so the product is still
+       inspectable. */
+    filter: grayscale(1);
+    opacity: 0.62;
+    transition: filter 0.2s ease, opacity 0.2s ease;
   }
 
   .aj-past__link:hover .aj-past__image,
   .aj-past__link:focus-visible .aj-past__image {
+    filter: grayscale(0);
     opacity: 1;
+  }
+
+  .aj-past__day {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+
+  .aj-past__bringback {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: flex-start;
+    margin-block-start: 0.2rem;
+  }
+
+  .aj-past__vote {
+    padding: 0.35em 0.75em;
+    border: 1px solid rgb(var(--color-foreground-rgb) / 0.4);
+    border-radius: 3px;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-size: 0.8125rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .aj-past__vote:hover:not([disabled]),
+  .aj-past__vote:focus-visible {
+    border-color: rgb(var(--color-foreground-rgb));
+    background: rgb(var(--color-foreground-rgb) / 0.07);
+  }
+
+  .aj-past__vote[disabled] {
+    opacity: 0.55;
+    cursor: default;
+  }
+
+  .aj-past__votes {
+    font-size: 0.75rem;
+    opacity: 0.7;
   }
 
   .aj-past__stamp {
@@ -262,6 +351,23 @@
       "max": 12,
       "step": 1,
       "default": 4
+    },
+    {
+      "type": "header",
+      "content": "Bring it back"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_bring_back",
+      "label": "Let shoppers ask for a Yoink back",
+      "default": true,
+      "info": "Registers interest only. Selling an expired Yoink at its old price would make today's countdown meaningless."
+    },
+    {
+      "type": "text",
+      "id": "bring_back_label",
+      "label": "Button label",
+      "default": "Bring it back"
     },
     {
       "type": "color_scheme",

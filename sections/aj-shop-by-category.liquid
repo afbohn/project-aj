@@ -1,25 +1,30 @@
 {%- comment -%}
-  AJ Shop by Maker — browse by supplier.
+  AJ Shop by Category — the second way to browse, after price.
 
-  The second useful navigation axis after price. Supplier categories from
-  Collective are unusable as a taxonomy ("Ceramic" for a third of the catalogue),
-  but the supplier NAME is clean, meaningful, and something a shopper can form a
-  preference about — someone who liked the pottery wants more of that pottery.
+  DELIBERATELY NOT BY SUPPLIER. A shopper who reads a maker's name can search it
+  and buy direct; on a dropship catalogue that is handing away the sale.
+  Category keeps the browsing here.
 
-  Discovers the `vendor-*` collections that scripts/vendors.py and the app's
-  catalogue sync maintain, rather than taking a hand-picked list. A new supplier
-  therefore appears here on its own once its collection exists, which is the
-  point: the catalogue grows by import, not by editing a theme setting.
+  Built on Shopify's standard product taxonomy rather than productType, which
+  suppliers fill with whatever they like — a third of this catalogue reads
+  "Ceramic". The taxonomy is populated on about 92% of products and is a real
+  hierarchy, so its top segment gives clean groupings we did not have to invent.
+  Only the top segment is used: the full paths run five deep
+  ("Apparel & Accessories > Clothing Accessories > Hats > Fedoras"), which is
+  precise and useless as navigation.
 
-  Unlike the price bands these tiles are image-led. A price band has no
-  representative image, but a maker does — the thing they make is exactly what
-  someone is deciding about.
+  Discovers the `cat-*` collections that scripts/categories.py maintains, so a
+  category appears here on its own as the catalogue grows rather than by editing
+  a theme setting.
+
+  Image-led, unlike the price bands: a band has no representative image, but a
+  category does — and the thing itself is what someone is deciding about.
 {%- endcomment -%}
 
 {%- liquid
-  assign prefix = 'vendor-'
+  assign prefix = 'cat-'
   assign min_products = section.settings.min_products | plus: 0
-  assign max_makers = section.settings.max_makers | plus: 0
+  assign max_cats = section.settings.max_cats | plus: 0
 
   comment
     Count first so an empty section renders nothing rather than a bare heading.
@@ -34,18 +39,18 @@
 
 {%- if renderable > 0 -%}
   <div
-    class="aj-makers color-{{ section.settings.color_scheme }} section spacing-style"
+    class="aj-cats color-{{ section.settings.color_scheme }} section spacing-style"
     style="{% render 'spacing-style', settings: section.settings %}"
   >
     <div class="page-width">
       {%- if section.settings.heading != blank -%}
-        <h2 class="aj-makers__heading">{{ section.settings.heading | escape }}</h2>
+        <h2 class="aj-cats__heading">{{ section.settings.heading | escape }}</h2>
       {%- endif -%}
       {%- if section.settings.subheading != blank -%}
-        <p class="aj-makers__subheading">{{ section.settings.subheading | escape }}</p>
+        <p class="aj-cats__subheading">{{ section.settings.subheading | escape }}</p>
       {%- endif -%}
 
-      <ul class="aj-makers__grid" role="list">
+      <ul class="aj-cats__grid" role="list">
         {%- assign shown = 0 -%}
         {%- for collection in collections -%}
           {%- unless collection.handle contains prefix -%}
@@ -54,24 +59,24 @@
           {%- if collection.all_products_count < min_products -%}
             {%- continue -%}
           {%- endif -%}
-          {%- if shown >= max_makers -%}
+          {%- if shown >= max_cats -%}
             {%- break -%}
           {%- endif -%}
           {%- assign shown = shown | plus: 1 -%}
 
           {%- comment -%}
-            Vendor collections are created by rule and carry no image of their
-            own, so borrow the first product's — it shows what this maker
-            actually makes, which is the decision being made.
+            Category collections are created by rule and carry no image of
+            their own, so borrow the first product's — it shows what is actually
+            in there, which is the decision being made.
           {%- endcomment -%}
           {%- assign cover = collection.image -%}
           {%- unless cover -%}
             {%- assign cover = collection.products.first.featured_media.preview_image -%}
           {%- endunless -%}
 
-          <li class="aj-makers__item">
-            <a class="aj-makers__tile" href="{{ collection.url }}">
-              <span class="aj-makers__media">
+          <li class="aj-cats__item">
+            <a class="aj-cats__tile" href="{{ collection.url }}">
+              <span class="aj-cats__media">
                 {%- if cover -%}
                   {{
                     cover
@@ -80,13 +85,13 @@
                       loading: 'lazy',
                       sizes: '(min-width: 750px) 25vw, 45vw',
                       widths: '200, 300, 400, 600',
-                      class: 'aj-makers__image',
+                      class: 'aj-cats__image',
                       alt: collection.title
                   }}
                 {%- endif -%}
               </span>
-              <span class="aj-makers__name">{{ collection.title | escape }}</span>
-              <span class="aj-makers__count">
+              <span class="aj-cats__name">{{ collection.title | escape }}</span>
+              <span class="aj-cats__count">
                 {{ collection.all_products_count }}
                 {%- if collection.all_products_count == 1 %} item{% else %} items{% endif -%}
               </span>
@@ -97,26 +102,26 @@
     </div>
   </div>
 {%- elsif request.design_mode -%}
-  <div class="aj-makers aj-makers--empty page-width">
+  <div class="aj-cats aj-cats--empty page-width">
     <p>
-      <strong>No maker collections yet.</strong>
+      <strong>No category collections yet.</strong>
       These appear automatically once the catalogue sync has created a
-      <code>vendor-*</code> collection for each supplier.
+      <code>cat-*</code> collection for each category.
     </p>
   </div>
 {%- endif -%}
 
 {% stylesheet %}
-  .aj-makers__heading {
+  .aj-cats__heading {
     margin: 0 0 0.25rem;
   }
 
-  .aj-makers__subheading {
+  .aj-cats__subheading {
     margin: 0 0 var(--padding-md, 1.5rem);
     opacity: 0.75;
   }
 
-  .aj-makers__grid {
+  .aj-cats__grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--padding-md, 1.5rem);
@@ -126,12 +131,12 @@
   }
 
   @media screen and (min-width: 750px) {
-    .aj-makers__grid {
+    .aj-cats__grid {
       grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
     }
   }
 
-  .aj-makers__tile {
+  .aj-cats__tile {
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
@@ -139,7 +144,7 @@
     text-decoration: none;
   }
 
-  .aj-makers__media {
+  .aj-cats__media {
     display: block;
     aspect-ratio: 1;
     overflow: hidden;
@@ -147,7 +152,7 @@
     background: rgb(var(--color-foreground-rgb) / 0.06);
   }
 
-  .aj-makers__image {
+  .aj-cats__image {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -155,56 +160,56 @@
     transition: transform 0.3s ease;
   }
 
-  .aj-makers__tile:hover .aj-makers__image,
-  .aj-makers__tile:focus-visible .aj-makers__image {
+  .aj-cats__tile:hover .aj-cats__image,
+  .aj-cats__tile:focus-visible .aj-cats__image {
     transform: scale(1.03);
   }
 
-  .aj-makers__name {
+  .aj-cats__name {
     font-weight: 600;
     line-height: 1.25;
   }
 
-  .aj-makers__count {
+  .aj-cats__count {
     font-size: 0.8125rem;
     opacity: 0.7;
   }
 
-  .aj-makers--empty {
+  .aj-cats--empty {
     padding-block: var(--padding-xl, 3rem);
     text-align: center;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .aj-makers__image { transition: none; }
+    .aj-cats__image { transition: none; }
   }
 {% endstylesheet %}
 
 {% schema %}
 {
-  "name": "AJ Shop by Maker",
+  "name": "AJ Shop by Category",
   "tag": "section",
   "settings": [
     {
       "type": "paragraph",
-      "content": "Lists the vendor-* collections kept in step by the catalogue sync. New suppliers appear here on their own."
+      "content": "Lists the cat-* collections built from Shopify's standard product taxonomy. New categories appear here on their own."
     },
     {
       "type": "text",
       "id": "heading",
       "label": "Heading",
-      "default": "Shop by maker"
+      "default": "Shop by category"
     },
     {
       "type": "text",
       "id": "subheading",
       "label": "Subheading",
-      "default": "Independent makers, one order at a time."
+      "default": "A bit of everything. Have a dig."
     },
     {
       "type": "range",
-      "id": "max_makers",
-      "label": "Makers shown",
+      "id": "max_cats",
+      "label": "Categories shown",
       "min": 2,
       "max": 24,
       "step": 1,
@@ -213,12 +218,12 @@
     {
       "type": "range",
       "id": "min_products",
-      "label": "Minimum products to show a maker",
+      "label": "Minimum products to show a category",
       "min": 1,
       "max": 10,
       "step": 1,
       "default": 2,
-      "info": "Hides suppliers we only carry one thing from."
+      "info": "Hides categories with barely anything in them."
     },
     {
       "type": "color_scheme",
@@ -253,7 +258,7 @@
   ],
   "presets": [
     {
-      "name": "AJ Shop by Maker"
+      "name": "AJ Shop by Category"
     }
   ]
 }

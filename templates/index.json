@@ -63,16 +63,18 @@
         "max_deals": 4,
         "color_scheme": "scheme-1",
         "padding-block-start": 32,
-        "padding-block-end": 48
+        "padding-block-end": 48,
+        "show_bring_back": true,
+        "bring_back_label": "Bring it back"
       }
     },
-    "aj_shop_by_vendor": {
-      "type": "aj-shop-by-vendor",
+    "aj_shop_by_category": {
+      "type": "aj-shop-by-category",
       "settings": {
-        "heading": "Shop by maker",
-        "subheading": "Independent makers, one order at a time.",
-        "max_makers": 8,
-        "min_products": 2,
+        "heading": "Shop by category",
+        "subheading": "A bit of everything. Have a dig.",
+        "max_cats": 10,
+        "min_products": 3,
         "color_scheme": "scheme-1",
         "padding-block-start": 32,
         "padding-block-end": 32
@@ -82,7 +84,7 @@
   "order": [
     "aj_daily_deal",
     "aj_shop_by_price",
-    "aj_shop_by_vendor",
+    "aj_shop_by_category",
     "aj_cross_sell",
     "aj_past_deals"
   ]
