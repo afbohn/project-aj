@@ -120,12 +120,15 @@ def analyse(product, discount_pct):
             "cost": cost,
             "deal": deal,
             "clamped": clamped,
+            # The supplier's own MSRP, when Collective synced one. Preserved
+            # rather than overwritten — see apply_deal().
+            "existing_compare_at": v["compareAtPrice"],
             "on_deal_already": v["compareAtPrice"] is not None,
         })
     return rows
 
 
-def report(product, rows, discount_pct):
+def report(product, rows, discount_pct, live_deal=False):
     print(f"\n{product['title']}")
     print(f"requested discount: {discount_pct}%\n")
     print(f"{'VARIANT':30} {'REGULAR':>9} {'COST':>8} {'DEAL':>9} {'MARGIN':>9} {'OFF':>6}")
@@ -143,7 +146,7 @@ def report(product, rows, discount_pct):
 
     missing = [r for r in rows if r["cost"] is None]
     clamped = [r for r in rows if r["clamped"]]
-    live = [r for r in rows if r["on_deal_already"]]
+    msrp = [r for r in rows if r["existing_compare_at"]]
 
     print()
     if missing:
@@ -152,11 +155,14 @@ def report(product, rows, discount_pct):
     if clamped:
         print(f"NOTE: {len(clamped)} variant(s) would have priced below cost at "
               f"{discount_pct}%. Held at cost — margin is zero, not negative.")
-    if live:
-        print(f"REFUSING: {len(live)} variant(s) already have a compare-at price set, "
-              f"which means a deal is already running. Run `end` first.")
+    if msrp:
+        print(f"NOTE: {len(msrp)} variant(s) already carry a supplier compare-at "
+              f"price (MSRP). It will be kept, and the discount will show against "
+              f"it rather than against our price.")
+    if live_deal:
+        print("REFUSING: a deal is already running on this product. Run `end` first.")
 
-    return not missing and not live
+    return not missing and not live_deal
 
 
 # --------------------------------------------------------------------------
@@ -173,27 +179,10 @@ def cmd_plan(args):
 def cmd_start(args):
     product = fetch_product(args.handle)
     rows = analyse(product, args.discount)
-    if not report(product, rows, args.discount):
+    if not report(product, rows, args.discount, product_has_live_deal(product["id"])):
         sys.exit(1)
 
-    # Park the regular price in compare_at so `end` can put it back, and so the
-    # storefront has something honest to strike through.
-    updates = ",\n".join(
-        '{ id: "%s", price: "%s", compareAtPrice: "%s" }' % (r["id"], r["deal"], r["regular"])
-        for r in rows
-    )
-    result = gql("""
-    mutation {
-      productVariantsBulkUpdate(productId: "%s", variants: [%s]) {
-        productVariants { id }
-        userErrors { field message }
-      }
-    }
-    """ % (product["id"], updates), mutation=True)
-
-    errors = result["productVariantsBulkUpdate"]["userErrors"]
-    if errors:
-        sys.exit(f"Price update failed: {errors}")
+    snapshot_map = apply_deal(product, rows)
     print(f"Repriced {len(rows)} variant(s).")
 
     # Snapshot inventory BEFORE the deal opens. The claimed bar measures the
@@ -214,7 +203,7 @@ def cmd_start(args):
     # other than us — enabling Collective's MSRP sync would do it — and an
     # unattended sweep acting on that would raise prices on products that were
     # never on deal.
-    price_snapshot = json.dumps({str(r["id"]): str(r["regular"]) for r in rows})
+    price_snapshot = json.dumps(snapshot_map)
 
     # The lowest price the deal actually ran at. Kept so the past-deals list
     # can show what was on offer after the product has gone back to full price
@@ -257,6 +246,74 @@ def cmd_start(args):
           f"discounted price stays on the product.")
 
 
+def apply_deal(product, rows):
+    """Reprice for a deal and return the snapshot needed to undo it.
+
+    PRESERVES AN EXISTING COMPARE-AT. Several suppliers sync a real MSRP
+    through Collective — the Panama Hats carry $293.00 against a $249.05 price.
+    Overwriting that with the current price would destroy genuine data, and
+    clearing it on `end` would delete it permanently. It is also the better
+    anchor: discounting against a true MSRP shows a larger and still-honest
+    saving than discounting against our own price.
+
+    So compare-at is only written where there was none, and the snapshot records
+    what each field held so `end` restores both exactly.
+    """
+    updates = []
+    snapshot = {}
+    for r in rows:
+        if r["existing_compare_at"]:
+            # Leave compare-at alone; only the price moves.
+            updates.append('{ id: "%s", price: "%s" }' % (r["id"], r["deal"]))
+        else:
+            updates.append('{ id: "%s", price: "%s", compareAtPrice: "%s" }'
+                           % (r["id"], r["deal"], r["regular"]))
+        snapshot[str(r["id"])] = {
+            "price": str(r["regular"]),
+            "compare_at": str(r["existing_compare_at"]) if r["existing_compare_at"] else None,
+        }
+
+    result = gql("""
+    mutation {
+      productVariantsBulkUpdate(productId: "%s", variants: [%s]) {
+        userErrors { field message }
+      }
+    }
+    """ % (product["id"], ",\n".join(updates)), mutation=True)
+    errs = result["productVariantsBulkUpdate"]["userErrors"]
+    if errs:
+        sys.exit(f"Repricing failed: {errs}")
+    return snapshot
+
+
+def product_has_live_deal(product_gid):
+    """True when an activated deal is running on this product right now.
+
+    Presence of a compare-at price is NOT the test — suppliers set those. Only
+    an entry with a price_snapshot represents a deal we applied.
+    """
+    data = gql("""
+    {
+      metaobjects(type: "daily_deal", first: 100) {
+        nodes { fields { key value } }
+      }
+    }
+    """)
+    now = datetime.now(timezone.utc)
+    for node in data["metaobjects"]["nodes"]:
+        f = {x["key"]: x["value"] for x in node["fields"]}
+        if f.get("product") != product_gid or not f.get("price_snapshot"):
+            continue
+        try:
+            starts = datetime.fromisoformat(f["starts_at"].replace("Z", "+00:00"))
+            ends = datetime.fromisoformat(f["ends_at"].replace("Z", "+00:00"))
+        except (KeyError, ValueError):
+            continue
+        if starts <= now < ends:
+            return True
+    return False
+
+
 def entries_for_product(product_gid):
     """Every daily_deal entry pointing at this product, newest window last."""
     data = gql("""
@@ -274,25 +331,39 @@ def entries_for_product(product_gid):
     return out
 
 
-def restore_prices(product, snapshot):
-    """Put variant prices back and clear the strikethrough.
+def _snapshot_entry(raw):
+    """Normalise a snapshot entry to (price, compare_at).
 
-    `snapshot` maps variant gid -> original price. Variants missing from it are
-    left alone: a variant added mid-deal was never repriced by us, so we have
-    no business writing to it.
+    Two formats exist. Early deals stored just the price as a string; current
+    ones store {"price", "compare_at"} so a supplier MSRP can be put back
+    exactly as it was. Old entries are read as "no compare-at recorded", which
+    matches how they were written.
     """
-    targets = [
-        v for v in product["variants"]["nodes"]
-        if v["id"] in snapshot and (
-            v["price"] != snapshot[v["id"]] or v["compareAtPrice"] is not None
-        )
-    ]
+    if isinstance(raw, dict):
+        return raw.get("price"), raw.get("compare_at")
+    return raw, None
+
+
+def restore_prices(product, snapshot):
+    """Put variant prices back, and compare-at back to whatever it was.
+
+    Variants missing from the snapshot are left alone: one added mid-deal was
+    never repriced by us, so we have no business writing to it.
+    """
+    targets = []
+    for v in product["variants"]["nodes"]:
+        if v["id"] not in snapshot:
+            continue
+        price, compare_at = _snapshot_entry(snapshot[v["id"]])
+        if v["price"] != price or v["compareAtPrice"] != compare_at:
+            targets.append((v, price, compare_at))
     if not targets:
         return 0
 
     updates = ",\n".join(
-        '{ id: "%s", price: "%s", compareAtPrice: null }' % (v["id"], snapshot[v["id"]])
-        for v in targets
+        '{ id: "%s", price: "%s", compareAtPrice: %s }'
+        % (v["id"], price, f'"{compare_at}"' if compare_at else "null")
+        for v, price, compare_at in targets
     )
     result = gql("""
     mutation {
@@ -415,6 +486,172 @@ def close_active_entries(product_gid):
             closed += 1
 
     return closed
+
+
+def cmd_queue(args):
+    """Schedule a deal to begin later, without touching prices now.
+
+    `start` reprices immediately, which is wrong for anything scheduled: it
+    would discount the product while a different deal is still running, and it
+    would snapshot inventory hours before the deal opens — making the claimed
+    bar measure sales that happened outside the deal.
+
+    So this records intent only. `activate` does the repricing when the window
+    actually opens. An entry with a start time in the past and no
+    price_snapshot is precisely "queued but not yet activated".
+    """
+    product = fetch_product(args.handle)
+    rows = analyse(product, args.discount)
+
+    # Validate the economics now rather than discovering them at activation,
+    # when nobody is watching. The compare-at check from `start` is deliberately
+    # skipped: another deal may legitimately be running today.
+    # live_deal=False on purpose: this deal starts later, so whether one is
+    # running right now says nothing about whether it can be queued. activate
+    # re-checks at the moment it matters.
+    report(product, rows, args.discount, live_deal=False)
+    if any(r["cost"] is None for r in rows):
+        sys.exit(1)
+
+    try:
+        starts = datetime.fromisoformat(args.starts_at.replace("Z", "+00:00"))
+    except ValueError:
+        sys.exit(f"Could not parse --starts-at {args.starts_at!r}. "
+                 "Use an ISO timestamp like 2026-07-30T19:36:00Z.")
+    if starts.tzinfo is None:
+        starts = starts.replace(tzinfo=timezone.utc)
+    ends = starts + timedelta(hours=args.hours)
+    fmt = "%Y-%m-%dT%H:%M:%SZ"
+
+    fields = [
+        ("product", product["id"]),
+        ("starts_at", starts.strftime(fmt)),
+        ("ends_at", ends.strftime(fmt)),
+        ("units_allocated", str(args.units)),
+        ("discount_percent", str(args.discount)),
+    ]
+    if args.headline:
+        fields.append(("headline", args.headline))
+
+    field_gql = ", ".join('{ key: "%s", value: %s }' % (k, json.dumps(v)) for k, v in fields)
+    result = gql("""
+    mutation {
+      metaobjectCreate(metaobject: { type: "daily_deal", fields: [%s] }) {
+        metaobject { handle }
+        userErrors { field message }
+      }
+    }
+    """ % field_gql, mutation=True)
+
+    errors = result["metaobjectCreate"]["userErrors"]
+    if errors:
+        sys.exit(f"Queue failed: {errors}")
+
+    handle = result["metaobjectCreate"]["metaobject"]["handle"]
+    print(f"\nQueued {handle}: {args.discount}% off {product['title'][:40]}")
+    print(f"  starts {starts.strftime(fmt)}  ends {ends.strftime(fmt)}")
+    print("\nPrices are UNCHANGED. `deal.py activate` applies them when the")
+    print("window opens — that runs hourly in CI, so nothing to do by hand.")
+
+
+def cmd_activate(args):
+    """Apply any queued deal whose window has opened.
+
+    Safe to run repeatedly: a deal is only activated when it has a
+    discount_percent, its window contains now, and it has no price_snapshot yet.
+    Writing the snapshot is what marks it activated, so a second run finds
+    nothing.
+    """
+    data = gql("""
+    {
+      metaobjects(type: "daily_deal", first: 100) {
+        nodes { id handle fields { key value } }
+      }
+    }
+    """)
+
+    now = datetime.now(timezone.utc)
+    activated = 0
+
+    for node in data["metaobjects"]["nodes"]:
+        f = {x["key"]: x["value"] for x in node["fields"]}
+        if f.get("price_snapshot"):
+            continue  # already activated
+        if not f.get("discount_percent") or not f.get("product"):
+            continue  # not a queued deal
+        try:
+            starts = datetime.fromisoformat(f["starts_at"].replace("Z", "+00:00"))
+            ends = datetime.fromisoformat(f["ends_at"].replace("Z", "+00:00"))
+            discount = float(f["discount_percent"])
+        except (KeyError, ValueError):
+            continue
+        if not (starts <= now < ends):
+            continue  # not due, or already over — an unactivated expired deal
+                      # is simply skipped rather than applied late
+
+        product = gql("""
+        {
+          product(id: "%s") {
+            id
+            title
+            totalInventory
+            variants(first: 100) {
+              nodes {
+                id title price compareAtPrice inventoryQuantity
+                inventoryItem { tracked unitCost { amount } }
+              }
+            }
+          }
+        }
+        """ % f["product"]).get("product")
+
+        if not product:
+            print(f"{node['handle']}: product no longer exists, skipping.")
+            continue
+
+        rows = analyse(product, discount)
+        if any(r["cost"] is None for r in rows):
+            print(f"{node['handle']}: missing cost data, refusing to price.")
+            continue
+        if product_has_live_deal(product["id"]):
+            # A deal we applied is already running here. Repricing on top would
+            # compound the discount. Presence of a compare-at price is NOT the
+            # test — suppliers set those.
+            print(f"{node['handle']}: another deal is already live on "
+                  f"{product['title'][:40]}. Skipping.")
+            continue
+
+        snapshot_map = apply_deal(product, rows)
+
+        # Snapshot inventory NOW, as the deal opens — that is what the claimed
+        # bar measures the drop from.
+        snapshot = sum(
+            v["inventoryQuantity"]
+            for v in product["variants"]["nodes"]
+            if (v.get("inventoryItem") or {}).get("tracked") and v["inventoryQuantity"] > 0
+        )
+        price_snapshot = json.dumps(snapshot_map)
+        deal_price = min(r["deal"] for r in rows)
+
+        upd = ", ".join('{ key: "%s", value: %s }' % (k, json.dumps(v)) for k, v in [
+            ("price_snapshot", price_snapshot),
+            ("starting_inventory", str(snapshot)),
+            ("deal_price", str(deal_price)),
+        ])
+        gql("""
+        mutation {
+          metaobjectUpdate(id: "%s", metaobject: { fields: [%s] }) {
+            userErrors { message }
+          }
+        }
+        """ % (node["id"], upd), mutation=True)
+
+        activated += 1
+        print(f"{node['handle']}: activated {discount}% off {product['title'][:40]} "
+              f"({len(rows)} variants, {snapshot} in stock)")
+
+    print(f"Activated {activated} deal(s)." if activated
+          else "Nothing to activate — no queued deal is due.")
 
 
 def cmd_sweep(args):
@@ -564,6 +801,19 @@ def main():
     sp = sub.add_parser("end")
     sp.add_argument("handle", help="product handle")
     sp.set_defaults(func=cmd_end)
+
+    sp = sub.add_parser("queue", help="schedule a deal for later without changing prices now")
+    sp.add_argument("handle", help="product handle")
+    sp.add_argument("--discount", type=float, required=True, help="percent off, e.g. 45")
+    sp.add_argument("--starts-at", required=True,
+                    help="ISO timestamp, e.g. 2026-07-30T19:36:00Z")
+    sp.add_argument("--hours", type=int, default=24, help="deal duration")
+    sp.add_argument("--units", type=int, default=50, help="units allocated")
+    sp.add_argument("--headline", default="Yoink of the Day")
+    sp.set_defaults(func=cmd_queue)
+
+    sp = sub.add_parser("activate", help="apply any queued deal whose window has opened")
+    sp.set_defaults(func=cmd_activate)
 
     sp = sub.add_parser("sweep", help="end every deal whose window has closed")
     sp.set_defaults(func=cmd_sweep)

@@ -26,7 +26,7 @@
 #
 # Neither value is ever printed; both reach the script through the environment.
 
-name: Sweep expired deals
+name: Deal lifecycle
 
 on:
   schedule:
@@ -57,6 +57,15 @@ jobs:
 
       # No dependencies to install: deal.py uses only the standard library,
       # specifically so this job stays a checkout and a run.
+      # Activate first: a queued deal whose window just opened should be priced
+      # before we look for deals to end. Doing it the other way round would
+      # leave a just-started deal unpriced for a full hour.
+      - name: Activate queued deals
+        env:
+          SHOPIFY_CLIENT_ID: ${{ secrets.SHOPIFY_CLIENT_ID }}
+          SHOPIFY_CLIENT_SECRET: ${{ secrets.SHOPIFY_CLIENT_SECRET }}
+        run: python3 scripts/deal.py activate
+
       - name: Sweep
         env:
           SHOPIFY_CLIENT_ID: ${{ secrets.SHOPIFY_CLIENT_ID }}
