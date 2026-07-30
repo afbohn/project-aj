@@ -99,7 +99,9 @@
     "cart_upsell_heading": "Add to your order",
     "cart_upsell_count": 3,
     "cart_upsell_fallback": "",
-    "auto_open_cart_drawer": true
+    "auto_open_cart_drawer": true,
+    "quick_add": true,
+    "mobile_quick_add": true
   },
   "presets": {
     "Default": {

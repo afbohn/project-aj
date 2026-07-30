@@ -1,0 +1,154 @@
+{%- comment -%}
+  AJ Deal Announcement — the top bar, pointing at whatever today's Yoink is.
+
+  The announcement bar is the most-seen strip on the site and it was saying
+  "Welcome to our store", which tells a visitor nothing. On a store whose entire
+  proposition is one deal a day, the bar should name that deal and link to it.
+
+  Resolves the live deal itself from the daily_deal metaobject, exactly as the
+  homepage section does, so it changes on its own when the deal rotates at 9am.
+  Nothing to edit daily.
+
+  Renders NOTHING when no deal is live, rather than announcing a deal that does
+  not exist. A fallback message is available for that case if wanted.
+
+  ON CACHING: this is resolved server-side per request. Shopify may serve a
+  cached page for a short window around the 9am changeover, so the bar can
+  briefly name the outgoing deal. It self-corrects, and the link stays valid
+  either way — it points at a real product, just yesterday's.
+{%- endcomment -%}
+
+{%- liquid
+  assign now = 'now' | date: '%s' | plus: 0
+  assign deal = null
+
+  for entry in shop.metaobjects.daily_deal.values
+    assign starts = entry.starts_at.value | date: '%s' | plus: 0
+    assign ends = entry.ends_at.value | date: '%s' | plus: 0
+    if starts <= now and ends > now
+      assign deal = entry
+      break
+    endif
+  endfor
+
+  assign product = deal.product.value
+  assign variant = product.selected_or_first_available_variant
+
+  comment
+    Discount against the supplier MSRP where there is one — a genuine list
+    price, and the bigger number. Otherwise against our own price.
+  endcomment
+  assign anchor = variant.compare_at_price
+  if anchor == blank or anchor <= variant.price
+    assign anchor = null
+  endif
+  if anchor
+    assign saved_percent = anchor | minus: variant.price | times: 100 | divided_by: anchor
+  endif
+-%}
+
+{%- if product != blank -%}
+  <a
+    class="aj-announce"
+    href="{{ product.url }}"
+    {{ block.shopify_attributes }}
+  >
+    <span class="aj-announce__label">{{ block.settings.label | default: "Today's Yoink" }}</span>
+    <span class="aj-announce__title">{{ product.title | escape }}</span>
+    {%- if saved_percent -%}
+      <span class="aj-announce__save">{{ saved_percent }}% off</span>
+    {%- endif -%}
+    <span class="aj-announce__go" aria-hidden="true">→</span>
+  </a>
+{%- elsif block.settings.fallback != blank -%}
+  <span class="aj-announce aj-announce--plain" {{ block.shopify_attributes }}>
+    {{ block.settings.fallback | escape }}
+  </span>
+{%- endif -%}
+
+{% stylesheet %}
+  .aj-announce {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    color: inherit;
+    text-decoration: none;
+    font-size: 0.875rem;
+    line-height: 1.3;
+  }
+
+  .aj-announce:hover .aj-announce__title,
+  .aj-announce:focus-visible .aj-announce__title {
+    text-decoration: underline;
+  }
+
+  .aj-announce__label {
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+  }
+
+  .aj-announce__title {
+    /* One line in the bar. The product page carries the full name. */
+    max-width: 22rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .aj-announce__save {
+    font-weight: 700;
+  }
+
+  .aj-announce__go {
+    transition: transform 0.15s ease;
+  }
+
+  .aj-announce:hover .aj-announce__go {
+    transform: translateX(2px);
+  }
+
+  @media screen and (max-width: 749px) {
+    /* The title is the least useful part on a narrow bar — the label and the
+       saving already say "there is a deal, tap here". */
+    .aj-announce__title { max-width: 11rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aj-announce__go { transition: none; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "AJ Deal Announcement",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Names today's Yoink and links to it. Updates on its own when the deal rotates; hidden when no deal is running."
+    },
+    {
+      "type": "text",
+      "id": "label",
+      "label": "Label",
+      "default": "Today's Yoink"
+    },
+    {
+      "type": "text",
+      "id": "fallback",
+      "label": "When no deal is running",
+      "default": "",
+      "info": "Leave empty to show nothing at all rather than announce a deal that is not there."
+    }
+  ],
+  "presets": [
+    {
+      "name": "AJ Deal Announcement"
+    }
+  ]
+}
+{% endschema %}

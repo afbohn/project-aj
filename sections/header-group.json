@@ -14,22 +14,16 @@
     "header_announcements_9jGBFp": {
       "type": "header-announcements",
       "blocks": {
-        "announcement_BxgCk9": {
-          "type": "_announcement",
+        "aj_deal_announcement": {
+          "type": "aj-deal-announcement",
           "settings": {
-            "text": "Welcome to our store",
-            "link": "",
-            "font": "var(--font-subheading--family)",
-            "font_size": "0.75rem",
-            "weight": "",
-            "letter_spacing": "normal",
-            "case": "none"
-          },
-          "blocks": {}
+            "label": "Today's Yoink",
+            "fallback": ""
+          }
         }
       },
       "block_order": [
-        "announcement_BxgCk9"
+        "aj_deal_announcement"
       ],
       "name": "t:names.announcement_bar",
       "settings": {
