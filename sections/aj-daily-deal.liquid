@@ -31,6 +31,7 @@
 {%- endcomment -%}
 
 <script src="{{ 'aj-daily-deal.js' | asset_url }}" type="module" fetchpriority="low"></script>
+<script src="{{ 'aj-variant-select.js' | asset_url }}" type="module" fetchpriority="low"></script>
 
 {%- liquid
   assign now = 'now' | date: '%s' | plus: 0
@@ -103,7 +104,7 @@
         </h2>
 
         <div class="aj-deal__pricing">
-          <span class="aj-deal__price">{{ variant.price | money }}</span>
+          <span class="aj-deal__price" data-aj-upsell-price>{{ variant.price | money }}</span>
           {%- if on_sale -%}
             <s class="aj-deal__compare">{{ variant.compare_at_price | money }}</s>
             <span class="aj-deal__savings">You save {{ savings | money }}</span>
@@ -133,23 +134,65 @@
           %}
         {%- endif -%}
 
-        <div class="aj-deal__cta">
+        <div class="aj-deal__cta" data-aj-upsell-row>
           {%- comment -%}
-            Single-variant deals get a real add-to-cart — one less click on the
-            item we most want people to buy. Anything with options goes to the
-            PDP, because guessing a variant for someone is worse than a click.
+            Add to cart HERE, options and all. Sending someone to the product
+            page to pick a colour loses most of them, and this is the one item on
+            the site we most want bought — so the same picker the cart upsell
+            uses appears inline instead.
+
+            Built on Horizon's product-form-component, which posts to the cart,
+            asks for the cart sections back and morphs them in. With
+            auto_open_cart_drawer on, the drawer opens by itself.
           {%- endcomment -%}
-          {%- if product.variants.size == 1 and variant.available -%}
-            {%- form 'product', product, class: 'aj-deal__form' -%}
-              <input type="hidden" name="id" value="{{ variant.id }}">
-              <button type="submit" class="button aj-deal__button">
-                {{ 'actions.add_to_cart' | t | default: 'Add to cart' }}
-              </button>
-            {%- endform -%}
-          {%- elsif variant.available -%}
-            <a href="{{ product.url }}" class="button aj-deal__button">
-              Shop the deal
-            </a>
+          {%- if variant.available -%}
+            {%- assign deal_form_id = 'AjDeal-' | append: product.id -%}
+
+            {%- unless product.variants.size == 1 -%}
+              <aj-variant-select class="aj-deal__variants">
+                <label class="visually-hidden" for="{{ deal_form_id }}-variant">
+                  Option for {{ product.title | escape }}
+                </label>
+                <select id="{{ deal_form_id }}-variant" class="aj-deal__select">
+                  {%- for v in product.variants -%}
+                    <option
+                      value="{{ v.id }}"
+                      data-price="{{ v.price | money }}"
+                      data-available="{{ v.available }}"
+                      {% if v.id == variant.id %}selected{% endif %}
+                      {% unless v.available %}disabled{% endunless %}
+                    >
+                      {{ v.title | escape }}
+                      {%- unless v.available %} — sold out{% endunless -%}
+                    </option>
+                  {%- endfor -%}
+                </select>
+              </aj-variant-select>
+            {%- endunless -%}
+
+            <product-form-component
+              data-section-id="{{ section.id }}"
+              data-product-id="{{ product.id }}"
+              on:submit="/handleSubmit"
+              class="aj-deal__form-component"
+            >
+              <div
+                class="visually-hidden"
+                aria-live="assertive"
+                role="status"
+                aria-atomic="true"
+                ref="liveRegion"
+              ></div>
+              {%- form 'product', product, id: deal_form_id, novalidate: 'novalidate', data-type: 'add-to-cart-form' -%}
+                <input type="hidden" name="id" ref="variantId" value="{{ variant.id }}">
+                <input type="hidden" name="quantity" value="1">
+                <button type="submit" class="button aj-deal__button">
+                  {{ 'actions.add_to_cart' | t | default: 'Add to cart' }}
+                </button>
+              {%- endform -%}
+            </product-form-component>
+
+            <a href="{{ product.url }}" class="aj-deal__details">See full details</a>
           {%- else -%}
             <p class="aj-deal__soldout">Sold out</p>
           {%- endif -%}
@@ -252,8 +295,43 @@
     margin-block-start: var(--padding-md, 1.5rem);
   }
 
+  .aj-deal__variants {
+    display: block;
+    margin-block-end: 0.6rem;
+  }
+
+  .aj-deal__select {
+    width: 100%;
+    max-width: 22rem;
+    padding: 0.55em 2em 0.55em 0.7em;
+    border: 1px solid rgb(var(--color-foreground-rgb) / 0.35);
+    border-radius: 3px;
+    background-color: transparent;
+    color: inherit;
+    font: inherit;
+    /* Native arrows vary wildly by platform; draw our own so the control
+       matches the button underneath it. */
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+                      linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position: calc(100% - 1.1em) 1.05em, calc(100% - 0.8em) 1.05em;
+    background-size: 0.35em 0.35em, 0.35em 0.35em;
+    background-repeat: no-repeat;
+  }
+
+  .aj-deal__form-component {
+    display: block;
+  }
+
   .aj-deal__button {
     width: 100%;
+  }
+
+  .aj-deal__details {
+    display: inline-block;
+    margin-block-start: 0.6rem;
+    font-size: 0.875rem;
+    opacity: 0.75;
   }
 
   @media screen and (min-width: 750px) {
