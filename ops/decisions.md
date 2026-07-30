@@ -236,3 +236,64 @@ them, so most of the catalogue was typed "Ceramic" and some had no type at all.
 Building a category tree against a catalogue that is 89% one vendor would bake
 in that skew. Price bands work today and survive any catalogue mix. Revisit once
 there is enough variety that the real categories are obvious.
+
+## Nothing is final sale
+
+30 July. Shoppers assume a 45%-off item is non-returnable, so saying otherwise
+is the strongest trust signal a store with no review history can offer — and it
+costs nothing until someone actually returns something. The final-sale line was
+removed from the draft policy entirely rather than left dormant: "items marked
+final sale" invites a shopper to wonder which ones are, and the answer is none.
+
+## The customer-facing return window ignores vendor terms
+
+30 July. ~40 Collective vendors have widely varying return windows and there is
+no number that sits inside all of them. That is the wrong thing to optimise: The
+Yoink is the merchant of record, so vendor terms decide how much we *recover*,
+not what we *owe*. 14 days, chosen for conversion and for being sayable from
+memory, with recovery treated as a cost line and triaged case by case.
+
+## Defects keep a 30-day window while everything else tightens
+
+30 July. Every other clause got stingier; this one deliberately did not.
+Narrowing it does not reduce exposure, it converts it into chargebacks — which
+cost the money, the goods, a dispute fee, and count against the ratio that gets
+a payments account reviewed. Implied warranty of merchantability is also not
+waivable in a fair number of states.
+
+## The prompt version belongs in the cache key
+
+30 July. Enrichment skipped products whose source fields were unchanged, which
+meant improving the prompt could never improve the catalogue. The prompt is an
+input to the answer exactly as the description is. Re-reading the whole
+catalogue costs a few dollars; a permanently frozen catalogue costs the feature.
+
+## Curation signal is split between tags and typed metafields
+
+30 July. Occasions, recipients and settings stay as `e-` tags — they already
+drive automated collections and Search & Discovery. `hero_score` and `color`
+became definition-backed metafields, because a JSON blob reaches the Storefront
+API as an opaque string and neither the chatbot nor Search & Discovery could
+ever have read it. Typed also means sortable, which a tag cannot express: there
+is no tag for "score >= 4".
+
+## The Yoink gets a tag and a collection, reconciled not evented
+
+30 July. A metaobject is reachable from Liquid and the Admin API and almost
+nothing else, so every external consumer was blind to which product is on deal.
+The tag is written by reconciling the tagged set against live deals on each run,
+rather than tagging on activate and clearing on sweep — two writers drift the
+first time a deal window is edited by hand, and a reconciler self-heals.
+
+## Deal windows are anchored to store time
+
+30 July. Anchoring to UTC made the rollover correct in July and wrong from
+November, with no error and nothing to notice it. The deal time is a
+shopper-facing promise, so it belongs on the shopper's clock.
+
+## US only, for now
+
+30 July. Canada and International delivery zones were deleted. International
+returns on a dropship catalogue are a money pit, and the returns process is not
+settled enough domestically to extend it across a border.
+
