@@ -18,10 +18,16 @@
   on. Asking "do people want this back?" gets the same information and keeps the
   promise.
 
-  Deals are marked ENDED and priced at their CURRENT price, with the old deal
-  price shown struck through as history. That ordering matters: the live price
-  is the one a shopper can act on, and presenting an expired price as though it
-  were purchasable would be a bait-and-switch.
+  The MISSED numbers lead — the discount stamped across the image, the old deal
+  price, and the saving spelled out — because a card that does not land as a loss
+  gives nobody a reason to ask for it back or to check earlier tomorrow.
+
+  What keeps that honest rather than bait-and-switch is labelling: ENDED across
+  the whole image, the deal price struck through and captioned GONE, and today's
+  real price stated plainly beside it. A large unqualified "$24" on something that
+  now costs $40 would read as the current price, and discovering otherwise at
+  checkout is the kind of surprise that loses a customer permanently. Urgency from
+  a true fact, never an ambiguous one.
 
   Sorting is done by hand because Liquid's `sort` cannot reach a metaobject
   field, so entries are packed into "epoch^index" strings, sorted as text
@@ -95,6 +101,22 @@
                 assign day_label = entry.ends_at.value | date: '%b %-d'
                 assign day_suffix = ''
               endif
+
+              comment
+                The discount it ran at, measured against the supplier MSRP where
+                there is one — a genuine list price and the bigger number — and
+                against our own price otherwise. Stamped on the image because the
+                percentage is the part that stings.
+              endcomment
+              assign past_deal_cents = entry.deal_price.value | times: 100
+              assign past_anchor = current_variant.compare_at_price
+              if past_anchor == blank or past_anchor <= current_variant.price
+                assign past_anchor = current_variant.price
+              endif
+              assign past_off = 0
+              if entry.deal_price.value != blank and past_anchor > past_deal_cents
+                assign past_off = past_anchor | minus: past_deal_cents | times: 100 | divided_by: past_anchor
+              endif
             -%}
 
             <li class="aj-past__item">
@@ -122,24 +144,47 @@
                     needs to see what it is.
                   {%- endcomment -%}
                   <span class="aj-past__veil" aria-hidden="true">
+                    {%- if past_off > 0 -%}
+                      <span class="aj-past__wasoff">{{ past_off }}% off</span>
+                    {%- endif -%}
                     <span class="aj-past__stamp">Ended</span>
                   </span>
                 </span>
                 <span class="aj-past__title">{{ past_product.title | escape }}</span>
               </a>
 
+              {%- comment -%}
+                The missed deal price LEADS. The job of this section is to make a
+                shopper feel they missed something worth having — that is what
+                makes them ask for it back and check earlier tomorrow. Leading
+                with today's price buries the only number that does that.
+
+                It is struck through, captioned GONE, and today's real price sits
+                beside it. A large unqualified "$24" on something that now costs
+                $40 reads as the current price, and finding out otherwise at
+                checkout is the kind of surprise that loses a customer for good.
+                The urgency comes from a true fact, not an ambiguous one.
+              {%- endcomment -%}
+              {%- liquid
+                assign deal_cents = past_price | times: 100
+                assign missed_cents = current_variant.price | minus: deal_cents
+              -%}
+
               <p class="aj-past__meta">
-                {%- comment -%}
-                  Current price first and unstruck — it is the only one anyone
-                  can actually pay today. The deal price is struck through
-                  because it is over, which is the opposite of the usual
-                  strikethrough convention and deliberately so.
-                {%- endcomment -%}
-                <span class="aj-past__now">{{ current_variant.price | money }}</span>
-                {%- if past_price != blank -%}
-                  <s class="aj-past__was">was {{ past_price | times: 100 | money }}</s>
+                {%- if past_price != blank and missed_cents > 0 -%}
+                  <span class="aj-past__gone">
+                    <s class="aj-past__dealprice">{{ deal_cents | money }}</s>
+                    <span class="aj-past__gonelabel">gone</span>
+                  </span>
+                  <span class="aj-past__now">{{ current_variant.price | money }} now</span>
+                {%- else -%}
+                  <span class="aj-past__now">{{ current_variant.price | money }}</span>
                 {%- endif -%}
               </p>
+
+              {%- if past_price != blank and missed_cents > 0 -%}
+                <p class="aj-past__missed">You missed {{ missed_cents | money }} off</p>
+              {%- endif -%}
 
               {%- if section.settings.show_bring_back -%}
                 <aj-bring-back class="aj-past__bringback" data-deal-id="gid://shopify/Metaobject/{{ entry.system.id }}">
@@ -289,10 +334,22 @@
     position: absolute;
     inset: 0;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 0.3rem;
     background: rgb(var(--color-foreground-rgb) / 0.42);
     transition: opacity 0.2s ease;
+  }
+
+  /* Larger than the ENDED stamp: the discount is what registers as a loss, the
+     stamp only explains why it is unavailable. */
+  .aj-past__wasoff {
+    color: rgb(var(--color-background-rgb));
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.01em;
   }
 
   .aj-past__stamp {

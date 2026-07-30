@@ -65,7 +65,7 @@
         "padding-block-start": 32,
         "padding-block-end": 48,
         "show_bring_back": true,
-        "bring_back_label": "Bring it back"
+        "bring_back_label": "Bring back this deal"
       }
     },
     "aj_shop_by_category": {
