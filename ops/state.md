@@ -112,14 +112,10 @@ posted 30 July to both platforms. One a day thereafter.
 
 ## Known gaps
 
-- **No SPF record.** Mail sent from `hello@` lands in spam. One TXT record:
-  `v=spf1 include:_spf.google.com ~all`. DKIM still needs a 1024-bit key from
-  Google Workspace, because Shopify's DNS field caps at 255 characters.
-- **The Meta token carries `ads_management`**, contrary to the decision recorded
-  in this project that it should not. It can spend money. Nothing does, but the
-  safeguard is not there. Regenerate with `instagram_basic`,
-  `instagram_content_publish`, `pages_show_list`, `pages_read_engagement`,
-  `pages_manage_posts`, `business_management` and nothing else.
+- **The Meta token can spend money.** It carries `ads_management`, deliberately,
+  because the ads agent will use this same token. See *decisions.md* — this
+  reverses an earlier decision and moves a safeguard from the token to the code
+  that has not been written yet.
 - **The Instagram bio is not set.** There is no API for it — profile fields are
   editable only in the app or Business Suite. The Facebook Page is done.
 - **`theme/scripts/deal.py` still duplicates the pricing logic.** The app path has
@@ -132,6 +128,10 @@ posted 30 July to both platforms. One a day thereafter.
   products, because the collection rule matches `tag == handle`.
 - **The app has no test harness.** Verification is by driving exported functions
   with a stubbed admin, which works but is ad hoc.
+
+**Email is done.** MX to Google Workspace, SPF (`v=spf1 include:_spf.google.com
+~all`) and DKIM on the `google` selector, all resolving. The DKIM key is
+1024-bit, which is the size that fits Shopify's 255-character DNS field.
 
 ## Returns — settled
 

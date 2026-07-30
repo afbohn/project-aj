@@ -46,6 +46,29 @@ is purpose-built and updates the displayed price (variants are not uniformly
 priced — one product runs $36 to $125). Everywhere else uses the theme's own
 quick-add, because two add-to-cart patterns in one grid reads as a bug.
 
+## The Meta token keeps ads_management, and the safeguard moves into code
+Earlier this token deliberately excluded `ads_management`, on the reasoning that
+a token which cannot spend money is one less thing to worry about. That has been
+reversed: the ads agent will use this same token, and issuing a second one for it
+would mean two credentials to rotate and two places to revoke.
+
+**This changes where the safety lives, and it must not simply disappear.** The
+old safeguard was structural — the credential physically could not spend. The
+replacement has to be built, and it has to exist BEFORE anything calls a spend
+endpoint, not after:
+
+- a hard budget cap enforced in code before every call that can spend
+- a spend ledger reconciled against what Meta reports, not against what we think
+  we asked for
+- daily budgets set at Meta itself, so the kill switch still works when the app
+  is down or unreachable
+- approval per campaign, not a single ENABLED boolean
+
+Everything built so far is reversible: prices restore from snapshots, products
+republish, posts delete. Ad spend is the first thing that leaves and does not
+come back, so its guardrails differ in kind rather than degree. Until those
+exist, no code path should call an ads endpoint at all.
+
 ## The deal ends, the product does not
 A caption reading "Gone in 20 hours" says the item disappears. It does not — it
 returns to full price and stays on the shelf. That is manufactured scarcity,
