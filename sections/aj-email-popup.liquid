@@ -26,13 +26,18 @@
 {%- endcomment -%}
 
 {%- comment -%}
-  `!= false` rather than a truth test. A static section that has never been saved
-  in the theme editor has no stored settings, and Shopify does not fall back to
-  schema defaults for those — `enabled` reads as nil, so a plain `if` renders an
-  empty wrapper and the popup silently never exists. Checking against false means
-  absent counts as on, and only an explicit untick turns it off.
+  THE SETTING IS "disabled", NOT "enabled", and that is not a style choice.
+
+  A static section that has never been opened in the theme editor has no stored
+  settings, and Shopify does not fall back to schema defaults for those — the
+  setting reads as nil. An `if enabled` test therefore renders nothing, and so
+  does `if enabled != false`, because Liquid evaluates `nil == false` as TRUE.
+  Both spellings produce a popup that exists in the theme and never once appears.
+
+  Inverting the flag sidesteps the whole question: nil is falsy, so an unsaved
+  section renders, and only an explicit tick suppresses it.
 {%- endcomment -%}
-{%- if section.settings.enabled != false -%}
+{%- unless section.settings.disabled -%}
   <aj-email-popup
     class="aj-pop"
     hidden
@@ -77,7 +82,7 @@
   </aj-email-popup>
 
   <script src="{{ 'aj-email-popup.js' | asset_url }}" type="module" fetchpriority="low"></script>
-{%- endif -%}
+{%- endunless -%}
 
 {% stylesheet %}
   .aj-pop { position: fixed; inset: 0; z-index: 1000; display: block; }
@@ -163,7 +168,7 @@
       "type": "paragraph",
       "content": "Shows once per visitor. Never on the join page, never again after a signup, and not again after a dismissal until the window below has passed."
     },
-    { "type": "checkbox", "id": "enabled", "label": "Enabled", "default": true },
+    { "type": "checkbox", "id": "disabled", "label": "Turn the popup off", "default": false },
     { "type": "text", "id": "heading", "label": "Heading", "default": "One deal a day. Yours first." },
     {
       "type": "text", "id": "subheading", "label": "Subheading",
