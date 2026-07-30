@@ -46,6 +46,61 @@ is purpose-built and updates the displayed price (variants are not uniformly
 priced — one product runs $36 to $125). Everywhere else uses the theme's own
 quick-add, because two add-to-cart patterns in one grid reads as a bug.
 
+## Sold-out products are unpublished, not tagged
+The ask was that they not show up. A tag plus a collection rule hides a product
+from the price bands and the category collections and nothing else — it stays in
+search results, in `/collections/all` which the homepage cross-sell reads, and in
+the sitemap. Unpublishing is the only thing that means what it says.
+
+The cost is Google index churn, which is why it debounces: two consecutive
+zero-stock readings before acting, because Collective's inventory sync blips to
+zero between a supplier's push and its confirmation, and a product flickering in
+and out of the sitemap every thirty minutes is worse than one that is briefly
+visible and sold out.
+
+The live deal and anything queued within seven days is exempt. A sold-out Yoink
+is *supposed* to be visible — the countdown and the claimed bar are the point,
+and hiding it would 404 the announcement bar, the Meta post and every share.
+Worse, activation looks a product up by id and would happily reprice an
+unpublished one: priced, counting down, invisible.
+
+State rides on tags rather than a table so there is nothing new to persist, and
+the `oos` tag doubles as the permission slip for republishing — a product taken
+down by hand carries no tag, so the sweep never resurrects it.
+
+## Meta posting is autonomous once it is switched on
+The original brief called for a human to approve every post. We kept the
+scheduled job posting unattended instead, because there is nothing for a human to
+review: captions are composed from Shopify facts by template, not written by a
+model, so the truth guarantee is structural rather than a matter of the caption
+behaving. The one real risk — posting the wrong product because two deals were
+live at once — is now a hard refusal in the script.
+
+What a human would actually be approving is the brand voice, and that is a
+property of the template, which is reviewed once rather than daily.
+
+## The deal hero follows the variant picker
+The Yoink is often one form in nine glazes, so the colour a shopper picks *is*
+the decision, and a static photo answers a different question. The page used to
+open on a mismatch — one file showing while the dropdown named another colour.
+
+Supplier photography is uneven: of those nine colours four have no photo of their
+own and two share one. So every lookup falls back to the product image rather
+than blanking the hero. A picker that swaps to nothing is worse than one that
+does not swap at all.
+
+## Category titles are overridden, handles are not
+Shopify's standard taxonomy names segments for completeness, not for shop
+windows: "Food, Beverages & Tobacco" is the real top-level segment even when
+nothing in the collection is tobacco, and that word does not belong on the
+homepage. `categories.py` carries a `DISPLAY_NAMES` map and applies it to
+existing collections as well as new ones.
+
+Only the shopper-facing title is overridden. The tag and the handle still follow
+the taxonomy, because the collection rule matches `tag == handle` — renaming the
+handle would mean retagging every product in it. The consequence is that the URL
+can disagree with the title, which is the cheaper of the two problems.
+
 ## Category navigation is deliberately deferred
 Supplier categories arrive from Collective as whatever each supplier called
 them, so most of the catalogue was typed "Ceramic" and some had no type at all.
