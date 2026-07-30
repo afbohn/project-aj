@@ -15,20 +15,6 @@
         "padding-block-end": 48
       }
     },
-    "aj_cross_sell": {
-      "type": "aj-cross-sell",
-      "settings": {
-        "collection": "all",
-        "heading": "Add these to your order",
-        "subheading": "Popular with today's deal.",
-        "color_scheme": "scheme-1",
-        "max_products": 4,
-        "columns": 4,
-        "padding-block-start": 16,
-        "padding-block-end": 48,
-        "show_vendor": true
-      }
-    },
     "aj_shop_by_price": {
       "type": "aj-shop-by-price",
       "settings": {
@@ -89,7 +75,6 @@
     "aj_bargain_bin",
     "aj_shop_by_price",
     "aj_shop_by_category",
-    "aj_cross_sell",
     "aj_past_deals"
   ]
 }
