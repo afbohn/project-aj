@@ -25,7 +25,14 @@
   discount comes out of a $12.67 contribution. Early access costs nothing.
 {%- endcomment -%}
 
-{%- if section.settings.enabled -%}
+{%- comment -%}
+  `!= false` rather than a truth test. A static section that has never been saved
+  in the theme editor has no stored settings, and Shopify does not fall back to
+  schema defaults for those — `enabled` reads as nil, so a plain `if` renders an
+  empty wrapper and the popup silently never exists. Checking against false means
+  absent counts as on, and only an explicit untick turns it off.
+{%- endcomment -%}
+{%- if section.settings.enabled != false -%}
   <aj-email-popup
     class="aj-pop"
     hidden
