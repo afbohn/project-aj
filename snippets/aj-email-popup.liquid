@@ -1,0 +1,144 @@
+{%- comment -%}
+  AJ Email Popup — the capture that interrupts.
+
+  A SNIPPET, NOT A SECTION, AND THAT IS THE FIX. As a static section in the
+  layout this rendered nothing at all, three ways: a section never opened in the
+  theme editor has no stored settings, Shopify does not fall back to schema
+  defaults for those, and Liquid evaluates `nil == false` as TRUE — so `if
+  enabled`, `if enabled != false`, and everything in between produced an empty
+  wrapper. A snippet has no settings layer to be nil, so it simply renders.
+
+  The cost is that the copy lives in this file rather than the theme editor.
+  Worth it: the copy changes rarely, and a popup nobody can see is worth nothing
+  however configurable it is.
+
+  IT EARNS ITS INTERRUPTION OR IT DOES NOT APPEAR — the suppression rules live in
+  aj-email-popup.js and matter more than anything here:
+    never on the join page, never after a signup, never inside the dismissal
+    window, never before the delay, and never at all without localStorage to
+    keep those promises with.
+
+  THE OFFER IS ACCESS, NOT A DISCOUNT. The Yoink is clamped near cost and the
+  bin runs at a 20% floor, so another discount comes out of a $12.67
+  contribution. Early access costs nothing.
+{%- endcomment -%}
+<aj-email-popup
+    class="aj-pop"
+    hidden
+    data-delay="12"
+    data-remember-days="30"
+    data-exit-intent="true"
+  >
+    <div class="aj-pop__backdrop" data-close></div>
+
+    <div class="aj-pop__panel" role="dialog" aria-modal="true" aria-labelledby="aj-pop-title">
+      <button class="aj-pop__x" type="button" data-close aria-label="Close">&times;</button>
+
+      <div data-state="form">
+        <h2 class="aj-pop__title" id="aj-pop-title">One deal a day. Yours first.</h2>
+        
+          <p class="aj-pop__sub">We&#39;ll send tomorrow&#39;s Yoink before it goes live. One email a day, nothing else.</p>
+        
+
+        {%- form 'customer', class: 'aj-pop__form' -%}
+          <input type="hidden" name="contact[tags]" value="popup">
+          <label class="visually-hidden" for="aj-pop-email">Email address</label>
+          <input
+            id="aj-pop-email"
+            class="aj-pop__input"
+            type="email"
+            name="contact[email]"
+            placeholder="you@example.com"
+            autocomplete="email"
+            required
+          >
+          <button class="aj-pop__submit" type="submit">Send it to me</button>
+          
+            <p class="aj-pop__fine">One email a day. Unsubscribe anytime.</p>
+          
+        {%- endform -%}
+
+        <button class="aj-pop__decline" type="button" data-close>
+          No thanks
+        </button>
+      </div>
+    </div>
+  </aj-email-popup>
+
+  <script src="{{ 'aj-email-popup.js' | asset_url }}" type="module" fetchpriority="low"></script>
+
+<style>
+  .aj-pop { position: fixed; inset: 0; z-index: 1000; display: block; }
+  .aj-pop[hidden] { display: none; }
+
+  .aj-pop__backdrop {
+    position: absolute; inset: 0;
+    background: rgb(0 0 0 / 0.5);
+    animation: aj-pop-fade 0.25s ease;
+  }
+
+  .aj-pop__panel {
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(30rem, calc(100vw - 2rem));
+    box-sizing: border-box;
+    padding: 2rem;
+    border-radius: 14px;
+    background: rgb(var(--color-background-rgb, 255 255 255));
+    color: rgb(var(--color-foreground-rgb, 17 17 17));
+    box-shadow: 0 24px 60px rgb(0 0 0 / 0.28);
+    animation: aj-pop-rise 0.28s cubic-bezier(0.2, 0.8, 0.3, 1);
+  }
+
+  @keyframes aj-pop-fade { from { opacity: 0 } to { opacity: 1 } }
+  @keyframes aj-pop-rise {
+    from { opacity: 0; transform: translate(-50%, calc(-50% + 12px)); }
+    to   { opacity: 1; transform: translate(-50%, -50%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aj-pop__backdrop, .aj-pop__panel { animation: none; }
+  }
+
+  .aj-pop__x {
+    position: absolute; top: 0.5rem; right: 0.75rem;
+    background: none; border: 0; cursor: pointer;
+    font-size: 1.75rem; line-height: 1; opacity: 0.5;
+    color: inherit;
+  }
+  .aj-pop__x:hover { opacity: 1; }
+
+  .aj-pop__title { margin: 0 0 0.5rem; font-size: 1.5rem; line-height: 1.2; }
+  .aj-pop__sub { margin: 0 0 1.25rem; opacity: 0.75; }
+
+  .aj-pop__form { display: grid; gap: 0.7rem; }
+
+  .aj-pop__input {
+    box-sizing: border-box; width: 100%;
+    padding: 0.9rem 1rem; font-size: 1rem;
+    border-radius: 8px;
+    border: 1px solid rgb(var(--color-foreground-rgb) / 0.25);
+    background: rgb(var(--color-background-rgb, 255 255 255));
+    color: inherit;
+  }
+
+  .aj-pop__submit {
+    padding: 0.95rem 1rem; font-size: 1rem; font-weight: 700;
+    border: 0; border-radius: 8px; cursor: pointer;
+    background: rgb(var(--color-foreground-rgb)); color: rgb(var(--color-background-rgb, 255 255 255));
+  }
+  .aj-pop__submit:hover { opacity: 0.9; }
+
+  .aj-pop__fine { margin: 0; font-size: 0.78rem; opacity: 0.6; }
+
+  /* A plain, low-contrast decline rather than a guilt-tripped "no thanks, I hate
+     savings". Dark patterns buy one signup and cost the brand. */
+  .aj-pop__decline {
+    margin-top: 0.9rem; width: 100%;
+    background: none; border: 0; cursor: pointer;
+    font-size: 0.85rem; opacity: 0.55; color: inherit;
+    text-decoration: underline;
+  }
+  .aj-pop__decline:hover { opacity: 0.85; }
+</style>
