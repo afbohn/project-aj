@@ -40,6 +40,12 @@ import sys
 
 sys.path.insert(0, __import__("os").path.dirname(__import__("os").path.abspath(__file__)))
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
+
+# The store's own timezone (shop.ianaTimezone). Deal windows are a
+# shopper-facing promise — "every morning" — so they are anchored to the
+# clock the shopper is reading, not to UTC.
+STORE_TZ = ZoneInfo("America/Chicago")
 from decimal import Decimal, ROUND_CEILING, ROUND_HALF_UP
 
 
@@ -517,11 +523,29 @@ def cmd_queue(args):
         starts = datetime.fromisoformat(args.starts_at.replace("Z", "+00:00"))
     except ValueError:
         sys.exit(f"Could not parse --starts-at {args.starts_at!r}. "
-                 "Use an ISO timestamp like 2026-07-30T19:36:00Z.")
+                 "Use 2026-08-10T09:00 for 9am store time, or add Z for UTC.")
+
+    # A TIMESTAMP WITHOUT A ZONE MEANS STORE TIME, NOT UTC.
+    #
+    # The first week of deals was queued as 14:00Z because that was 9am Central
+    # on the day it was typed. But UTC does not observe daylight saving and
+    # Chicago does, so every one of those entries would have started rolling
+    # over at 8am from 1 November — the deal changing an hour early, every day,
+    # with nothing in the system to notice. Reading a bare timestamp as store
+    # time makes the obvious input produce the intended result.
     if starts.tzinfo is None:
-        starts = starts.replace(tzinfo=timezone.utc)
-    ends = starts + timedelta(hours=args.hours)
+        starts = starts.replace(tzinfo=STORE_TZ)
+
+    # And the end is computed in store time for the same reason: a "24 hour"
+    # deal spanning a DST boundary is 23 or 25 hours, and what is actually
+    # wanted is the same wall-clock time on the far side.
+    ends = (starts.astimezone(STORE_TZ) + timedelta(hours=args.hours)).astimezone(timezone.utc)
+    starts = starts.astimezone(timezone.utc)
     fmt = "%Y-%m-%dT%H:%M:%SZ"
+
+    local = starts.astimezone(STORE_TZ)
+    print(f"  window: {local:%Y-%m-%d %H:%M %Z} -> "
+          f"{ends.astimezone(STORE_TZ):%Y-%m-%d %H:%M %Z}  ({starts:{fmt}} UTC)")
 
     fields = [
         ("product", product["id"]),
@@ -806,7 +830,9 @@ def main():
     sp.add_argument("handle", help="product handle")
     sp.add_argument("--discount", type=float, required=True, help="percent off, e.g. 45")
     sp.add_argument("--starts-at", required=True,
-                    help="ISO timestamp, e.g. 2026-07-30T19:36:00Z")
+                    help="ISO timestamp. Bare times are STORE time "
+                         "(America/Chicago), e.g. 2026-08-10T09:00. "
+                         "Append Z to mean UTC.")
     sp.add_argument("--hours", type=int, default=24, help="deal duration")
     sp.add_argument("--units", type=int, default=50, help="units allocated")
     sp.add_argument("--headline", default="Yoink of the Day")
