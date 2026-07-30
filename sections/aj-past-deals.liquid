@@ -180,9 +180,12 @@
                 {%- if past_price != blank and missed_cents > 0 -%}
                   <span class="aj-past__gone">
                     <s class="aj-past__dealprice">{{ deal_cents | money }}</s>
-                    <span class="aj-past__gonelabel">gone</span>
+                    <span class="aj-past__gonelabel">discounted price</span>
                   </span>
-                  <span class="aj-past__now">{{ current_variant.price | money }} now</span>
+                  <span class="aj-past__now">
+                    {{ current_variant.price | money }}
+                    <span class="aj-past__nowlabel">regular price</span>
+                  </span>
                 {%- else -%}
                   <span class="aj-past__now">{{ current_variant.price | money }}</span>
                 {%- endif -%}
