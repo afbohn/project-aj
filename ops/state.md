@@ -183,6 +183,10 @@ edited by hand.
   commands as a CLI.
 - **No brand.** Logo, colours and fonts are theme settings waiting on Jake.
 - **Judge.me is installed** but no review UI is wired into cards or the PDP.
+- **The `meta` heartbeat is red from a run at 16:43 on 30 July**, one minute
+  before the agent was paused. It is stale, not ongoing — but `/app/agents`
+  will show a red light until the agent runs successfully again, which is the
+  kind of thing that teaches you to stop reading the dashboard.
 - **The category URL still says tobacco.** The title reads "Food & Beverages";
   the handle is `cat-food-beverages-tobacco`. Changing it means retagging 41
   products, because the collection rule matches `tag == handle`.
@@ -282,7 +286,11 @@ straight loss on a unit that never made money.
   ... deprecated", a permission removed in 2018 that has nothing to do with it.
 - **An Instagram media container must finish processing before publish.** Too
   early fails with "Media ID is not available" (code 9007). Poll `status_code`
-  until FINISHED.
+  until FINISHED — **and that is still not enough.** A 9007 killed a post four
+  hours after the poll shipped: FINISHED and publishable are not the same
+  instant. `media_publish` now retries on 9007 specifically. Untested, because
+  `meta` has been paused since; expect to confirm it when the agent goes back
+  on in August.
 - **`utm_medium` must be `social`, not `organic_social`.** GA4 matches
   `^(social|social-network|social-media|sm)$` for Organic Social; anything more
   descriptive falls out of the channel grouping into Unassigned.
