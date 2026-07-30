@@ -30,9 +30,6 @@ name: Deal lifecycle
 
 on:
   schedule:
-    # Every hour on the half hour. Hourly is the useful granularity here —
-    # the exposure window is at most an hour of selling at deal price, and
-    # GitHub's scheduler is approximate anyway under load.
     # Every 15 minutes, not hourly. An hourly cron means a deal that opens at
     # :36 is not priced until the next :30 — nearly an hour with the homepage
     # showing a countdown next to a full price, and an ended deal still selling
