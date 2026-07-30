@@ -1,12 +1,3 @@
-/*
- * ------------------------------------------------------------
- * IMPORTANT: The contents of this file are auto-generated.
- *
- * This file may be updated by the Shopify admin theme editor
- * or related systems. Please exercise caution as any changes
- * made to this file may be overwritten.
- * ------------------------------------------------------------
- */
 {
   "sections": {
     "aj_daily_deal": {
@@ -79,10 +70,23 @@
         "padding-block-start": 32,
         "padding-block-end": 32
       }
+    },
+    "aj_bargain_bin": {
+      "type": "aj-bargain-bin",
+      "settings": {
+        "heading": "The Bargain Bin",
+        "subheading": "Everything at least 25% off. New picks every week.",
+        "collection_handle": "bargain-bin",
+        "products_shown": 8,
+        "color_scheme": "scheme-1",
+        "padding-block-start": 32,
+        "padding-block-end": 32
+      }
     }
   },
   "order": [
     "aj_daily_deal",
+    "aj_bargain_bin",
     "aj_shop_by_price",
     "aj_shop_by_category",
     "aj_cross_sell",
