@@ -32,6 +32,21 @@ from shopify_auth import gql  # noqa: E402
 
 PREFIX = "cat-"
 
+# Shopify's taxonomy names segments for completeness, not for shop windows.
+# "Food, Beverages & Tobacco" is the real top-level segment even when nothing in
+# it is tobacco, and putting that word on a card on the homepage advertises
+# something we do not sell. The tag and the handle still follow the taxonomy —
+# only the shopper-facing title is overridden, so retagging stays mechanical.
+#
+# Keyed by taxonomy segment. Add a line here when a segment reads badly.
+DISPLAY_NAMES = {
+    "Food, Beverages & Tobacco": "Food & Beverages",
+}
+
+
+def display_name(top):
+    return DISPLAY_NAMES.get(top, top)
+
 
 def handleize(value):
     return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
@@ -56,23 +71,25 @@ def fetch_products():
         cursor = page["pageInfo"]["endCursor"]
 
 
-def fetch_collection_handles():
-    handles, cursor = set(), None
+def fetch_collections():
+    """handle -> {id, title}. Title is carried so a renamed category can be
+    corrected in place rather than only at creation."""
+    out, cursor = {}, None
     while True:
         after = f', after: "{cursor}"' if cursor else ""
         data = gql("""
         {
           collections(first: 250%s) {
             pageInfo { hasNextPage endCursor }
-            nodes { handle }
+            nodes { id handle title }
           }
         }
         """ % after)
         page = data["collections"]
         for n in page["nodes"]:
-            handles.add(n["handle"])
+            out[n["handle"]] = {"id": n["id"], "title": n["title"]}
         if not page["pageInfo"]["hasNextPage"]:
-            return handles
+            return out
         cursor = page["pageInfo"]["endCursor"]
 
 
@@ -113,7 +130,11 @@ def main():
     print(f"\n{len(products)} products | {len(top_levels)} categories | "
           f"{no_category} without a category\n")
     for top, tag in sorted(top_levels.items()):
-        print(f"  {tag:28} {top}")
+        shown = display_name(top)
+        # Flag overridden names so a dry run shows what a shopper will read,
+        # not just what the taxonomy calls it.
+        suffix = f"   (shown as {shown!r})" if shown != top else ""
+        print(f"  {tag:28} {top}{suffix}")
 
     if changes:
         print(f"\n{len(changes)} product(s) need retagging")
@@ -130,7 +151,21 @@ def main():
             % (c["id"], c["add"]), mutation=True)
     print(f"\nRetagged {len(changes)} product(s).")
 
-    existing = fetch_collection_handles()
+    existing = fetch_collections()
+
+    # Correct any category whose shopper-facing title has drifted from
+    # DISPLAY_NAMES. Runs before creation so a rename lands even when there is
+    # nothing new to create.
+    for top, handle in sorted(top_levels.items()):
+        current = existing.get(handle)
+        want_title = display_name(top)
+        if not current or current["title"] == want_title:
+            continue
+        gql('mutation { collectionUpdate(input: {id: "%s", title: %s}) '
+            '{ userErrors { message } } }' % (current["id"], json.dumps(want_title)),
+            mutation=True)
+        print(f"  renamed {handle}: {current['title']!r} -> {want_title!r}")
+
     missing = {t: h for t, h in top_levels.items() if h not in existing}
     if not missing:
         print("Every category already has a collection.")
@@ -149,7 +184,8 @@ def main():
             ] }
           }) { collection { id } userErrors { message } }
         }
-        """ % (json.dumps(top), json.dumps(handle), json.dumps(handle)), mutation=True)
+        """ % (json.dumps(display_name(top)), json.dumps(handle), json.dumps(handle)),
+            mutation=True)
         errs = res["collectionCreate"]["userErrors"]
         if errs:
             print(f"  warning {handle}: {errs}")

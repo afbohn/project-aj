@@ -7,13 +7,25 @@
  * reload. It reads the variant from the hidden input marked `ref="variantId"`.
  *
  * So all this does is keep that hidden input in step with the <select>, and
- * keep the visible price honest. Everything else is the theme's.
+ * keep the visible price and image honest. Everything else is the theme's.
  *
  * The price matters more than it looks. Variants on this catalogue are not
  * uniformly priced — "Artisan Soup Mugs" runs $36 for one to $125 for a set of
  * four — so a picker that changes the variant without changing the price shows
  * someone $36 and charges them $125. Each option carries its own formatted
  * price, rendered server-side, and the display follows the selection.
+ *
+ * THE IMAGE follows too, where there is one to follow. On the daily deal the
+ * product is often a single form in nine glazes, so the colour someone picks is
+ * the entire decision and a static photo answers the wrong question. But
+ * supplier photography is uneven — four of those nine colours have no image of
+ * their own — so an option with no photo falls back to the product image
+ * server-side rather than swapping the hero to nothing.
+ *
+ * The image is found through `[data-aj-variant-scope]` rather than inside the
+ * picker's own row, because on the deal the picker and the photo are in
+ * different columns. In the cart upsell there is no scope element and no marked
+ * image, so this simply does nothing there.
  */
 
 class AjVariantSelect extends HTMLElement {
@@ -25,6 +37,12 @@ class AjVariantSelect extends HTMLElement {
     this.variantInput = this.row?.querySelector('[ref="variantId"]');
     this.priceEl = this.row?.querySelector('[data-aj-upsell-price]');
     this.button = this.row?.querySelector('button[type="submit"]');
+
+    // Wider than `row` on purpose: the deal's photo is a sibling column.
+    this.scope = this.closest('[data-aj-variant-scope]');
+    // The marker is on the link wrapping the image, because Liquid's image_tag
+    // cannot take a hyphenated named argument.
+    this.imageEl = this.scope?.querySelector('[data-aj-variant-image] img');
 
     if (!this.select || !this.variantInput) return;
 
@@ -48,6 +66,16 @@ class AjVariantSelect extends HTMLElement {
 
     if (this.priceEl && option.dataset.price) {
       this.priceEl.textContent = option.dataset.price;
+    }
+
+    // No src on the option means no photo for this variant and none for the
+    // product either. Leave whatever is showing rather than blanking the hero.
+    if (this.imageEl && option.dataset.imageSrc) {
+      if (this.imageEl.src !== option.dataset.imageSrc) {
+        this.imageEl.srcset = option.dataset.imageSrcset || '';
+        this.imageEl.src = option.dataset.imageSrc;
+        this.imageEl.alt = option.dataset.imageAlt || '';
+      }
     }
   }
 }

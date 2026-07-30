@@ -58,6 +58,19 @@
   assign product = deal.product.value
   assign variant = product.selected_or_first_available_variant
 
+  comment
+    The hero follows the picker, and the picker starts on `variant`. Rendering
+    product.featured_image instead left the page opening on one colour while the
+    dropdown named another — on this catalogue the deal product is often a
+    single form in nine glazes, so the mismatch is the whole decision.
+
+    NOT EVERY VARIANT HAS ITS OWN PHOTO. Suppliers shoot what they shoot: of the
+    nine colours on the current deal, four have no image and two share one. So
+    every lookup falls back to the product image rather than blanking, here and
+    in the script.
+  endcomment
+  assign hero_image = variant.image | default: product.featured_image
+
   assign on_sale = false
   if variant.compare_at_price > variant.price
     assign on_sale = true
@@ -71,19 +84,37 @@
     class="aj-deal color-{{ section.settings.color_scheme }} section spacing-style"
     style="{% render 'spacing-style', settings: section.settings %}"
   >
-    <div class="aj-deal__inner page-width">
+    {%- comment -%}
+      Marks how far the picker may reach to find the hero image. The picker sits
+      in the info column and the image is in the media column, so it cannot just
+      look inside its own row the way the cart upsell does.
+    {%- endcomment -%}
+    <div class="aj-deal__inner page-width" data-aj-variant-scope>
+      {%- comment -%}
+        The hero image loads EAGER, unlike everything else on the page. It is
+        the largest element above the fold and the thing the whole homepage is
+        about — lazy-loading it left a blank half-screen beside the price on
+        first paint, and made the deal photo the page's LCP element arriving
+        last. Every other image here stays lazy.
+      {%- endcomment -%}
       <div class="aj-deal__media">
-        {%- if product.featured_media -%}
-          <a href="{{ product.url }}" tabindex="-1" aria-hidden="true">
+        {%- if hero_image -%}
+          {%- comment -%}
+            The marker sits on the anchor, not the img: `image_tag` takes named
+            arguments, and Liquid cannot parse a hyphenated one like
+            `data-aj-variant-image:`.
+          {%- endcomment -%}
+          <a href="{{ product.url }}" tabindex="-1" aria-hidden="true" data-aj-variant-image>
             {{
-              product.featured_media
+              hero_image
               | image_url: width: 1200
               | image_tag:
-                loading: 'lazy',
+                loading: 'eager',
+                fetchpriority: 'high',
                 sizes: '(min-width: 750px) 50vw, 100vw',
                 widths: '400, 600, 800, 1000, 1200',
                 class: 'aj-deal__image',
-                alt: product.featured_media.alt
+                alt: hero_image.alt
             }}
           </a>
         {%- endif -%}
@@ -155,10 +186,16 @@
                 </label>
                 <select id="{{ deal_form_id }}-variant" class="aj-deal__select">
                   {%- for v in product.variants -%}
+                    {%- assign v_image = v.image | default: product.featured_image -%}
                     <option
                       value="{{ v.id }}"
                       data-price="{{ v.price | money }}"
                       data-available="{{ v.available }}"
+                      {%- if v_image %}
+                        data-image-src="{{ v_image | image_url: width: 1200 }}"
+                        data-image-srcset="{{ v_image | image_url: width: 400 }} 400w, {{ v_image | image_url: width: 800 }} 800w, {{ v_image | image_url: width: 1200 }} 1200w"
+                        data-image-alt="{{ v_image.alt | default: product.title | escape }}"
+                      {%- endif %}
                       {% if v.id == variant.id %}selected{% endif %}
                       {% unless v.available %}disabled{% endunless %}
                     >

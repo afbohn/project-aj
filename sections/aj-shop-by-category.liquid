@@ -27,6 +27,13 @@
   assign max_cats = section.settings.max_cats | plus: 0
 
   comment
+    A section already placed on the homepage has no image_fit in its saved JSON
+    until someone opens the editor, so default it here rather than emitting a
+    dangling modifier class that matches no rule.
+  endcomment
+  assign image_fit = section.settings.image_fit | default: 'fit'
+
+  comment
     Count first so an empty section renders nothing rather than a bare heading.
   endcomment
   assign renderable = 0
@@ -75,7 +82,7 @@
           {%- endunless -%}
 
           <li class="aj-cats__item">
-            <a class="aj-cats__tile" href="{{ collection.url }}">
+            <a class="aj-cats__tile aj-cats__tile--{{ image_fit }}" href="{{ collection.url }}">
               <span class="aj-cats__media">
                 {%- if cover -%}
                   {{
@@ -130,34 +137,73 @@
     list-style: none;
   }
 
+  /* Wider tracks than the first pass. At 11rem the row packed seven tiny tiles
+     and orphaned two on a second row; at 14rem it settles to four or five per
+     row, the images are large enough to read, and the last row is never a
+     lonely pair. */
   @media screen and (min-width: 750px) {
     .aj-cats__grid {
-      grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
     }
+  }
+
+  /* Grid stretches every item to the tallest in its row; the tile then fills
+     that height so margin-top:auto on the count has somewhere to push against. */
+  .aj-cats__item {
+    display: flex;
   }
 
   .aj-cats__tile {
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
+    width: 100%;
     color: inherit;
     text-decoration: none;
   }
 
+  /* THE CARDS HAVE TO SURVIVE PHOTOGRAPHY WE DO NOT CONTROL.
+     Collective suppliers shoot however they like: a model on grey, a flat-lay
+     on white, a ski rack in a garage. Without a drawn edge the studio-on-white
+     shots dissolve into the page while the lifestyle shots read as solid
+     blocks, so half the row looks like cards and half looks like cut-outs.
+     An inset hairline gives every tile the same boundary whatever is inside it,
+     and it is inset rather than a border so it cannot shift the grid. */
   .aj-cats__media {
     display: block;
     aspect-ratio: 1;
     overflow: hidden;
-    border-radius: 3px;
-    background: rgb(var(--color-foreground-rgb) / 0.06);
+    border-radius: var(--aj-cats-radius, 8px);
+    background: rgb(var(--color-foreground-rgb) / 0.04);
+    box-shadow: inset 0 0 0 1px rgb(var(--color-foreground-rgb) / 0.1);
   }
 
   .aj-cats__image {
     width: 100%;
     height: 100%;
-    object-fit: cover;
     display: block;
     transition: transform 0.3s ease;
+  }
+
+  /* Fill: the photo covers the tile. Punchy, and every tile is a solid block —
+     but a product shot shrunk inside its own white margin still reads smaller
+     than a full-bleed lifestyle shot, so subject scale stays uneven. */
+  .aj-cats__tile--fill .aj-cats__image {
+    object-fit: cover;
+  }
+
+  /* Fit: every photo is letterboxed onto the same tinted panel at the same
+     inset. Subject scale evens out across the row, which is the only way to get
+     real consistency out of mixed supplier photography. Costs some crop drama
+     on the lifestyle shots. */
+  .aj-cats__tile--fit .aj-cats__media {
+    /* border-box so the inset does not break the 1:1 tile. */
+    box-sizing: border-box;
+    padding: 8%;
+  }
+
+  .aj-cats__tile--fit .aj-cats__image {
+    object-fit: contain;
   }
 
   .aj-cats__tile:hover .aj-cats__image,
@@ -170,9 +216,14 @@
     line-height: 1.25;
   }
 
+  /* Pin the counts to the bottom of the tile so they line up across a row even
+     when one name wraps and its neighbours do not. Reserving two lines on the
+     name would also align them, but it leaves a visible hole under every short
+     name — this costs nothing when nothing wraps. */
   .aj-cats__count {
     font-size: 0.8125rem;
     opacity: 0.7;
+    margin-top: auto;
   }
 
   .aj-cats--empty {
@@ -205,6 +256,17 @@
       "id": "subheading",
       "label": "Subheading",
       "default": "A bit of everything. Have a dig."
+    },
+    {
+      "type": "select",
+      "id": "image_fit",
+      "label": "Card image",
+      "options": [
+        { "value": "fill", "label": "Fill the tile (punchier, scale varies)" },
+        { "value": "fit", "label": "Fit inside the tile (most consistent)" }
+      ],
+      "default": "fit",
+      "info": "Supplier photography is inconsistent. \"Fit\" letterboxes every image onto the same panel so the row reads evenly."
     },
     {
       "type": "range",
