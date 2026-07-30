@@ -14,16 +14,18 @@
     "header_announcements_9jGBFp": {
       "type": "header-announcements",
       "blocks": {
-        "aj_deal_announcement": {
-          "type": "aj-deal-announcement",
+        "announcement_BxgCk9": {
+          "type": "_announcement",
           "settings": {
-            "label": "Today's Yoink",
-            "fallback": ""
+            "text": "A new Yoink every day at 9am",
+            "link": "",
+            "font": "var(--font-subheading--family)",
+            "font_size": "0.75rem"
           }
         }
       },
       "block_order": [
-        "aj_deal_announcement"
+        "announcement_BxgCk9"
       ],
       "name": "t:names.announcement_bar",
       "settings": {

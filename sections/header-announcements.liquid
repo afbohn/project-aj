@@ -33,12 +33,106 @@
     {% endif %}
 
     <div class="announcement-bar__slides">
-      {% content_for 'blocks' %}
+      {%- comment -%}
+        Today's Yoink, first. Rendered here rather than as a block in
+        sections/header-group.json because that file is owned by the theme
+        editor — edits to it in the repo were not applied to the live theme,
+        while section liquid syncs reliably.
+
+        The most-seen strip on the site said "Welcome to our store", which tells
+        a visitor nothing. On a store whose whole proposition is one deal a day,
+        it should name the deal and link to it. Resolves the live deal itself, so
+        it rotates at 9am with nothing to edit, and falls through to the
+        configured blocks when no deal is running rather than announcing one that
+        does not exist.
+      {%- endcomment -%}
+      {%- liquid
+        assign now = 'now' | date: '%s' | plus: 0
+        assign deal = null
+        for entry in shop.metaobjects.daily_deal.values
+          assign starts = entry.starts_at.value | date: '%s' | plus: 0
+          assign ends = entry.ends_at.value | date: '%s' | plus: 0
+          if starts <= now and ends > now
+            assign deal = entry
+            break
+          endif
+        endfor
+        assign deal_product = deal.product.value
+        assign deal_variant = deal_product.selected_or_first_available_variant
+        assign deal_anchor = deal_variant.compare_at_price
+        if deal_anchor == blank or deal_anchor <= deal_variant.price
+          assign deal_anchor = null
+        endif
+        if deal_anchor
+          assign deal_off = deal_anchor | minus: deal_variant.price | times: 100 | divided_by: deal_anchor
+        endif
+      -%}
+
+      {%- if deal_product != blank -%}
+        <a class="aj-announce" href="{{ deal_product.url }}">
+          <span class="aj-announce__label">Today's Yoink</span>
+          <span class="aj-announce__title">{{ deal_product.title | escape }}</span>
+          {%- if deal_off -%}
+            <span class="aj-announce__save">{{ deal_off }}% off</span>
+          {%- endif -%}
+          <span class="aj-announce__go" aria-hidden="true">&rarr;</span>
+        </a>
+      {%- else -%}
+        {% content_for 'blocks' %}
+      {%- endif -%}
     </div>
   </announcement-bar-component>
 </aside>
 
 {% stylesheet %}
+  .aj-announce {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    color: inherit;
+    text-decoration: none;
+    font-size: 0.875rem;
+    line-height: 1.3;
+    padding-block: 0.35rem;
+  }
+
+  .aj-announce:hover .aj-announce__title,
+  .aj-announce:focus-visible .aj-announce__title {
+    text-decoration: underline;
+  }
+
+  .aj-announce__label {
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+  }
+
+  .aj-announce__title {
+    /* One line in the bar; the product page carries the full name. */
+    max-width: 22rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .aj-announce__save { font-weight: 700; }
+
+  .aj-announce__go { transition: transform 0.15s ease; }
+  .aj-announce:hover .aj-announce__go { transform: translateX(2px); }
+
+  @media screen and (max-width: 749px) {
+    /* The title is the least useful part on a narrow bar — the label and the
+       saving already say "there is a deal, tap here". */
+    .aj-announce__title { max-width: 11rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aj-announce__go { transition: none; }
+  }
+
   .announcement-bar {
     border-block-end: var(--border-bottom-width) solid var(--color-border);
   }
@@ -129,9 +223,6 @@
   "blocks": [
     {
       "type": "_announcement"
-    },
-    {
-      "type": "aj-deal-announcement"
     }
   ],
   "enabled_on": {
