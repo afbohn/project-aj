@@ -132,9 +132,9 @@
               </p>
 
               {%- if section.settings.show_bring_back -%}
-                <aj-bring-back class="aj-past__bringback" data-deal-id="{{ entry.system.id }}">
+                <aj-bring-back class="aj-past__bringback" data-deal-id="gid://shopify/Metaobject/{{ entry.system.id }}">
                   <button type="button" class="aj-past__vote">
-                    {{ section.settings.bring_back_label | default: 'Bring it back' }}
+                    {{ section.settings.bring_back_label | default: 'Bring back this deal' }}
                   </button>
                   <span
                     class="aj-past__votes"
@@ -367,7 +367,7 @@
       "type": "text",
       "id": "bring_back_label",
       "label": "Button label",
-      "default": "Bring it back"
+      "default": "Bring back this deal"
     },
     {
       "type": "color_scheme",

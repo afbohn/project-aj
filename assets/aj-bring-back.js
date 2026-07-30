@@ -26,7 +26,7 @@ class AjBringBack extends HTMLElement {
 
     // Reflect an existing vote immediately, so a reload does not invite a second
     // one and then quietly discard it.
-    if (this.hasVoted()) this.markVoted();
+    if (this.hasVoted()) this.markVoted(null);
 
     this.button.addEventListener("click", () => this.vote());
   }
@@ -49,9 +49,24 @@ class AjBringBack extends HTMLElement {
 
   markVoted(votes) {
     this.button.disabled = true;
-    this.button.textContent = "Asked for";
+    this.button.textContent = "Asked \u2713";
     if (votes != null && this.countEl) {
       this.countEl.textContent = this.countLabel(votes);
+      this.countEl.hidden = false;
+    }
+  }
+
+  /**
+   * Say when it failed.
+   *
+   * Silently restoring the button reads as "the click did nothing", which is
+   * worse than an error: the shopper cannot tell whether they were counted.
+   */
+  showError(original) {
+    this.button.disabled = false;
+    this.button.textContent = original;
+    if (this.countEl) {
+      this.countEl.textContent = "Couldn't record that — try again";
       this.countEl.hidden = false;
     }
   }
@@ -76,18 +91,14 @@ class AjBringBack extends HTMLElement {
       const body = await res.json().catch(() => ({}));
 
       if (!res.ok || !body.ok) {
-        // Re-enable rather than leave a dead button. Nothing was recorded, so
-        // saying so and allowing a retry is the honest outcome.
-        this.button.disabled = false;
-        this.button.textContent = original;
+        this.showError(original);
         return;
       }
 
       this.remember();
       this.markVoted(body.votes);
     } catch {
-      this.button.disabled = false;
-      this.button.textContent = original;
+      this.showError(original);
     }
   }
 }
