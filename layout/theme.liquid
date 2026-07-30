@@ -141,6 +141,15 @@
 
       <footer>
         {% sections 'footer-group' %}
+
+        {%- comment -%}
+          Rendered here rather than added to a section group: section-group JSON
+          is owned by the theme editor and repo edits to it are silently ignored,
+          so a popup placed there would work until someone opened the editor. A
+          static section in the layout is repo-controlled and still gets its
+          theme-editor settings.
+        {%- endcomment -%}
+        {% section 'aj-email-popup' %}
       </footer>
     </div>
 
