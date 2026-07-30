@@ -46,6 +46,83 @@ is purpose-built and updates the displayed price (variants are not uniformly
 priced — one product runs $36 to $125). Everywhere else uses the theme's own
 quick-add, because two add-to-cart patterns in one grid reads as a bug.
 
+## The deal ends, the product does not
+A caption reading "Gone in 20 hours" says the item disappears. It does not — it
+returns to full price and stays on the shelf. That is manufactured scarcity,
+which this store already rules out for the countdown, and prose was quietly
+reintroducing it.
+
+It matters more than tone. The countdown is believed precisely because it counts
+something real; a second, invented urgency beside it undoes the reason the first
+one is trusted. The honest phrasing is also the better one: "Back to $279.00 in
+20 hours" is concrete, read from the product, and makes the saving legible while
+claiming nothing.
+
+The same rule killed a teaser that promised "no extensions, no back by popular
+demand" — a rule the store has deliberately engineered an exception to, in the
+"Bring back this deal" button.
+
+## Figures are composed, language is written
+Deal captions used to be pure template, which made them truthful and made them
+read like a spec sheet. They now carry a voice, under one constraint: every
+NUMBER is still read from Shopify and formatted rather than typed, and every
+hand-written line asserts nothing.
+
+That is the whole arrangement. No line says "lowest price of the year" or
+"selling fast" or "our best ever", because those are claims nobody can verify at
+post time. Flavour cannot be false. It is what lets written copy sit in the same
+caption as composed figures without reopening the hole composition closes.
+
+Lines are keyed to discount depth — a shrug that suits 8% reads as sarcasm at
+55% — and chosen by hashing the deal handle rather than at random, so the draft
+previewed is the draft published.
+
+## The vendor is never named in a post
+On a dropship catalogue, naming the maker tells a shopper exactly who to go and
+buy from directly. The same reason browsing is organised by category rather than
+by supplier.
+
+## Every agent lives in the app
+Agents were spread across an embedded Shopify app, two GitHub Actions runners,
+Fly secrets and a laptop terminal. Nothing could answer "is everything running?",
+each new agent added another place to look, and half of it needed a CLI — which
+in practice meant one person, from one machine.
+
+They now all run in the app, report to one page, and are switched on and off with
+buttons whose state lives in Shopify rather than in environment variables. The
+test is not elegance, it is whether Jake can operate it.
+
+GitHub Actions was also actively wrong for this: it disables scheduled workflows
+after 60 days of repository inactivity, so the jobs would have stopped precisely
+during a quiet period, which is when nobody is watching.
+
+## An invariant checker, not an orchestrator
+Every agent here is individually careful and the failures still fall between
+them: a forced rotation once left forty products discounted and unowned, with
+each agent behaving exactly as written.
+
+The fix is a linter, not a manager. It asserts flat statements that are true or
+false, changes nothing, and cannot reason its way around a rule. A supervising
+agent would have caught none of the failures actually seen — they were a missing
+scope, a syntax error, a race and a bundler split — while making each one harder
+to diagnose, because the first question becomes "what did the supervisor decide?"
+
+Revisit when agents genuinely compete for a scarce resource. Ads will create
+that, and even then it should propose rather than decide.
+
+## Attribution is measured, or it is labelled a comparison
+Engagement is measured: likes, comments and reach come from Meta and are facts.
+
+Sales are not attributed, because nothing available can honestly attribute them —
+an Instagram caption has no click-through. What is shown instead is a before and
+after inside the same deal window: same product, same discount, same day, split
+at the moment the post went out. The page states plainly that it does not control
+for time of day.
+
+A figure labelled attribution that is really correlation is worse than no figure,
+because it gets believed and then budgeted against. Links now carry UTMs so this
+becomes a real measurement rather than an inference.
+
 ## The Bargain Bin is separate machinery from the Yoink
 They answer different questions. The Yoink asks what single thing to discount
 hardest today; the bin asks what forty things can be held at 25% off for a week
