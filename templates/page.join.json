@@ -1,0 +1,24 @@
+{
+  "sections": {
+    "join": {
+      "type": "aj-join",
+      "settings": {
+        "heading": "Get tomorrow's Yoink before anyone else",
+        "subheading": "One thing, deeply discounted, every morning. We'll send it to you before it goes live.",
+        "point_1": "A new deal every morning \u2014 you see it first",
+        "point_2": "One email a day. No drip, no filler",
+        "point_3": "Unsubscribe in one click, whenever",
+        "button_text": "Send me the daily Yoink",
+        "fine_print": "One email a day. Unsubscribe anytime.",
+        "success_text": "You're in. Tomorrow's Yoink lands in your inbox before it goes live.",
+        "tag": "join-page",
+        "color_scheme": "scheme-1",
+        "padding-block-start": 60,
+        "padding-block-end": 60
+      }
+    }
+  },
+  "order": [
+    "join"
+  ]
+}

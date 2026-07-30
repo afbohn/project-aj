@@ -1,0 +1,218 @@
+{%- comment -%}
+  AJ Join — the capture page ads point at.
+
+  THE OFFER IS ACCESS, NOT A DISCOUNT. Every instinct says to put "10% off your
+  first order" here, and this store cannot afford it: the Yoink is already
+  clamped near cost and the Bargain Bin runs at a 20% margin floor, so another
+  discount on top comes straight out of a contribution that is $12.67 on a median
+  order. "Tomorrow's deal before it goes live" costs nothing and is worth more to
+  someone who came here from an ad about a daily deal.
+
+  IT ASKS FOR ONE THING. Every extra field costs conversion, and the whole point
+  of the page is the email address — the business monetises on repeat visits, so
+  the acquisition unit is a returning reader rather than a first order.
+
+  Uses Shopify's own `customer` form, so a submission creates a customer
+  subscribed to email marketing and lands in Shopify Email with nothing to
+  maintain and nothing to pay for.
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading | default: 'Get tomorrow''s Yoink before anyone else'
+  assign posted = false
+  if form.posted_successfully?
+    assign posted = true
+  endif
+-%}
+
+<div
+  class="aj-join color-{{ section.settings.color_scheme }} section spacing-style"
+  style="{% render 'spacing-style', settings: section.settings %}"
+>
+  <div class="page-width aj-join__inner">
+    <div class="aj-join__copy">
+      <h1 class="aj-join__heading">{{ heading | escape }}</h1>
+
+      {%- if section.settings.subheading != blank -%}
+        <p class="aj-join__subheading">{{ section.settings.subheading | escape }}</p>
+      {%- endif -%}
+
+      <ul class="aj-join__points" role="list">
+        {%- for i in (1..3) -%}
+          {%- assign key = 'point_' | append: i -%}
+          {%- assign point = section.settings[key] -%}
+          {%- if point != blank -%}
+            <li class="aj-join__point">{{ point | escape }}</li>
+          {%- endif -%}
+        {%- endfor -%}
+      </ul>
+    </div>
+
+    <div class="aj-join__form-card">
+      {%- if posted -%}
+        {%- comment -%}
+          The confirmation has to do a job, not just say thanks: someone who has
+          just handed over an email is the most likely they will ever be to look
+          at today's deal, and the homepage is one tap away.
+        {%- endcomment -%}
+        <p class="aj-join__success">{{ section.settings.success_text | escape }}</p>
+        <a class="aj-join__cta" href="{{ routes.root_url }}">See today's Yoink</a>
+      {%- else -%}
+        {%- form 'customer', class: 'aj-join__form' -%}
+          <input type="hidden" name="contact[tags]" value="{{ section.settings.tag | escape }}">
+
+          {%- if form.errors -%}
+            <p class="aj-join__error">
+              {{ form.errors.translated_fields.email | capitalize }}
+              {{ form.errors.messages.email }}
+            </p>
+          {%- endif -%}
+
+          <label class="visually-hidden" for="aj-join-email">Email address</label>
+          <input
+            id="aj-join-email"
+            class="aj-join__input"
+            type="email"
+            name="contact[email]"
+            placeholder="you@example.com"
+            autocomplete="email"
+            required
+          >
+
+          <button class="aj-join__submit" type="submit">
+            {{ section.settings.button_text | escape }}
+          </button>
+
+          {%- if section.settings.fine_print != blank -%}
+            <p class="aj-join__fine">{{ section.settings.fine_print | escape }}</p>
+          {%- endif -%}
+        {%- endform -%}
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .aj-join__inner {
+    display: grid;
+    gap: var(--padding-lg, 2rem);
+    align-items: center;
+  }
+
+  @media screen and (min-width: 750px) {
+    .aj-join__inner { grid-template-columns: 1.1fr 0.9fr; gap: var(--padding-xl, 3rem); }
+  }
+
+  .aj-join__heading { margin: 0 0 0.5rem; }
+  .aj-join__subheading { margin: 0 0 1.25rem; opacity: 0.8; font-size: 1.05rem; }
+
+  .aj-join__points { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.5rem; }
+
+  /* A drawn tick rather than a bullet: the list is three promises, and it should
+     read as reassurance rather than as a table of contents. */
+  .aj-join__point {
+    position: relative;
+    padding-left: 1.6rem;
+    line-height: 1.4;
+  }
+
+  .aj-join__point::before {
+    content: "";
+    position: absolute;
+    left: 0.15rem;
+    top: 0.45em;
+    width: 0.55rem;
+    height: 0.3rem;
+    border-left: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(-45deg);
+    opacity: 0.7;
+  }
+
+  .aj-join__form-card {
+    box-sizing: border-box;
+    padding: var(--padding-lg, 2rem);
+    border-radius: 12px;
+    background: rgb(var(--color-foreground-rgb) / 0.04);
+    box-shadow: inset 0 0 0 1px rgb(var(--color-foreground-rgb) / 0.1);
+  }
+
+  .aj-join__form { display: grid; gap: 0.75rem; }
+
+  .aj-join__input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.9rem 1rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: 1px solid rgb(var(--color-foreground-rgb) / 0.25);
+    background: rgb(var(--color-background-rgb, 255 255 255));
+    color: inherit;
+  }
+
+  .aj-join__submit {
+    padding: 0.95rem 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    background: rgb(var(--color-foreground-rgb));
+    color: rgb(var(--color-background-rgb, 255 255 255));
+  }
+
+  .aj-join__submit:hover { opacity: 0.9; }
+
+  .aj-join__fine { margin: 0; font-size: 0.8125rem; opacity: 0.65; }
+  .aj-join__error { margin: 0; font-size: 0.875rem; color: #b3261e; }
+  .aj-join__success { margin: 0 0 1rem; font-size: 1.05rem; font-weight: 600; }
+
+  .aj-join__cta {
+    display: inline-block;
+    padding: 0.85rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 700;
+    text-decoration: none;
+    background: rgb(var(--color-foreground-rgb));
+    color: rgb(var(--color-background-rgb, 255 255 255));
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "AJ Join",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "The capture page for ads and link-in-bio. Submissions create a customer subscribed to email marketing, which Shopify Email sends to."
+    },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Get tomorrow's Yoink before anyone else" },
+    {
+      "type": "text", "id": "subheading", "label": "Subheading",
+      "default": "One thing, deeply discounted, every morning. We'll send it to you before it goes live."
+    },
+    { "type": "text", "id": "point_1", "label": "Point 1", "default": "A new deal every morning — you see it first" },
+    { "type": "text", "id": "point_2", "label": "Point 2", "default": "One email a day. No drip, no filler" },
+    { "type": "text", "id": "point_3", "label": "Point 3", "default": "Unsubscribe in one click, whenever" },
+    { "type": "text", "id": "button_text", "label": "Button", "default": "Send me the daily Yoink" },
+    {
+      "type": "text", "id": "fine_print", "label": "Fine print",
+      "default": "One email a day. Unsubscribe anytime."
+    },
+    {
+      "type": "text", "id": "success_text", "label": "Success message",
+      "default": "You're in. Tomorrow's Yoink lands in your inbox before it goes live."
+    },
+    {
+      "type": "text", "id": "tag", "label": "Customer tag", "default": "join-page",
+      "info": "Tags the customer so this page's signups can be told apart from footer signups."
+    },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "header", "content": "Padding" },
+    { "type": "range", "id": "padding-block-start", "label": "Top", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 60 },
+    { "type": "range", "id": "padding-block-end", "label": "Bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 60 }
+  ],
+  "presets": [{ "name": "AJ Join" }]
+}
+{% endschema %}
