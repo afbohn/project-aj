@@ -75,8 +75,14 @@ def fetch_products():
         cursor = page["pageInfo"]["endCursor"]
 
 
-def evaluate(product, margin_floor):
-    """Deepest uniform discount this product can carry, or None."""
+def evaluate(product, margin_floor, margin_pct=0.0):
+    """Deepest uniform discount this product can carry, or None.
+
+    `margin_floor` is a flat amount per unit; `margin_pct` is a share of the
+    deal price. The binding constraint is whichever is larger, which is what
+    stops a flat floor from waving through absurd cases: $2 on a $127 hat is
+    1.6% margin, and one return then costs more than sixty sales earn.
+    """
     variants = product["variants"]["nodes"]
     if not variants:
         return None
@@ -96,7 +102,18 @@ def evaluate(product, margin_floor):
         if price <= 0:
             return None
 
-        headroom = price - cost - margin_floor
+        # A percentage floor is defined against the DEAL price, which is not
+        # known until the discount is. Solve it directly instead of iterating:
+        #   deal >= cost + pct*deal   ->   deal >= cost / (1 - pct)
+        floor_from_pct = Decimal(0)
+        if margin_pct > 0:
+            pct = Decimal(str(margin_pct)) / Decimal(100)
+            if pct >= 1:
+                return None
+            floor_from_pct = (cost / (Decimal(1) - pct)) - cost
+
+        effective_floor = max(margin_floor, floor_from_pct)
+        headroom = price - cost - effective_floor
         if headroom <= 0:
             return None  # cannot even hold the floor at full price
 
@@ -132,6 +149,14 @@ def main():
     ap = argparse.ArgumentParser(description="Find products that can carry a deep discount profitably.")
     ap.add_argument("--min-margin", type=float, default=2.0,
                     help="dollars to keep per unit (default 2). 0 allows break-even.")
+    ap.add_argument("--min-margin-pct", type=float, default=0.0,
+                    help="also keep at least this %% of the deal price as margin. "
+                         "Guards against thin margin on expensive items, where one "
+                         "return costs more than many sales earn.")
+    ap.add_argument("--max-price", type=float, default=0.0,
+                    help="ignore products above this price. Break-even is safe on "
+                         "cheap goods and dangerous on dear ones: a return on a $10 "
+                         "item costs a little, on a $137 item it costs $137.")
     ap.add_argument("--min-savings", type=float, default=0.0,
                     help="only show deals saving at least this many dollars")
     ap.add_argument("--min-stock", type=int, default=25,
@@ -147,9 +172,11 @@ def main():
     for p in products:
         if args.vendor and (p["vendor"] or "").lower() != args.vendor.lower():
             continue
-        r = evaluate(p, floor)
+        r = evaluate(p, floor, args.min_margin_pct)
         if r is None:
             no_cost += 1
+            continue
+        if args.max_price and r["price"] > Decimal(str(args.max_price)):
             continue
         if r["savings"] < Decimal(str(args.min_savings)):
             continue
@@ -161,9 +188,16 @@ def main():
     # on a cheap item is a weaker deal than the same percentage on a dear one.
     rows.sort(key=lambda r: (-r["pct"], -r["savings"]))
 
+    limits = [f"${args.min_margin:g}/unit"]
+    if args.min_margin_pct:
+        limits.append(f"{args.min_margin_pct:g}% of deal price")
+    limits.append(f"{args.min_stock}+ stock")
+    if args.max_price:
+        limits.append(f"price <= ${args.max_price:g}")
+    if args.min_savings:
+        limits.append(f"savings >= ${args.min_savings:g}")
     print(f"\n{len(products)} active products | {len(rows)} viable at "
-          f"${args.min_margin:g}/unit margin, {args.min_stock}+ stock"
-          + (f", savings >= ${args.min_savings:g}" if args.min_savings else ""))
+          + ", ".join(limits))
     if no_cost:
         print(f"{no_cost} excluded (missing cost data, or cannot hold the margin floor)")
     print()
@@ -177,6 +211,10 @@ def main():
     print("-" * 104)
     for r in rows[:args.limit]:
         flag = "" if r["has_image"] else "  [no image]"
+        # Margin as a share of what the customer pays. Under 5% means a single
+        # return outweighs roughly twenty sales.
+        if r["deal_price"] > 0 and (r["margin"] / r["deal_price"]) < Decimal("0.05"):
+            flag += "  [thin: return risk]"
         print(f"{r['title'][:31]:32} {r['vendor'][:19]:20} {r['price']:>7} "
               f"{r['deal_price']:>7} {r['savings']:>7} {r['pct']:>5}% "
               f"{r['margin']:>7} {r['stock']:>7}{flag}")
