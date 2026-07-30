@@ -115,7 +115,13 @@
               endif
               assign past_off = 0
               if entry.deal_price.value != blank and past_anchor > past_deal_cents
-                assign past_off = past_anchor | minus: past_deal_cents | times: 100 | divided_by: past_anchor
+                comment
+                  Round explicitly. deal_price is a decimal metafield, so
+                  `times: 100` yields a float and Liquid's divided_by then keeps
+                  full precision — it rendered "37.30569948186528% off" on the
+                  live site.
+                endcomment
+                assign past_off = past_anchor | minus: past_deal_cents | times: 100.0 | divided_by: past_anchor | round
               endif
             -%}
 
