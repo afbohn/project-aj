@@ -113,7 +113,17 @@
                         alt: past_product.featured_media.alt
                     }}
                   {%- endif -%}
-                  <span class="aj-past__stamp">Ended</span>
+                  {%- comment -%}
+                    Across the whole image, not a corner badge. A small stamp
+                    competes with the product for attention; the card needs to
+                    read "over" before anything else is processed, so the missed
+                    deal lands as a miss. Fades on hover so the product is still
+                    inspectable — someone deciding whether to ask for it back
+                    needs to see what it is.
+                  {%- endcomment -%}
+                  <span class="aj-past__veil" aria-hidden="true">
+                    <span class="aj-past__stamp">Ended</span>
+                  </span>
                 </span>
                 <span class="aj-past__title">{{ past_product.title | escape }}</span>
               </a>
@@ -206,11 +216,15 @@
   .aj-past__media {
     position: relative;
     display: block;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 3px;
   }
 
   .aj-past__image {
     width: 100%;
-    height: auto;
+    height: 100%;
+    object-fit: cover;
     display: block;
     /* History, not merchandise. Greyed so today's live deal stays unmistakably
        the thing to act on; restored on hover so the product is still
@@ -271,18 +285,33 @@
     opacity: 0.7;
   }
 
-  .aj-past__stamp {
+  .aj-past__veil {
     position: absolute;
-    inset-block-start: 0.5rem;
-    inset-inline-start: 0.5rem;
-    padding: 0.15em 0.5em;
-    border-radius: 2px;
-    background: rgb(var(--color-foreground-rgb) / 0.82);
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgb(var(--color-foreground-rgb) / 0.42);
+    transition: opacity 0.2s ease;
+  }
+
+  .aj-past__stamp {
+    padding: 0.3em 0.9em;
+    border: 2px solid rgb(var(--color-background-rgb));
+    border-radius: 3px;
     color: rgb(var(--color-background-rgb));
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
+    /* Rotated so it reads as a stamp over the picture rather than as a caption
+       belonging to it. */
+    transform: rotate(-6deg);
+  }
+
+  .aj-past__link:hover .aj-past__veil,
+  .aj-past__link:focus-visible .aj-past__veil {
+    opacity: 0;
   }
 
   .aj-past__title {
