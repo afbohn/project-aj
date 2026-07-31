@@ -257,7 +257,12 @@ straight loss on a unit that never made money.
 
 **From earlier sessions**
 
-- `sections/*-group.json` is owned by the theme editor; repo edits are ignored.
+- `sections/*-group.json` is written by the theme editor, but repo edits DO
+  apply. Retested 31 July: centring the logo and dropping the locale selectors
+  from `header-group.json` went live on push. The earlier "repo edits are
+  ignored" note was wrong. The real hazard is the other direction — the editor
+  writes these files back, so `git pull` before touching them or the push
+  conflicts.
 - Shopify's client-credentials token expires in 24 hours.
 - `metaobject.system.id` in Liquid is numeric, not a gid.
 - Decimal metafields make Liquid division float. Round explicitly.
