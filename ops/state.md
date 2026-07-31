@@ -352,7 +352,17 @@ were judged not worth doing before there is any traffic.
 2024; the shop was created 2026-07-29, so it cannot apply.
 
 In force: supplier creates the return label, 2-day processing, 30-day window, no
-label fee, no restocking fee, declined returns auto-cancel, refunds auto-refund.
+label fee, no restocking fee, declined returns auto-cancel.
+
+**Automatic refunds are OFF as of 31 July.** This was the single setting that
+decided whether a custom refund policy was buildable at all: with it on,
+Collective processes the refund itself the moment a return closes, and no
+keep-it-and-credit logic can ever run because there is nothing left to decide.
+With it off, refunds are ours to issue on the `returns/close` webhook. The cost
+is real — every accepted return now needs someone or something to actually
+refund it, and a return that closes with nothing listening is a customer who
+does not get their money back. **Nothing listens yet.** That handler is the
+next thing to build, and until it exists refunds are a manual step.
 
 Three things remain structural:
 

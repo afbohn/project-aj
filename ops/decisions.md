@@ -52,6 +52,49 @@ no wrapper, no empty track, no reserved height — because a container held open
 for a bar that is not there reads as a broken page. A missing bar is expected
 behaviour, not a bug.
 
+## Automatic refunds are off, and that makes refunds our job
+
+31 July. Collective's default processes the refund itself when a return closes.
+That is less work and it forecloses the entire store-credit workstream — there
+is no moment at which "refund cash, or keep it and issue credit at 110%?" can
+be asked, because the cash has already gone.
+
+Turned off deliberately, accepting the operational cost: **an accepted return
+now refunds only if something we built does it.** This trades a silent
+correct-by-default behaviour for a loud one that can break, which is the right
+trade only if the handler actually gets built. Until `returns/close` is
+listening, refunding is a manual step and the risk is a customer who returned
+an item and hears nothing.
+
+The prize is that credit costs COGS rather than face value — a $50 credit
+against a 50%-margin item costs ~$25 — so 110–115% in credit reads as more
+generous than 100% in cash and costs less. Do not model around unredeemed
+credit; the point is the margin difference, not breakage.
+
+## The catalogue is much thinner than the four documented suppliers suggest
+
+31 July, measured against real `unitCost` on 10,593 costed variants rather than
+the four suppliers this file has been quoting.
+
+Those four are exact — prodigalpottery 50%, Gotta Go Gotta Throw 40%, Shield
+Your Body 30%. They are also not representative. The catalogue median is 40%,
+**34.7% of variants sit below 30%**, and the floor is far lower than the 30%
+this file has been treating as worst case: Miller Bison and Bear Dice at 10%,
+Intelligent Change and Elijah's Xtreme at 15%, and Wags & Whiskers — 189
+variants — at 16%.
+
+Two consequences.
+
+**A 10%-margin product cannot carry a Yoink.** After 2.9% + $0.30 its
+break-even discount is around 5%, which is not a headline. Those suppliers are
+browsable catalogue, not deal candidates, and the selector should say so rather
+than discovering it per-product.
+
+**Six ACTIVE variants are priced BELOW cost right now**, all Wags & Whiskers,
+worst at $58.99 against a $62.15 cost. They lose money at full price with no
+discount involved, so no margin floor catches them — every floor here is
+expressed as a discount off a price that is already wrong.
+
 ## Deals never price below cost
 `deal.py` reads each variant's unit cost from Shopify and clamps the deal price
 to cost, then reports the discount actually applied rather than the one asked
