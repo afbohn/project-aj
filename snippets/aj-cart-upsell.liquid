@@ -159,17 +159,71 @@
             {%- assign vendor_collection = collections[vendor_key] -%}
             {%- assign from_vendor = 0 -%}
 
-            {%- for candidate in vendor_collection.products limit: 12 -%}
-              {%- if shown >= max_items or from_vendor >= cap -%}{%- break -%}{%- endif -%}
-              {%- assign probe = ',' | append: candidate.id | append: ',' -%}
-              {%- if in_cart contains probe or seen contains probe -%}
-                {%- continue -%}
-              {%- endif -%}
-              {%- if candidate.available == false -%}{%- continue -%}{%- endif -%}
-              {%- assign seen = seen | append: candidate.id | append: ',' -%}
-              {%- assign shown = shown | plus: 1 -%}
-              {%- assign from_vendor = from_vendor | plus: 1 -%}
-              {% render 'aj-cart-upsell-item', item: candidate %}
+            {%- comment -%}
+              How far this vendor is from free shipping, in cents.
+
+              The progress line directly above this block may be saying "add
+              $27.99 more from X for free shipping". If the suggestions under it
+              are a $4 patch and a $6 sticker, the two blocks argue with each
+              other — one sets a target and the other ignores it. So anything
+              that could plausibly close the gap is offered first.
+
+              Zero when this vendor has no reachable threshold, which mutes the
+              whole preference and leaves the original behaviour intact.
+            {%- endcomment -%}
+            {%- liquid
+              assign gap_cents = 0
+              assign vs = nil
+              for entry in shop.metaobjects.vendor_shipping.values
+                # Filters cannot run inside an `if` condition — assign first.
+                assign entry_handle = entry.vendor.value | handleize
+                if entry_handle == clean
+                  assign vs = entry
+                  break
+                endif
+              endfor
+              if vs and vs.shape.value == 'threshold' and vs.reachable.value
+                assign vendor_cents = 0
+                for line in cart.items
+                  assign line_handle = line.product.vendor | handleize
+                  if line_handle == clean
+                    assign vendor_cents = vendor_cents | plus: line.final_line_price
+                  endif
+                endfor
+                assign threshold_cents = vs.free_threshold.value | times: 100 | round
+                if threshold_cents > vendor_cents
+                  assign gap_cents = threshold_cents | minus: vendor_cents
+                endif
+              endif
+              # 60% of the gap: an item worth most of what is missing still reads
+              # as progress, and demanding an exact match would usually match
+              # nothing at all.
+              assign gap_floor = gap_cents | times: 60 | divided_by: 100
+            -%}
+
+            {%- comment -%}
+              Tier 1 offers only gap-closers; tier 0 offers anything. Nested
+              inside the vendor loop rather than outside it so the two-pass
+              vendor fairness above is untouched — this changes WHICH item a
+              vendor contributes, never how many.
+            {%- endcomment -%}
+            {%- assign tiers = '1,0' | split: ',' -%}
+            {%- for tier_raw in tiers -%}
+              {%- assign tier = tier_raw | plus: 0 -%}
+              {%- if tier == 1 and gap_cents == 0 -%}{%- continue -%}{%- endif -%}
+              {%- for candidate in vendor_collection.products limit: 12 -%}
+                {%- if shown >= max_items or from_vendor >= cap -%}{%- break -%}{%- endif -%}
+                {%- assign probe = ',' | append: candidate.id | append: ',' -%}
+                {%- if in_cart contains probe or seen contains probe -%}
+                  {%- continue -%}
+                {%- endif -%}
+                {%- if candidate.available == false -%}{%- continue -%}{%- endif -%}
+                {%- if tier == 1 and candidate.price < gap_floor -%}{%- continue -%}{%- endif -%}
+                {%- assign seen = seen | append: candidate.id | append: ',' -%}
+                {%- assign shown = shown | plus: 1 -%}
+                {%- assign from_vendor = from_vendor | plus: 1 -%}
+                {% render 'aj-cart-upsell-item', item: candidate %}
+              {%- endfor -%}
             {%- endfor -%}
           {%- endfor -%}
         {%- endfor -%}
