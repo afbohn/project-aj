@@ -1,0 +1,110 @@
+{%- comment -%}
+  AJ Brand shipping — the one true thing we can say about shipping this brand.
+
+  WHY THIS IS DATA AND NOT COPY. Shipping on Collective is charged per shipment
+  and every supplier prices it differently. Sticker Fire is $5.35 whether the
+  cart holds one sticker or four; Dr. Watson's goes free above $44;
+  prodigalpottery gets MORE expensive as you add items. A single hand-written
+  line would be wrong for most of the catalogue and would go stale the week a
+  supplier changes their rate card.
+
+  So the shipping agent measures each supplier weekly and writes a
+  `vendor_shipping` metaobject, and this snippet renders whatever that says.
+  Nobody edits copy when a supplier changes; the agent notices.
+
+  IT STAYS SILENT MORE OFTEN THAN IT SPEAKS, ON PURPOSE. Nine suppliers get more
+  expensive per item — inviting a bigger basket there costs us money. Six have a
+  free-shipping threshold their own catalogue cannot reach: August Uncommon Tea
+  is free above $56 and sells one $14 product, so "add $42 more" is a promise
+  with nothing behind it. Both cases render nothing at all.
+
+  @param product - the product whose vendor we are describing
+  @param cart_vendor_total - optional. Cart subtotal for THIS vendor, so the cart
+         can say how far away free shipping is. Shipping is charged per supplier,
+         so a whole-cart total would be the wrong number.
+{%- endcomment -%}
+
+{%- liquid
+  assign vs = nil
+  for entry in shop.metaobjects.vendor_shipping.values
+    if entry.vendor.value == product.vendor
+      assign vs = entry
+      break
+    endif
+  endfor
+-%}
+
+{%- if vs -%}
+  {%- liquid
+    assign shape = vs.shape.value
+    assign msg = nil
+    assign tone = 'plain'
+
+    if shape == 'free'
+      assign msg = 'Free shipping on this brand.'
+      assign tone = 'good'
+
+    elsif shape == 'flat'
+      assign msg = 'Anything else from this brand ships together, free.'
+      assign tone = 'good'
+
+    elsif shape == 'threshold' and vs.reachable.value
+      assign threshold = vs.free_threshold.value | plus: 0
+      assign spent = cart_vendor_total | default: 0 | plus: 0
+      if spent >= threshold
+        assign msg = 'Shipping on this brand is free.'
+        assign tone = 'good'
+      else
+        assign gap = threshold | minus: spent
+        # Rounded explicitly: free_threshold is a decimal metafield and Liquid
+        # arithmetic on those goes float, so `43.99 | times: 100` can land on
+        # 4398.9999 and render as a price nobody would ever write down.
+        assign gap_money = gap | times: 100 | round | money
+        assign msg = 'Add ' | append: gap_money | append: ' more from this brand for free shipping.'
+        assign tone = 'nudge'
+      endif
+    endif
+  -%}
+
+  {%- if msg -%}
+    <p class="aj-brand-ship aj-brand-ship--{{ tone }}">
+      {{ msg }}
+      {%- if tone == 'nudge' -%}
+        {%- assign vendor_handle = product.vendor | handle -%}
+        <a class="aj-brand-ship__link" href="{{ routes.collections_url }}/vendor-{{ vendor_handle }}">
+          Browse {{ product.vendor }}
+        </a>
+      {%- endif -%}
+    </p>
+  {%- endif -%}
+{%- endif -%}
+
+{% stylesheet %}
+  .aj-brand-ship {
+    margin: 0.5rem 0 0;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: baseline;
+  }
+
+  /* A drawn tick rather than an emoji: it inherits colour, scales with the
+     text, and does not render as a different glyph on every platform. */
+  .aj-brand-ship--good::before {
+    content: "";
+    flex: none;
+    width: 0.55rem;
+    height: 0.3rem;
+    border-left: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(-45deg);
+    opacity: 0.75;
+    align-self: center;
+  }
+
+  .aj-brand-ship--good { opacity: 0.85; }
+  .aj-brand-ship--nudge { font-weight: 600; }
+  .aj-brand-ship__link { text-decoration: underline; }
+{% endstylesheet %}

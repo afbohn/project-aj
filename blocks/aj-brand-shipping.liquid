@@ -1,0 +1,34 @@
+{%- comment -%}
+  AJ Brand shipping — what shipping this brand actually costs, on the PDP.
+
+  A block rather than a hardcoded section so it can be positioned in the theme
+  editor against whatever the product page ends up looking like, and removed
+  without a deploy.
+
+  All of the reasoning about WHY this is measured rather than written lives in
+  `snippets/aj-brand-shipping.liquid`. The short version: shipping on Collective
+  is charged per supplier and every supplier prices it differently, so the
+  shipping agent measures each one weekly and this renders whatever it found.
+
+  It renders NOTHING for roughly a third of suppliers, and that is the point.
+  Nine get more expensive as you add items; six have a free-shipping threshold
+  their own catalogue cannot reach. Both would produce a claim that is false.
+{%- endcomment -%}
+
+<div class="aj-brand-shipping-block" {{ block.shopify_attributes }}>
+  {%- render 'aj-brand-shipping', product: product -%}
+</div>
+
+{% schema %}
+{
+  "name": "Brand shipping",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Shows what shipping costs for this product's brand — free, ships-together-free, or how much more to add for free shipping. Measured weekly by the shipping agent. Stays blank for brands where no honest claim can be made."
+    }
+  ],
+  "presets": [{ "name": "Brand shipping" }]
+}
+{% endschema %}
