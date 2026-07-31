@@ -120,6 +120,10 @@
                     things being bought, and anything sitting between a shopper
                     and the checkout button is an obstacle, not an offer.
                   {%- endcomment -%}
+                  {%- if cart.item_count > 0 -%}
+                    {% render 'aj-cart-shipping-progress' %}
+                  {%- endif -%}
+
                   {%- if settings.cart_upsell_enabled -%}
                     {% render 'aj-cart-upsell',
                       context: 'drawer',

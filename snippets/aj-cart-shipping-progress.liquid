@@ -1,0 +1,160 @@
+{% doc %}
+  Per-brand free-shipping progress, in the cart.
+
+  THE CART IS THE ONLY PLACE THIS ARITHMETIC IS REAL. Shipping on Collective is
+  charged per supplier, so a whole-cart "spend $50 for free shipping" would be
+  the wrong number in both directions — too low for someone buying across three
+  brands, meaningless for someone one item away from a single brand's threshold.
+  Only the cart knows the per-vendor subtotal, so only the cart can say "you are
+  $12.53 from free shipping on Sweet Bamboo" and have it be true.
+
+  It also catches the shopper at the one moment adding something is easy: they
+  have already decided to buy.
+
+  WHAT IT REFUSES TO SAY. Twenty-five suppliers have a threshold; six of those
+  have one their own catalogue cannot reach, and nine more get MORE expensive as
+  items are added. Those fifteen render nothing at all. Inviting a bigger basket
+  from a scaling supplier costs us money, and quoting a gap nobody can close is
+  a promise with nothing behind it — measured, not assumed, by the shipping
+  agent in `vendor_shipping`.
+
+  UNITS. Cart money in Liquid is CENTS; the threshold metafield is DOLLARS.
+  Everything below works in cents and converts once, at the end.
+{% enddoc %}
+
+{%- liquid
+  assign vendors = ''
+  for line in cart.items
+    assign v = line.product.vendor
+    if v != blank
+      assign probe = '~' | append: v | append: '~'
+      unless vendors contains probe
+        assign vendors = vendors | append: '~' | append: v | append: '~'
+      endunless
+    endif
+  endfor
+  assign vendor_list = vendors | split: '~~'
+-%}
+
+{%- capture rows -%}
+  {%- for raw_vendor in vendor_list -%}
+    {%- assign vendor = raw_vendor | remove: '~' -%}
+    {%- if vendor == blank -%}{%- continue -%}{%- endif -%}
+
+    {%- liquid
+      # Subtotal for THIS brand only, in cents.
+      assign vendor_cents = 0
+      for line in cart.items
+        if line.product.vendor == vendor
+          assign vendor_cents = vendor_cents | plus: line.final_line_price
+        endif
+      endfor
+
+      assign vs = nil
+      for entry in shop.metaobjects.vendor_shipping.values
+        if entry.vendor.value == vendor
+          assign vs = entry
+          break
+        endif
+      endfor
+    -%}
+
+    {%- if vs -%}
+      {%- liquid
+        assign shape = vs.shape.value
+        assign msg = nil
+        assign pct = 0
+        assign show_link = false
+
+        if shape == 'threshold' and vs.reachable.value
+          # Rounded before use: free_threshold is a decimal metafield and Liquid
+          # arithmetic on those goes float.
+          assign threshold_cents = vs.free_threshold.value | times: 100 | round
+          if vendor_cents >= threshold_cents
+            assign msg = 'Free shipping on ' | append: vendor | append: ' unlocked.'
+            assign pct = 100
+          else
+            assign gap = threshold_cents | minus: vendor_cents
+            assign gap_money = gap | money
+            assign msg = 'Add ' | append: gap_money | append: ' more from ' | append: vendor | append: ' for free shipping'
+            assign pct = vendor_cents | times: 100 | divided_by: threshold_cents
+            assign show_link = true
+          endif
+
+        elsif shape == 'flat'
+          assign msg = 'Anything else from ' | append: vendor | append: ' ships with no extra shipping.'
+          assign pct = 100
+
+        elsif shape == 'free'
+          assign msg = 'Free shipping on ' | append: vendor | append: '.'
+          assign pct = 100
+        endif
+      -%}
+
+      {%- if msg -%}
+        <li class="aj-ship-progress__row">
+          <p class="aj-ship-progress__msg">
+            {{ msg }}
+            {%- if show_link -%}
+              {%- assign vendor_key = 'vendor-' | append: vendor | handleize -%}
+              <a class="aj-ship-progress__link" href="{{ routes.collections_url }}/{{ vendor_key }}">
+                Browse {{ vendor }}
+              </a>
+            {%- endif -%}
+          </p>
+          {%- if pct < 100 -%}
+            <div class="aj-ship-progress__track" role="presentation">
+              <div class="aj-ship-progress__fill" style="width: {{ pct }}%"></div>
+            </div>
+          {%- endif -%}
+        </li>
+      {%- endif -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- if rows contains '<li' -%}
+  <ul class="aj-ship-progress" role="list">{{ rows }}</ul>
+{%- endif -%}
+
+{% stylesheet %}
+  .aj-ship-progress {
+    margin: 0 0 1rem;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .aj-ship-progress__row {
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .aj-ship-progress__msg {
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.35;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: baseline;
+  }
+
+  .aj-ship-progress__link { text-decoration: underline; }
+
+  .aj-ship-progress__track {
+    height: 4px;
+    border-radius: 999px;
+    background: rgb(var(--color-foreground-rgb) / 0.12);
+    overflow: hidden;
+  }
+
+  .aj-ship-progress__fill {
+    height: 100%;
+    border-radius: 999px;
+    background: rgb(var(--color-foreground-rgb) / 0.7);
+    /* No transition: the cart re-renders on change rather than animating in
+       place, so a transition would only ever play on first paint. */
+  }
+{% endstylesheet %}

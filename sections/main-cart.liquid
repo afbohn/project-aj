@@ -53,6 +53,16 @@
           beside the summary so it reads as part of the order being built, not
           as something standing between the shopper and checkout.
         {%- endcomment -%}
+        {%- comment -%}
+          Above the suggestions, not below: the gap is the REASON to look at
+          them. Stating "$12 more from Sweet Bamboo" and then showing Sweet
+          Bamboo products reads as one thought; the other order reads as two
+          unrelated blocks.
+        {%- endcomment -%}
+        {%- if cart.item_count > 0 -%}
+          {% render 'aj-cart-shipping-progress' %}
+        {%- endif -%}
+
         {%- if settings.cart_upsell_enabled and cart.item_count > 0 -%}
           {% render 'aj-cart-upsell',
             context: 'page',
