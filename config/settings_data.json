@@ -108,7 +108,7 @@
           "trigger_mode": "floating",
           "primary_color": "#43AFCA",
           "icon_color": "#ffffff",
-          "header_color": "#1e293b",
+          "header_color": "#43AFCA",
           "bot_bubble_color": "#f1f5f9",
           "bot_text_color": "#1e293b",
           "bg_color": "#ffffff",
