@@ -142,6 +142,25 @@ Two guards worth keeping: banned universal occasions (`gift` was on 42% of the
 catalogue, `housewarming` 52% — a tag on half the catalogue is not a filter),
 and a sweep of tags on fewer than three products, which cannot group anything.
 
+## Categories — complete as of 31 July
+
+**1,399 of 1,400 published products carry a Shopify taxonomy category**, so
+Shop by Category reaches all of them. It was 1,257 that morning.
+
+143 had none, concentrated in four suppliers: ISlide (48, the whole vendor),
+Sweet Bamboo (35), prodigalpottery (12), White Water Life (10).
+
+**Filled from `productType`, not from the vendor's modal category.** Modal-fill
+was the obvious approach and would have been wrong for most: Sweet Bamboo's
+modal covers 23% of its products and prodigalpottery's 21%, so the mode is a
+minority. `productType` — "Vacation Slides", "Footies", "Ceramic", "Polos" — is
+the reliable signal, and where a vendor already had categorised products their
+exact taxonomy ids were reused rather than resolved by search.
+
+The one left uncategorised is **Shipping Protection**, the UpCart add-on. It is
+a service rather than a product: no category, no shipping rate, and correctly
+neither.
+
 ## The Yoink is now visible outside the metaobject
 
 The deal lived only in a `daily_deal` metaobject, which Liquid and the Admin API
@@ -156,11 +175,12 @@ edited by hand.
 
 ## What to check next session
 
-1. **The shipping sweep should reach 100%** about 2 August — it was at 4% (59 of
-   1,486) on the evening of the 31st, moving ~17 products per 30-minute run.
-   Until then the PDP badge and the deal ranking use vendor-level shape.
-2. **Deals run out 7 August.** Soft, because nothing is being promoted yet — an
-   empty deal day with no traffic is a non-event.
+1. **7 August has no Yoink.** Its deal was removed because the product turned
+   out to be unshippable — see below. The rest run to 7 August, and nothing is
+   being promoted yet, so an empty day is a non-event rather than urgent.
+2. **The Fidget Games** — 22 products unpublished and tagged `no-ship-rate`
+   because Shopify offers no shipping rate for them, so checkout dead-ended.
+   Needs raising with the supplier; nobody else can fix it.
 3. **Deals run out 8 August.** Nothing is queued past it, and the homepage
    section simply hides itself on a day with nothing scheduled.
 2. **The 6 August bin rotation** — vendor spread should return to twelve.
@@ -181,11 +201,16 @@ edited by hand.
 - **Search & Discovery filters are not wired to the new metafields.** The
   definitions are filterable; making a filter appear is a manual step in the
   Search & Discovery app.
-- **15% of the catalogue costs more than 40% of its price to ship**, and a few
-  cost more to ship than to buy. Culling them was recommended and deliberately
-  deferred — no traffic yet.
+- **21% of the catalogue costs more than 35% of its price to ship.** Excluded
+  from every deal surface automatically; still listed. Deferred, not rejected.
+- **The Fidget Games has 22 unpublished products** tagged `no-ship-rate`. They
+  return no shipping rate at all, so they could not be bought. Needs the
+  supplier to fix their rate configuration.
 - **`enrich.color` and `enrich.hero_score` are typed metafields now**, but the
   bin, candidates and theme only use hero_score. Colour is unused.
+- **`ship.cost` is missing on ~100 products** — 24 genuinely have no rate, the
+  rest are recent arrivals the sweep has not reached. Absence is a real state,
+  distinct from zero.
 - **The Instagram bio is not set.** There is no API for it — profile fields are
   editable only in the app or Business Suite. The Facebook Page is done.
 - **`theme/scripts/deal.py` still duplicates the pricing logic.** The app path has
@@ -270,10 +295,21 @@ Where it shows up:
 - **Yoink candidates** — anything shipping over 35% of its deal price is demoted
 - **Bargain Bin** — same 35% rule excludes it entirely
 
-**Not done, deliberately:** culling the 15% of the catalogue whose shipping
-exceeds 40% of item price (Blessed Bayou Candles at 234%, prodigalpottery at
-56%), and flat-vendor multipacks. Both were judged not worth doing before there
-is any traffic.
+**Coverage after the one-time backfill:** 1,385 of 1,486 products carry their
+own measured cost. **274 (20%) ship free** across 18 suppliers — nearly twice
+what vendor-level sampling suggested, because vendor shape samples one
+median-priced item and misses whole free catalogues. Median ship ratio is
+**17%**, not the 41% an early 4% sample implied; that sample was biased by
+design, since never-measured products are probed first.
+
+**281 products (21%) ship for more than 35% of their price.** They are excluded
+from Yoink candidates and the Bargain Bin automatically. They are NOT broken —
+they sell fine, they just look bad — so they are left listed. Worst are
+Sustainable Village's $1.57 Blumat adapter at $8.60 shipping (548%) and three
+Sticker Fire designs at 334%.
+
+**Not done, deliberately:** culling that 21%, and flat-vendor multipacks. Both
+were judged not worth doing before there is any traffic.
 
 ## Returns — the Collective mechanics underneath
 
@@ -356,6 +392,29 @@ straight loss on a unit that never made money.
 
 **From 31 July**
 
+- **A truncated query gives a confident wrong answer.** Twice in one day. A
+  `variants(first: 3)` scan reported 36 published products with nothing buyable;
+  the real number is zero, because a product whose first three variants are
+  unavailable can have a buyable fourth. And the cart upsell's `limit: 12` made
+  a whole filter tier unreachable. When a count feels surprising, check the page
+  size before believing it.
+- **A biased sample is worse than a small one.** The shipping sweep probes
+  never-measured products first, so an early 4% sample put the median ship ratio
+  at 41%. The true figure is 17%. The bias was designed in and I quoted the
+  number anyway.
+- **Vendor-level shape hides whole free catalogues.** Sampling one median-priced
+  item per supplier found 179 free-shipping products; probing every product
+  found 274 across 18 suppliers rather than 8.
+- **Modal category by vendor is a trap.** Sweet Bamboo's most common category
+  covers 23% of its products, prodigalpottery's 21%. Filling the gaps from the
+  mode would have miscategorised the majority. `productType` was the honest
+  signal.
+- **Do not hand-write taxonomy ids.** `hg-12-3` is Outdoor Power Equipment, not
+  Watering & Irrigation, and `hg-8-15` is not a category at all. Resolve by
+  search, or reuse the id the vendor's already-categorised products carry.
+- **Shopify rejects more than 25 metafields in one `metafieldsSet`.** A backfill
+  batching 20 products x 2 fields silently discarded 250 results before anyone
+  noticed `ok=0` in the log.
 - **A cron endpoint is not a place for twenty minutes of work.** The shipping
   agent probes Collective's carrier service, which takes ~2.3s per call, and the
   first version budgeted 300 probes a run. It was killed by the request timeout

@@ -371,3 +371,33 @@ next to a page that names the brand. The upsell copy stays brand-free anyway —
 "ships with what's already in your cart" is the better reason regardless, because
 the shipping relationship is the persuasive part and the brand is incidental.
 
+## Categories are filled from productType, not from the vendor's mode
+
+31 July. 143 published products had no Shopify taxonomy category, so they were
+absent from Shop by Category and reachable only by search. Filling each from its
+vendor's most common category is the obvious move and would have been wrong:
+Sweet Bamboo's mode covers 23% of its catalogue and prodigalpottery's 21%, so
+the mode is a minority opinion. `productType` — "Vacation Slides", "Footies",
+"Ceramic" — describes the actual product and was accurate across all 39
+vendor/type groups. Where a vendor already had categorised products, their exact
+taxonomy ids were reused rather than resolved by search, because an id that
+vendor is already using cannot be wrong.
+
+## A product that cannot be shipped gets unpublished, not deleted
+
+31 July. 22 published, in-stock products from one supplier returned no shipping
+rate, so checkout dead-ended on them. Unpublished rather than deleted: they are
+Collective products, so deleting would only resync them, and the fault is the
+supplier's rate configuration rather than anything about the product. Each is
+tagged `no-ship-rate` so the set is findable and the action reversible in one
+command, following the same convention as `oos`.
+
+## The 21% with punishing shipping stay listed
+
+31 July. 281 products cost more than 35% of their price to ship. They are
+excluded from Yoink candidates and the Bargain Bin automatically, so they cannot
+embarrass a deal surface, but they remain listed and buyable. They are not
+broken — they sell, they just look poor value — and with no traffic there is
+nothing to be gained by culling a fifth of the catalogue on a judgement call.
+Revisit with real order data.
+
