@@ -78,8 +78,22 @@
   margin-block-end: var(--padding-md, 1.5rem);
 }
 
+/*
+  The 0.15 wash reads as 1.4:1 against the page and cannot be seen at all by
+  anyone who needs contrast, which makes the empty half of the bar invisible
+  and the proportion unreadable. WCAG 2.2 1.4.11 wants 3:1 on a graphical
+  object you have to see to understand the content, so the OUTLINE carries the
+  contrast and the wash stays a wash.
+
+  0.55 rather than 0.5 because the alpha is composited over whatever scheme the
+  section is in: measured, 0.5 gives 3.95:1 on the black-on-white default but
+  only 2.99:1 on the teal scheme. 0.55 clears 3:1 in all three (4.74 / 5.01 /
+  3.44) and still clears it if the brand darkens the background.
+*/
 .aj-claimed__track {
+  box-sizing: border-box;
   height: 0.5rem;
+  border: 1px solid rgb(var(--color-foreground-rgb) / 0.55);
   border-radius: 999px;
   background: rgb(var(--color-foreground-rgb) / 0.15);
   overflow: hidden;
@@ -90,6 +104,22 @@
   border-radius: inherit;
   background: rgb(var(--color-foreground-rgb));
   transition: width 0.4s ease;
+}
+
+/*
+  Forced-colors throws away every background, which would leave the fill and
+  the track the same colour and the bar reading as empty at any percentage.
+  System colours are guaranteed to contrast with each other.
+*/
+@media (forced-colors: active) {
+  .aj-claimed__track {
+    border-color: CanvasText;
+    background: Canvas;
+  }
+
+  .aj-claimed__fill {
+    background: Highlight;
+  }
 }
 
 .aj-claimed__text {

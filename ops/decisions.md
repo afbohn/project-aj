@@ -11,6 +11,47 @@ bars are an FTC enforcement area and are prohibited by Shopify's own guidelines
 — and on a store whose whole model is repeat daily visits, they would erode the
 trust the model depends on.
 
+## The claimed bar is disclosed selectively, never adjusted
+
+31 July. The bar now hides below 30% claimed and never shows a percentage at
+all on an allocation under 10 units. Both numbers are theme settings, in Theme
+settings → Deal urgency, shared by the homepage section and the PDP block so
+the two cannot disagree.
+
+**This is not a softening of "urgency is real, never synthetic" above — it is
+the same rule enforced harder.** That decision bans fabricated countdowns and
+invented percentages. Nothing here invents anything: the figure is still read
+from inventory and is either shown exactly as it is or not shown. The choice
+being made is whether a true number is worth saying, which is the same shape as
+Shopify's own low-stock indicator, and the same shape as the upsell staying
+silent on scaling suppliers.
+
+Two things were wrong before.
+
+**"3% claimed" at 9am undersells a deal that has all day to run.** It is true
+and it argues against the product. On a store built on repeat daily visits the
+bar's job is to report real movement, and reporting the absence of movement in
+the first hour teaches people to come back later, which is the opposite of the
+point.
+
+**A percentage over a tiny allocation is precision the number cannot carry.**
+One sale on a 3-unit deal is 33% — arithmetically true, and it tells a shopper
+the deal is going three times faster than a single sale warrants. Those deals
+now show "Only 3 left", which is the same fact with no implied rate.
+
+Removed in the process: a `use_floor` / `floor_percent` pair that raised the
+DISPLAYED percentage to a minimum of 15% when the real one was lower. It was
+switched off and had never been on, but it was a setting that existed to print
+a number the inventory did not support, one checkbox away from contradicting
+the decision at the top of this file. Hiding a true number is a disclosure
+choice; printing a false one is not, and the theme should not offer the second.
+
+The consequence to accept: for the first part of most days the bar is absent,
+so the space it occupies has to look deliberate. It renders nothing at all —
+no wrapper, no empty track, no reserved height — because a container held open
+for a bar that is not there reads as a broken page. A missing bar is expected
+behaviour, not a bug.
+
 ## Deals never price below cost
 `deal.py` reads each variant's unit cost from Shopify and clamps the deal price
 to cost, then reports the discount actually applied rather than the one asked

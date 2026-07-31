@@ -23,6 +23,22 @@
     * no allocation set
     * the product does not track inventory in Shopify
 
+  And nothing when the true number is not worth saying. The percentage is
+  DISCLOSED, never adjusted — there is no floor, no rounding up, no minimum
+  displayed figure. Either the real number shows or nothing does.
+
+  Two gates, both on the real number:
+
+    min_percent — below it the bar is hidden. "3% claimed" at 9am undersells a
+    deal that has all day to run, and a shopper who reads it is worse informed
+    than one who reads nothing.
+
+    min_units — below this ALLOCATION the percentage never shows at all, at any
+    value. On a 3-unit deal one sale is 33%, which is arithmetically true and
+    tells the shopper something false about how fast it is going. Small
+    allocations get the plain unit count instead, which is the honest form of
+    the same fact.
+
   A caveat worth knowing: the supplier can restock mid-deal, which would make
   the delta understate what sold. It cannot overstate it, so the bar errs
   toward showing less urgency than is real — the safe direction.
@@ -30,7 +46,8 @@
   @param {object} product - The deal product.
   @param {number} units_allocated - Units committed to this deal. The divisor.
   @param {number} [starting_inventory] - Inventory on hand when the deal opened.
-  @param {number} [floor_percent] - Never display below this. Off by default.
+  @param {number} [min_percent] - Hide the bar below this true percentage.
+  @param {number} [min_units] - Below this allocation, never show a percentage.
 {% enddoc %}
 
 {%- liquid
@@ -85,35 +102,64 @@
     assign units_left = 0
   endif
 
-  assign display_percent = percent
-  if floor_percent and display_percent < floor_percent
-    assign display_percent = floor_percent
-  endif
+  comment
+    Both gates default to 0 — an unset threshold is no threshold, so the
+    snippet on its own still reports whatever is true.
+  endcomment
+  assign percent_gate = min_percent | plus: 0
+  assign units_gate = min_units | plus: 0
 
-  assign show = false
+  assign show_bar = false
+  assign show_units_only = false
+
   if tracked and allocated > 0
-    assign show = true
+    if allocated < units_gate
+      comment
+        Too few units for a percentage to mean anything. The unit count is the
+        same fact without the false precision — and on an allocation this
+        small it is the more useful one from the moment the deal opens.
+      endcomment
+      if units_left > 0 and units_left <= 25
+        assign show_units_only = true
+      endif
+    elsif percent >= percent_gate
+      assign show_bar = true
+    endif
   endif
 -%}
 
+{%- comment -%}
+  The stylesheet stays unconditional. The section's own .aj-deal__* rules live
+  in this file and reach it through whichever of these snippets renders.
+
+  Below either gate the MARKUP renders NOTHING — no wrapper, no empty track, no
+  reserved height. A container held open for a bar that is not there reads as
+  a broken page, which is a worse answer than saying nothing.
+{%- endcomment -%}
 {{ "aj-deal.css" | asset_url | stylesheet_tag }}
-{%- if show -%}
+{%- if show_bar or show_units_only -%}
   <div class="aj-claimed">
-    <div
-      class="aj-claimed__track"
-      role="progressbar"
-      aria-valuenow="{{ display_percent }}"
-      aria-valuemin="0"
-      aria-valuemax="100"
-      aria-label="{{ display_percent }}% of this deal claimed"
-    >
-      <div class="aj-claimed__fill" style="width: {{ display_percent }}%;"></div>
-    </div>
-    <p class="aj-claimed__text">
-      <strong>{{ display_percent }}% claimed</strong>
-      {%- if units_left > 0 and units_left <= 25 -%}
-        <span class="aj-claimed__remaining">Only {{ units_left }} left</span>
-      {%- endif -%}
-    </p>
+    {%- if show_bar -%}
+      {%- comment -%}
+        aria-hidden, not role="progressbar". The sentence underneath states the
+        same figure, so announcing the bar as well made a screen reader read
+        "30%" twice. The bar is the redundant presentation of a fact that is
+        already in text — which is also what lets it be treated as decorative
+        rather than as a graphic someone must be able to see.
+      {%- endcomment -%}
+      <div class="aj-claimed__track" aria-hidden="true">
+        <div class="aj-claimed__fill" style="width: {{ percent }}%;"></div>
+      </div>
+      <p class="aj-claimed__text">
+        <strong>{{ percent }}% claimed</strong>
+        {%- if units_left > 0 and units_left <= 25 -%}
+          <span class="aj-claimed__remaining">Only {{ units_left }} left</span>
+        {%- endif -%}
+      </p>
+    {%- else -%}
+      <p class="aj-claimed__text">
+        <strong>Only {{ units_left }} left</strong>
+      </p>
+    {%- endif -%}
   </div>
 {%- endif -%}

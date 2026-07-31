@@ -18,8 +18,6 @@
         "countdown_heading": "Yoink ends in",
         "reload_on_expire": true,
         "show_claimed": true,
-        "use_floor": false,
-        "floor_percent": 15,
         "padding-block-start": 48,
         "padding-block-end": 48
       }

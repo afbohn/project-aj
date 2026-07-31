@@ -151,17 +151,12 @@
         {%- endif -%}
 
         {%- if section.settings.show_claimed -%}
-          {%- liquid
-            assign floor = nil
-            if section.settings.use_floor
-              assign floor = section.settings.floor_percent
-            endif
-          -%}
           {% render 'aj-deal-claimed',
             product: product,
             units_allocated: deal.units_allocated.value,
             starting_inventory: deal.starting_inventory.value,
-            floor_percent: floor
+            min_percent: settings.claimed_min_percent,
+            min_units: settings.claimed_min_units
           %}
         {%- endif -%}
 
@@ -448,22 +443,8 @@
       "info": "Calculated from real inventory against the units allocated on the metaobject. Hidden automatically when the product does not track inventory."
     },
     {
-      "type": "checkbox",
-      "id": "use_floor",
-      "label": "Use a minimum displayed percentage",
-      "default": false,
-      "info": "Keeps a brand-new deal from showing 0%. This makes the low end cosmetic rather than literal — leave it off if you want the bar to be strictly accurate."
-    },
-    {
-      "type": "range",
-      "id": "floor_percent",
-      "label": "Minimum shown",
-      "min": 0,
-      "max": 50,
-      "step": 5,
-      "unit": "%",
-      "default": 15,
-      "visible_if": "{{ section.settings.use_floor }}"
+      "type": "paragraph",
+      "content": "When it shows is set once for the whole store, in Theme settings → Deal urgency, so the homepage and the product page cannot disagree."
     },
     {
       "type": "header",

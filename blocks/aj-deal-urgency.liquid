@@ -56,7 +56,9 @@
       {% render 'aj-deal-claimed',
         product: this_product,
         units_allocated: deal.units_allocated.value,
-        starting_inventory: deal.starting_inventory.value
+        starting_inventory: deal.starting_inventory.value,
+        min_percent: settings.claimed_min_percent,
+        min_units: settings.claimed_min_units
       %}
     {%- endif -%}
   </div>
