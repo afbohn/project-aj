@@ -161,6 +161,17 @@ The one left uncategorised is **Shipping Protection**, the UpCart add-on. It is
 a service rather than a product: no category, no shipping rate, and correctly
 neither.
 
+**It stays complete on its own now.** The catalogue agent applies a
+`category_rule` metaobject — vendor + productType to taxonomy id — to any
+product whose supplier set no category. The 73 rules were derived FROM the
+catalogue, from combinations where the already-categorised products agree, so
+the agent propagates a decision already made rather than guessing. A new ISlide
+product inherits Sandals because every other ISlide product is Sandals.
+
+A rule needs at least two agreeing examples, so a lone oddity never becomes one.
+That is why seven products still have no category: single-product vendors with
+nothing to learn from. Adding a rule by hand is one metaobject entry.
+
 ## The Yoink is now visible outside the metaobject
 
 The deal lived only in a `daily_deal` metaobject, which Liquid and the Admin API
@@ -294,6 +305,20 @@ Where it shows up:
   actually CLEAR the threshold
 - **Yoink candidates** — anything shipping over 35% of its deal price is demoted
 - **Bargain Bin** — same 35% rule excludes it entirely
+
+**Products nothing will ship are now hidden automatically.** A product with no
+shipping rate is as unbuyable as one with no stock and far more deceptive — in
+stock, priced, entirely normal-looking, and a checkout that cannot complete.
+The catalogue agent uses the same two-reading debounce as the sold-out sweep
+(`no-ship-pending` then `no-ship-rate`), because a carrier service can fail
+transiently and one bad answer should not take a product off the storefront. The
+settled tag is also the permission slip to republish, so anything hidden by hand
+is never resurrected — and a supplier fixing their rates gets their products
+back with no intervention.
+
+Products whose variants set `requiresShipping: false` are skipped. The first run
+unpublished a gift card, which has no shipping rate precisely because it needs
+none.
 
 **Coverage after the one-time backfill:** 1,385 of 1,486 products carry their
 own measured cost. **274 (20%) ship free** across 18 suppliers — nearly twice

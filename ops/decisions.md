@@ -401,3 +401,37 @@ broken — they sell, they just look poor value — and with no traffic there is
 nothing to be gained by culling a fifth of the catalogue on a judgement call.
 Revisit with real order data.
 
+## Category rules are learned from the catalogue, not written down
+
+31 July. Filling a missing category needs a mapping from something the product
+does have — vendor and productType — to a taxonomy id. That mapping could be a
+table in the repo, and it would rot: suppliers arrive, product types change, and
+nobody would remember to edit it.
+
+Instead the rules are derived from the live catalogue: every vendor+productType
+combination where at least two categorised products agree on a category becomes
+a rule. That makes the fill a propagation of a decision already made rather than
+a guess, and it self-updates as the catalogue changes. Seventy-three rules came
+out of a catalogue where I had hand-mapped thirty-nine.
+
+Two agreeing examples is the threshold on purpose. One product is an anecdote,
+and a rule built from an anecdote would confidently miscategorise everything
+that followed it.
+
+## Unbuyable is unbuyable — no shipping rate hides a product, on the second reading
+
+31 July. Twenty-two published, in-stock products returned no shipping rate and
+dead-ended at checkout. That is the same customer outcome as out of stock, so it
+gets the same treatment and the same shape: a pending tag on the first reading, a
+settled tag and an unpublish on the second, and the settled tag doubling as the
+permission slip to republish.
+
+The debounce is not decoration. Carrier services fail transiently, and hiding a
+product on one bad answer would make the storefront flicker — the same reasoning
+that put a two-reading rule on the sold-out sweep.
+
+Products that set `requiresShipping: false` are exempt. The first run of this
+unpublished a gift card. "Nothing will ship it" is only a fault when the thing is
+meant to be shipped, and a rule that cannot tell the difference is worse than no
+rule.
+
