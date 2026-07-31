@@ -71,7 +71,15 @@
     {%- endcomment -%}
     {%- assign vendor_key = 'vendor-' | append: clean -%}
     {%- assign vendor_collection = collections[vendor_key] -%}
-    {%- for candidate in vendor_collection.products limit: 12 -%}
+    {%- comment -%}
+                  Fifty, not twelve. Vendor collections sort by best-selling, and
+                  the tier filters only ever see what this loop yields: measured
+                  on Horizon Hat Co., every one of the first thirteen is $27.99
+                  and the first item that clears the shipping gap sits at
+                  fourteen. Twelve made the clearing tier silently unreachable.
+                  Fifty is Shopify's ceiling for an unpaginated collection loop.
+                {%- endcomment -%}
+                {%- for candidate in vendor_collection.products limit: 50 -%}
       {%- assign probe = ',' | append: candidate.id | append: ',' -%}
       {%- unless in_cart contains probe or candidate.available == false -%}
         {{ candidate.id }},
@@ -217,7 +225,15 @@
             {%- for tier_raw in tiers -%}
               {%- assign tier = tier_raw | plus: 0 -%}
               {%- if tier > 0 and gap_cents == 0 -%}{%- continue -%}{%- endif -%}
-              {%- for candidate in vendor_collection.products limit: 12 -%}
+              {%- comment -%}
+                  Fifty, not twelve. Vendor collections sort by best-selling, and
+                  the tier filters only ever see what this loop yields: measured
+                  on Horizon Hat Co., every one of the first thirteen is $27.99
+                  and the first item that clears the shipping gap sits at
+                  fourteen. Twelve made the clearing tier silently unreachable.
+                  Fifty is Shopify's ceiling for an unpaginated collection loop.
+                {%- endcomment -%}
+                {%- for candidate in vendor_collection.products limit: 50 -%}
                 {%- if shown >= max_items or from_vendor >= cap -%}{%- break -%}{%- endif -%}
                 {%- assign probe = ',' | append: candidate.id | append: ',' -%}
                 {%- if in_cart contains probe or seen contains probe -%}
