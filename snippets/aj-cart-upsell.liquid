@@ -195,22 +195,28 @@
                   assign gap_cents = threshold_cents | minus: vendor_cents
                 endif
               endif
-              # 60% of the gap: an item worth most of what is missing still reads
-              # as progress, and demanding an exact match would usually match
-              # nothing at all.
+              # Two bars. `gap_clear` actually unlocks free shipping; `gap_floor`
+              # only makes visible progress toward it.
+              #
+              # gap_clear carries a dollar of headroom because the threshold is
+              # bisected to about a dollar, not to the cent. Without it, an item
+              # priced at exactly the gap can land two cents short — measured:
+              # a $27.99 hat against a $27.99 gap totals $55.98 on a $56
+              # threshold, and the shopper adds it and gets nothing.
+              assign gap_clear = gap_cents | plus: 100
               assign gap_floor = gap_cents | times: 60 | divided_by: 100
             -%}
 
             {%- comment -%}
-              Tier 1 offers only gap-closers; tier 0 offers anything. Nested
-              inside the vendor loop rather than outside it so the two-pass
-              vendor fairness above is untouched — this changes WHICH item a
-              vendor contributes, never how many.
+              Tier 2 clears the threshold outright, tier 1 only makes progress
+              toward it, tier 0 is anything. Nested inside the vendor loop rather
+              than outside it so the two-pass vendor fairness above is untouched —
+              this changes WHICH item a supplier contributes, never how many.
             {%- endcomment -%}
-            {%- assign tiers = '1,0' | split: ',' -%}
+            {%- assign tiers = '2,1,0' | split: ',' -%}
             {%- for tier_raw in tiers -%}
               {%- assign tier = tier_raw | plus: 0 -%}
-              {%- if tier == 1 and gap_cents == 0 -%}{%- continue -%}{%- endif -%}
+              {%- if tier > 0 and gap_cents == 0 -%}{%- continue -%}{%- endif -%}
               {%- for candidate in vendor_collection.products limit: 12 -%}
                 {%- if shown >= max_items or from_vendor >= cap -%}{%- break -%}{%- endif -%}
                 {%- assign probe = ',' | append: candidate.id | append: ',' -%}
@@ -218,6 +224,7 @@
                   {%- continue -%}
                 {%- endif -%}
                 {%- if candidate.available == false -%}{%- continue -%}{%- endif -%}
+                {%- if tier == 2 and candidate.price < gap_clear -%}{%- continue -%}{%- endif -%}
                 {%- if tier == 1 and candidate.price < gap_floor -%}{%- continue -%}{%- endif -%}
                 {%- assign seen = seen | append: candidate.id | append: ',' -%}
                 {%- assign shown = shown | plus: 1 -%}
