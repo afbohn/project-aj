@@ -25,6 +25,11 @@
 {%- endcomment -%}
 
 {%- liquid
+  # The product's OWN measured cost wins over the vendor's shape. Vendor shape
+  # is a good predictor and not a guarantee: Fuse Audio ships six of seven
+  # products free and charges $12 on a heavy radio. A badge is a promise, so it
+  # reads the number measured for this exact product where one exists.
+  assign own_cost = product.metafields.ship.cost.value
   assign vs = nil
   for entry in shop.metaobjects.vendor_shipping.values
     if entry.vendor.value == product.vendor
@@ -40,12 +45,32 @@
     assign msg = nil
     assign tone = 'plain'
 
-    if shape == 'free'
+    # A measured cost for THIS product overrules the vendor's shape, in both
+    # directions. Zero is the strongest claim available. Non-zero MUTES the
+    # brand-level "free" and "ships free" claims, which is the whole reason the
+    # per-product number exists — Fuse Audio ships six of seven free and charges
+    # $12 on a heavy radio, and the vendor shape would have promised free on it.
+    assign measured = false
+    if own_cost != blank
+      assign measured = true
+    endif
+
+    if measured and own_cost == 0
+      assign msg = 'Free shipping.'
+      assign tone = 'good'
+
+    elsif shape == 'free' and measured == false
       assign msg = 'Free shipping on this brand.'
       assign tone = 'good'
 
-    elsif shape == 'flat'
+    elsif shape == 'flat' and measured == false
       assign msg = 'Anything else from this brand ships together, free.'
+      assign tone = 'good'
+
+    elsif shape == 'flat' and measured
+      # Measured non-zero, but a flat supplier genuinely does carry extra items
+      # for nothing. The claim narrows from "free" to "no more than this".
+      assign msg = 'Anything else from this brand ships together, no extra shipping.'
       assign tone = 'good'
 
     elsif shape == 'threshold' and vs.reachable.value
