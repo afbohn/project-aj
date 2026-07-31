@@ -297,3 +297,77 @@ shopper-facing promise, so it belongs on the shopper's clock.
 returns on a dropship catalogue are a money pit, and the returns process is not
 settled enough domestically to extend it across a border.
 
+## Shipping stays pass-through, not flat
+
+31 July. A flat $6.95 was the recommendation until the vendor data existed, and
+the data reversed it. Three reasons, in order of weight.
+
+It would kill the best lever: 56% of products belong to a supplier with a
+REACHABLE free-shipping threshold. Under a flat rate, "add $18 more from this
+brand and shipping is free" becomes false — their shipping does not change — so
+we would pocket the supplier's threshold discount silently instead of spending
+it as a customer incentive. The incentive is worth more.
+
+It cannot be tiered. Delivery-method conditions support weight and price, not
+vendor, and Collective products ship from supplier locations so a separate
+profile does not work at all. Flat means ONE rate for everything, and the 22% of
+products from oversize suppliers would bleed $4.65 an order.
+
+And pass-through never loses money. On a store with $12.67 median contribution
+and no sales history, "shipping is exactly cost, always" is worth a lot.
+
+The cost of this decision is real and accepted: shipping stays variable, and
+deal-hunters do notice. If traffic later shows it suppressing conversion, the
+answer is a store-wide free-shipping threshold on top — additive, giving nothing
+up — not a flat rate.
+
+## Shipping is a conversion input, not a cost input
+
+31 July. Because it passes through at zero markup, shipping does not touch
+margin. It decides whether the OFFER survives: $9.99 off with $13 shipping is a
+$23 purchase dressed as a $10 one, and four suppliers ship for more than their
+item is worth. So it enters the Yoink ranking and the Bargain Bin filter as a
+35%-of-price cap, and enters nothing as a cost adjustment.
+
+## A shipping claim is measured per product, never inferred per vendor
+
+31 July. Vendor shape predicts well and does not guarantee: Fuse Audio ships six
+of seven products free and charges $12 on a heavy radio. A badge is a promise to
+a shopper, so a measured per-product cost overrules the brand's shape in BOTH
+directions — a measured non-zero cost mutes "free" rather than being overridden
+by it. Verified against all 181 free-vendor products: 179 genuinely free, 99%.
+
+## The upsell stays silent on a third of suppliers
+
+31 July. Nine suppliers get more expensive as items are added, and six have a
+threshold their own catalogue cannot reach. Both render nothing. Inviting a
+bigger basket from a scaling supplier costs money, and quoting a gap nobody can
+close is a promise with nothing behind it. Silence is a correct answer and the
+common one.
+
+## Long agent work is budgeted in time, not in units
+
+31 July. The shipping agent's probes are ~2.3s each because every one is a live
+callout to Collective. A 300-probe budget needed 23 minutes and was killed by
+the request timeout on every run, writing nothing. Wall-clock budgets always fit
+the timeout and degrade to fewer probes rather than to failure. Any future agent
+that calls a third party should do the same.
+
+## Nothing is final sale, and defects keep 30 days
+
+31 July, published. Every other clause tightened — 14 days, customer pays return
+shipping — and this one deliberately did not. Narrowing the defect path does not
+reduce exposure, it converts refunds into chargebacks, which cost the money, the
+goods, a dispute fee, and count against the ratio that gets a payments account
+reviewed. Shoppers assume deep discounts are non-returnable, so saying otherwise
+is the strongest trust signal a store with no reviews can offer.
+
+## The chatbot may name suppliers
+
+31 July. The guardrail relaxes from "never name a brand" to "do not lead with
+it". The storefront already names suppliers in the cart, on the PDP, and in 48
+browsable vendor collections, so silence prevents nothing and reads as evasive
+next to a page that names the brand. The upsell copy stays brand-free anyway —
+"ships with what's already in your cart" is the better reason regardless, because
+the shipping relationship is the persuasive part and the brand is incidental.
+

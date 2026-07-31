@@ -1,6 +1,6 @@
 # Where things stand
 
-Snapshot at the end of 30 July 2026. Written so tomorrow starts from facts
+Snapshot at the end of 31 July 2026. Written so tomorrow starts from facts
 rather than from re-reading commits.
 
 ## Live right now
@@ -27,9 +27,9 @@ through the app. The teaser campaign has started.
 | `afbohn/theyoink-meta` | `meta-app/` | **Retired.** Ported into the app; its workflow is disabled. |
 
 `theyoink-app` was laptop-only until today. It is now backed up, which matters
-more than it did before, because it is where all seven agents live.
+more than it did before, because it is where all eight agents live.
 
-## The seven agents
+## The eight agents
 
 All visible at **`/app/agents`** with health, last-run age, "Run now", and pause
 where pausing is safe.
@@ -43,6 +43,7 @@ where pausing is safe.
 | `meta` | 60 min | Posts the Yoink of the Day | Yes — **currently paused** |
 | `teaser` | 60 min | Works the teaser queue, one a day | Yes — **currently on** |
 | `enrich` | Daily | Tags and scores the catalogue with a model | Yes — **currently on** |
+| `shipping` | 30 min | Measures what each supplier and product costs to ship | Yes — **currently on** |
 
 **The lifecycle and catalogue sweep have no pause button on purpose.** Both fail
 silently and expensively when they stop, and an off switch someone forgets to
@@ -155,7 +156,12 @@ edited by hand.
 
 ## What to check next session
 
-1. **Deals run out 8 August.** Nothing is queued past it, and the homepage
+1. **The shipping sweep should reach 100%** about 2 August — it was at 4% (59 of
+   1,486) on the evening of the 31st, moving ~17 products per 30-minute run.
+   Until then the PDP badge and the deal ranking use vendor-level shape.
+2. **Deals run out 7 August.** Soft, because nothing is being promoted yet — an
+   empty deal day with no traffic is a non-event.
+3. **Deals run out 8 August.** Nothing is queued past it, and the homepage
    section simply hides itself on a day with nothing scheduled.
 2. **The 6 August bin rotation** — vendor spread should return to twelve.
 3. **Enrichment coverage** should reach the full 1,294 within a few runs at 350
@@ -171,11 +177,15 @@ edited by hand.
   because the ads agent will use this same token. See *decisions.md* — this
   reverses an earlier decision and moves a safeguard from the token to the code
   that has not been written yet.
-- **The policies are drafted but not published.** See the shipping/returns
-  section — this is the largest open exposure on the store, and it is a paste.
+- **The shipping policy page is still unpublished.** Everything else is live.
 - **Search & Discovery filters are not wired to the new metafields.** The
   definitions are filterable; making a filter appear is a manual step in the
   Search & Discovery app.
+- **15% of the catalogue costs more than 40% of its price to ship**, and a few
+  cost more to ship than to buy. Culling them was recommended and deliberately
+  deferred — no traffic yet.
+- **`enrich.color` and `enrich.hero_score` are typed metafields now**, but the
+  bin, candidates and theme only use hero_score. Colour is unused.
 - **The Instagram bio is not set.** There is no API for it — profile fields are
   editable only in the app or Business Suite. The Facebook Page is done.
 - **`theme/scripts/deal.py` still duplicates the pricing logic.** The app path has
@@ -197,40 +207,73 @@ edited by hand.
 ~all`) and DKIM on the `google` selector, all resolving. The DKIM key is
 1024-bit, which is the size that fits Shopify's 255-character DNS field.
 
-## Shipping and returns — NOT settled, and this is the live exposure
+## Returns — PUBLISHED 31 July
 
-The 30 July review of the actual store found three things wrong. Replacement
-text is drafted at `docs/policy-drafts.md`, **and none of it is published yet**
-— the app has no `write_legal_policies` scope, so it is a manual paste.
+The refund policy, terms of service and contact information are live and
+correct. `[INSERT RETURN ADDRESS]` and all eight instances of
+`abohn@onecountry.com` are gone. Old text backed up to `docs/policy-backup/`.
 
-1. **There is no shipping policy page.** `/policies/shipping-policy` 404s. On a
-   ~40-vendor dropship store this is the highest-risk gap on the site.
-2. **The refund policy is unedited boilerplate.** It publishes
-   `[INSERT RETURN ADDRESS]` literally, lists `abohn@onecountry.com` instead of
-   `hello@theyoink.com`, and promises "we'll send you a return shipping label" —
-   committing to merchant-paid returns on every order, to one address, on a
-   store whose goods ship from forty vendors.
-3. **Free shipping over $70 was attached to a profile containing zero
-   products.** Every product sits on the Shopify Collective profile with
-   carrier-calculated rates, so the threshold never applied to anything and the
-   cart upsell it was meant to drive did not exist.
-
-**Canada and International delivery zones were deleted** on 30 July. Both
-profiles are US-only now. Settings → Markets still needs checking by hand — the
-app has no `read_markets` scope, and if Canada is still an active market
-shoppers there reach checkout before discovering nothing ships.
-
-Decided: **nothing is final sale**, **14-day return window**, customer pays
-return shipping, no restocking fee, delivery quoted as *5-10 business days, up
-to 15*. Transit damage is a 48-hour window; **defects stay at 30 days on
-purpose** — narrowing that does not reduce exposure, it converts it into
-chargebacks, which is worse.
+In force: **nothing is final sale**, **14 days from delivery**, customer pays
+return shipping, no restocking fee, consumable/opened-cosmetic/intimates/custom
+exclusions. Transit damage 48 hours; **defects keep 30 days on purpose** —
+narrowing that converts refunds into chargebacks, which cost more and threaten
+the payments account.
 
 The vendor-variance problem has an answer that is not a number: **you are the
-merchant of record**. Vendor terms decide how much you *recover*, not what you
-*owe*. Set the customer window where it converts, treat recovery as a cost line,
-and triage internally — under ~$25, refund and let them keep it, because return
-shipping costs more than the item is worth.
+merchant of record.** Vendor terms decide how much you *recover*, not what you
+*owe*. Internal triage, unpublished: under ~$25 refund and let them keep it,
+because return shipping costs more than the item is worth.
+
+**Still not published: the shipping policy page.** `/policies/shipping-policy`
+404s. Draft is in `docs/policy-drafts.md` and was deliberately held back until
+the rate structure was settled — it now is, so this is just a paste.
+
+**Canada and International delivery zones deleted.** US only. Settings → Markets
+still unchecked by hand; the app has no `read_markets` scope.
+
+## Shipping — measured, and deliberately left as pass-through
+
+**The customer pays the supplier's rate, unmarked-up, calculated at checkout.**
+Shipping is net zero to us: we never lose money on it and never make any. That
+is a decision, not an accident — see decisions.md.
+
+**A flat $6.95 was attempted on 31 July and broke checkout.** Collective products
+ship from SUPPLIER locations, so a delivery profile scoped to our own location
+matches nothing: 6,994 variants returned no shipping rates at all and could not
+have been bought. Reverted within minutes and verified recovered. The lesson is
+in "Things that bit us".
+
+**Every supplier is now measured** by the `shipping` agent, into
+`vendor_shipping` metaobjects:
+
+| shape | n | meaning |
+|---|---|---|
+| threshold | 25 | free above a cart value — median $84, 19 reachable |
+| scaling | 9 | gets MORE expensive per item. Never upsell these |
+| free | 9 | $0 at every quantity |
+| flat | 5 | same rate however many items |
+
+**Six of the 25 thresholds are unreachable** — August Uncommon Tea is free above
+$56 and sells one $14 product. Reachability is measured, because no amount of
+correct shipping data catches that; it is a fact about the catalogue.
+
+**Per-product cost** lands in `ship.cost` (storefront-readable) with
+`ship.checked_at`. Vendor shape predicts well but does not guarantee: Fuse Audio
+ships six of seven products free and charges $12 on a heavy radio. A measured
+non-zero cost MUTES the brand-level "free" claim.
+
+Where it shows up:
+
+- **PDP** — `aj-brand-shipping` block, placed and live
+- **Cart + drawer** — per-brand progress bar and gap, then suggestions chosen to
+  actually CLEAR the threshold
+- **Yoink candidates** — anything shipping over 35% of its deal price is demoted
+- **Bargain Bin** — same 35% rule excludes it entirely
+
+**Not done, deliberately:** culling the 15% of the catalogue whose shipping
+exceeds 40% of item price (Blessed Bayou Candles at 234%, prodigalpottery at
+56%), and flat-vendor multipacks. Both were judged not worth doing before there
+is any traffic.
 
 ## Returns — the Collective mechanics underneath
 
@@ -311,6 +354,44 @@ straight loss on a unit that never made money.
 - **Polaris `Text` does not accept `as="pre"`.** Use a span with
   `white-space: pre-wrap`.
 
+**From 31 July**
+
+- **A cron endpoint is not a place for twenty minutes of work.** The shipping
+  agent probes Collective's carrier service, which takes ~2.3s per call, and the
+  first version budgeted 300 probes a run. It was killed by the request timeout
+  every time, writing no heartbeat and no data — "Run now" simply appeared to
+  hang. Budget long jobs in WALL-CLOCK TIME, not in call count: the cost of a
+  call is not ours to control.
+- **A time-boxed job needs a freshness rule or it never finishes.** Once
+  budgeted, the run re-measured the same alphabetically-first suppliers forever.
+  Skipping anything measured recently is what turns "as many as fit" into
+  progress.
+- **A swept deal that never records being finished restores forever.** Nothing
+  cleared `price_snapshot`, so the lifecycle sweep re-applied a pre-deal price
+  every fifteen minutes for the rest of time. Invisible until something else
+  priced the same product — it was silently resetting two Bargain Bin members to
+  full price within minutes of every rotation. Found by the invariants agent,
+  which is exactly what it is for.
+- **Collective products ship from SUPPLIER locations.** A delivery profile
+  scoped to our own location matches none of them and returns no rates at all,
+  which means the products cannot be bought. Check
+  `productVariantsCount` on a profile and quote a rate before trusting it.
+- **`deliveryProfileUpdate` takes `zonesToDelete` at the PROFILE level**, not
+  nested in `locationGroupsToUpdate` where the shape suggests.
+- **A filter cannot run inside a Liquid `if` condition.** `if x | handleize ==
+  y` parses and then misbehaves; theme-check does not catch it. Assign first.
+- **A candidate window can make a filter unreachable.** The cart upsell looked at
+  the first 12 products of a vendor collection; the collection sorts by
+  best-selling, the first thirteen were identically priced, and the item that
+  actually cleared the shipping gap sat at fourteen. The tier worked perfectly
+  and could never fire.
+- **Sampling a live storefront gets you rate-limited.** A few hundred requests to
+  `/cart/shipping_rates.json` earned a Cloudflare 1015 on our own shop. The
+  Admin API's `draftOrderCalculate` returns the same numbers, needs
+  `write_draft_orders`, and does not compete with customers.
+- **Section groups CAN be edited from the repo.** The older note here was wrong;
+  see the corrected entry above.
+
 **From 30 July, later**
 
 - **A cache key that omits the prompt freezes the output forever.** Enrichment
@@ -342,6 +423,17 @@ straight loss on a unit that never made money.
 
 ## Next
 
+- **Cull the shipping-absurd products** — Blessed Bayou Candles ($13.17 to ship
+  a $5.62 candle), prodigalpottery, and the rest of the >40% band. Deferred, not
+  rejected.
+- **Flat-vendor multipacks.** Sticker Fire is $5.35 to ship one sticker or ten,
+  so a 5-pack fixes 48 products that are unsellable individually. BLOCKED on an
+  unanswered question: whether a Shopify bundle decomposes into a correct
+  multi-unit Collective supplier order. Getting that wrong means unfulfillable
+  orders. Also note a multipack goes unavailable when stock drops below the pack
+  size, so it is MORE fragile than the single.
+- **Guard inverted deal windows.** One `daily_deal` entry has `ends_at` earlier
+  than `starts_at` and the scheduler accepted it.
 - **"Also on sale" section.** Try the Admin API enum `IS_PRICE_REDUCED` before
   building a tag-based path — the admin UI rejects the rule, the API does not.
   The cross-sell also never excluded the live deal's product.
