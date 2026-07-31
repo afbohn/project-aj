@@ -260,12 +260,21 @@ merchant of record.** Vendor terms decide how much you *recover*, not what you
 *owe*. Internal triage, unpublished: under ~$25 refund and let them keep it,
 because return shipping costs more than the item is worth.
 
-**Still not published: the shipping policy page.** `/policies/shipping-policy`
-404s. Draft is in `docs/policy-drafts.md` and was deliberately held back until
-the rate structure was settled — it now is, so this is just a paste.
+**All five policies are live and clean.** Shipping policy published 31 July,
+held back deliberately until the rate structure was settled. It describes
+per-supplier rates calculated at checkout, separate parcels per brand, 5-10
+business days (up to 15), and US only.
 
-**Canada and International delivery zones deleted.** US only. Settings → Markets
-still unchecked by hand; the app has no `read_markets` scope.
+A final sweep for `onecountry` and `[INSERT` across all five found five more
+placeholders in section 25 of the terms of service — trading name, address,
+phone, registration number, VAT. Name and address are now filled; the other
+three were removed rather than left as placeholders, since VAT does not apply to
+a US retailer and the rest are not held. **The business address is now public**,
+which is normal for a terms-of-service contact section.
+
+**Markets confirmed US-only.** One market, "United States", enabled and primary,
+region United States. Canada and International are not active markets, so there
+is no international dead-end at checkout.
 
 ## Shipping — measured, and deliberately left as pass-through
 
