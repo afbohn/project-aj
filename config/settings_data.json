@@ -106,7 +106,7 @@
           "button_label": "Chat",
           "widget_position": "bottom_right",
           "trigger_mode": "floating",
-          "primary_color": "#2d3748",
+          "primary_color": "#43AFCA",
           "icon_color": "#ffffff",
           "header_color": "#1e293b",
           "bot_bubble_color": "#f1f5f9",
