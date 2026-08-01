@@ -11,13 +11,13 @@
     product             product_reference  the deal item
     starts_at           date_time          when it goes live
     ends_at             date_time          when it stops — drives the clock
-    units_allocated     number_integer     units committed; the % claimed divisor
+    units_allocated     number_integer     units committed; NOT a cap — see aj-deal-claimed
     starting_inventory  number_integer     stock on hand at open; see below
     headline            single_line_text   optional eyebrow, e.g. "Today only"
 
-  `starting_inventory` is what makes the claimed bar work on dropshipped
+  `starting_inventory` is what makes the sold count work on dropshipped
   products. The supplier holds the stock and it dwarfs any allocation we make,
-  so the bar measures the drop from this snapshot rather than assuming we
+  so the count measures the drop from this snapshot rather than assuming we
   started with our allocation on the shelf.
 
   Renders nothing on the storefront when no deal is active, so an empty queue
@@ -155,8 +155,8 @@
             product: product,
             units_allocated: deal.units_allocated.value,
             starting_inventory: deal.starting_inventory.value,
-            min_percent: settings.claimed_min_percent,
-            min_units: settings.claimed_min_units
+            min_sold: settings.sold_min_count,
+            label: settings.sold_label
           %}
         {%- endif -%}
 

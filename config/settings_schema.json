@@ -2162,26 +2162,26 @@
         "content": "Controls WHEN the % claimed bar appears, on the homepage and the product page at once. It never controls what it says: the figure is read from real inventory and is either shown as it is or not shown at all."
       },
       {
-        "type": "range",
-        "id": "claimed_min_percent",
-        "label": "Hide the bar below",
-        "min": 0,
-        "max": 60,
-        "step": 5,
-        "unit": "%",
-        "default": 30,
-        "info": "\"3% claimed\" at 9am undersells a deal with all day left to run. Below this the bar is hidden entirely — never rounded up. Set 0 to always show it."
+        "type": "paragraph",
+        "content": "How many of today's Yoink have sold. Counted from real inventory — it was a \"% claimed\" bar until the allocation was confirmed not to be a cap, which made \"Only 12 left\" false on a product whose supplier holds thousands. A count cannot become a lie however much we sell."
       },
       {
         "type": "range",
-        "id": "claimed_min_units",
-        "label": "Minimum units for a percentage",
+        "id": "sold_min_count",
+        "label": "Hide below this many sold",
         "min": 0,
         "max": 50,
         "step": 1,
         "unit": "u",
         "default": 10,
-        "info": "On a 3-unit deal one sale reads as 33%: true, and misleading. Allocations below this show \"Only 3 left\" instead, at any percentage."
+        "info": "\"3 yoinked today\" argues against the deal, exactly as \"3% claimed\" did. Below this it renders nothing — no empty container, no reserved space. Set 0 to always show a non-zero count."
+      },
+      {
+        "type": "text",
+        "id": "sold_label",
+        "label": "Wording",
+        "default": "[count] yoinked today",
+        "info": "[count] is replaced with the real number."
       },
       {
         "type": "header",

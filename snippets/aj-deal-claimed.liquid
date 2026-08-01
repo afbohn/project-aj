@@ -1,53 +1,48 @@
 {% doc %}
-  Renders a "X% claimed" progress bar for a daily deal, from real inventory.
+  How many of today's Yoink have actually been taken.
 
-  There are two honest ways to count what has been claimed, and which one
-  applies depends on who is holding the stock.
+  THIS USED TO BE A "% CLAIMED" BAR AND AN "ONLY N LEFT" LINE. Both rested on
+  `units_allocated` being a limit we would honour. It never was — nothing in the
+  app or the theme caps sales at the allocation — and the decision is that
+  nothing should: if a supplier has stock, we want to sell it. That makes "Only
+  12 left" false at the moment it is printed, on a product where the supplier
+  holds fourteen thousand. It is the exact shape of manufactured scarcity that
+  `decisions.md` rules out, arrived at by accident rather than intent.
 
-  DROPSHIP / COLLECTIVE (the normal case here). The supplier holds the
-  inventory and it is enormous relative to the deal — a Collective product on
-  this store carries 14,357 units. Inventory does not start at our allocation,
-  so we snapshot it when the deal opens and measure the delta:
+  So the scarcity claim goes and the count stays. Two kinds of urgency remain,
+  and both are real:
 
-      claimed = starting_inventory - inventory on hand now
-      percent = claimed / units_allocated
+    TIME — the countdown, which targets an absolute timestamp.
+    MOMENTUM — this, which counts units that genuinely sold.
 
-  That delta is real units sold while the deal was running.
+  Momentum cannot become a lie however much we sell, which is exactly why it
+  survives a decision to sell everything available. A percentage cannot: it
+  needs a denominator, and the only denominator on offer is a number we have
+  decided not to enforce.
 
-  SELF-STOCKED. When no snapshot is recorded we assume the allocation IS the
-  stock, which is true if you hold it yourself:
+  HOW THE COUNT IS DERIVED. The supplier holds the inventory and it is enormous
+  relative to the deal, so inventory is snapshotted when the deal opens and the
+  delta is what sold:
 
-      claimed = units_allocated - inventory on hand now
+      sold = starting_inventory − inventory on hand now
 
-  Renders NOTHING when it cannot be truthful:
-    * no allocation set
+  With no snapshot it falls back to the allocation, which is true when we hold
+  the stock ourselves. A supplier restocking mid-deal makes the delta understate
+  what sold; it cannot overstate it, so the number errs low — the safe direction
+  for a figure whose whole job is to be believed.
+
+  Renders NOTHING when it cannot be truthful or would undersell:
     * the product does not track inventory in Shopify
-
-  And nothing when the true number is not worth saying. The percentage is
-  DISCLOSED, never adjusted — there is no floor, no rounding up, no minimum
-  displayed figure. Either the real number shows or nothing does.
-
-  Two gates, both on the real number:
-
-    min_percent — below it the bar is hidden. "3% claimed" at 9am undersells a
-    deal that has all day to run, and a shopper who reads it is worse informed
-    than one who reads nothing.
-
-    min_units — below this ALLOCATION the percentage never shows at all, at any
-    value. On a 3-unit deal one sale is 33%, which is arithmetically true and
-    tells the shopper something false about how fast it is going. Small
-    allocations get the plain unit count instead, which is the honest form of
-    the same fact.
-
-  A caveat worth knowing: the supplier can restock mid-deal, which would make
-  the delta understate what sold. It cannot overstate it, so the bar errs
-  toward showing less urgency than is real — the safe direction.
+    * nothing has sold yet
+    * fewer than `min_sold` have sold — "3 yoinked today" argues against the
+      deal exactly as "3% claimed" did. Selective disclosure of a real number,
+      never an adjusted one.
 
   @param {object} product - The deal product.
-  @param {number} units_allocated - Units committed to this deal. The divisor.
+  @param {number} units_allocated - Units committed. Only a fallback basis now.
   @param {number} [starting_inventory] - Inventory on hand when the deal opened.
-  @param {number} [min_percent] - Hide the bar below this true percentage.
-  @param {number} [min_units] - Below this allocation, never show a percentage.
+  @param {number} [min_sold] - Hide below this count. 0 shows any non-zero count.
+  @param {string} [label] - Wording. `[count]` is replaced with the number.
 {% enddoc %}
 
 {%- liquid
@@ -59,7 +54,7 @@
   comment
     Sum across variants. A variant with inventory_management unset is untracked,
     and Shopify reports inventory_quantity 0 for those — counting it would read
-    as "sold out" and wrongly push the bar to 100%.
+    as sold and inflate the number.
   endcomment
   for variant in product.variants
     if variant.inventory_management == 'shopify'
@@ -71,95 +66,31 @@
   endfor
 
   if snapshot > 0
-    assign claimed = snapshot | minus: remaining
+    assign sold = snapshot | minus: remaining
   else
-    assign claimed = allocated | minus: remaining
+    assign sold = allocated | minus: remaining
   endif
 
   comment
-    Negative means stock went UP since the snapshot (a supplier restock), or the
-    allocation is stale. Report nothing sold rather than a negative bar.
+    Negative means stock went UP since the snapshot — a supplier restock, or a
+    stale allocation. Report nothing sold rather than a negative count.
   endcomment
-  if claimed < 0
-    assign claimed = 0
+  if sold < 0
+    assign sold = 0
   endif
 
-  assign percent = 0
-  if allocated > 0
-    assign percent = claimed | times: 100 | divided_by: allocated
-    if percent > 100
-      assign percent = 100
-    endif
-  endif
+  assign floor_count = min_sold | plus: 0
 
-  comment
-    Units left in OUR allocation — not the supplier's shelf. On a dropship deal
-    "Only 14,357 left" is absurd; "Only 12 left" is the number that is both
-    true and meaningful, because the allocation is what we will honour.
-  endcomment
-  assign units_left = allocated | minus: claimed
-  if units_left < 0
-    assign units_left = 0
-  endif
-
-  comment
-    Both gates default to 0 — an unset threshold is no threshold, so the
-    snippet on its own still reports whatever is true.
-  endcomment
-  assign percent_gate = min_percent | plus: 0
-  assign units_gate = min_units | plus: 0
-
-  assign show_bar = false
-  assign show_units_only = false
-
-  if tracked and allocated > 0
-    if allocated < units_gate
-      comment
-        Too few units for a percentage to mean anything. The unit count is the
-        same fact without the false precision — and on an allocation this
-        small it is the more useful one from the moment the deal opens.
-      endcomment
-      if units_left > 0 and units_left <= 25
-        assign show_units_only = true
-      endif
-    elsif percent >= percent_gate
-      assign show_bar = true
-    endif
+  assign show = false
+  if tracked and sold > 0 and sold >= floor_count
+    assign show = true
   endif
 -%}
 
-{%- comment -%}
-  The stylesheet stays unconditional. The section's own .aj-deal__* rules live
-  in this file and reach it through whichever of these snippets renders.
-
-  Below either gate the MARKUP renders NOTHING — no wrapper, no empty track, no
-  reserved height. A container held open for a bar that is not there reads as
-  a broken page, which is a worse answer than saying nothing.
-{%- endcomment -%}
 {{ "aj-deal.css" | asset_url | stylesheet_tag }}
-{%- if show_bar or show_units_only -%}
-  <div class="aj-claimed">
-    {%- if show_bar -%}
-      {%- comment -%}
-        aria-hidden, not role="progressbar". The sentence underneath states the
-        same figure, so announcing the bar as well made a screen reader read
-        "30%" twice. The bar is the redundant presentation of a fact that is
-        already in text — which is also what lets it be treated as decorative
-        rather than as a graphic someone must be able to see.
-      {%- endcomment -%}
-      <div class="aj-claimed__track" aria-hidden="true">
-        <div class="aj-claimed__fill" style="width: {{ percent }}%;"></div>
-      </div>
-      <p class="aj-claimed__text">
-        <strong>{{ percent }}% claimed</strong>
-        {%- if units_left > 0 and units_left <= 25 -%}
-          <span class="aj-claimed__remaining">Only {{ units_left }} left</span>
-        {%- endif -%}
-      </p>
-    {%- else -%}
-      <p class="aj-claimed__text">
-        <strong>Only {{ units_left }} left</strong>
-      </p>
-    {%- endif -%}
-  </div>
+{%- if show -%}
+  {%- assign wording = label | default: '[count] yoinked today' -%}
+  <p class="aj-claimed__count">
+    <strong>{{ wording | replace: '[count]', sold }}</strong>
+  </p>
 {%- endif -%}
