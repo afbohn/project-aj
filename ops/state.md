@@ -157,9 +157,20 @@ minority. `productType` — "Vacation Slides", "Footies", "Ceramic", "Polos" —
 the reliable signal, and where a vendor already had categorised products their
 exact taxonomy ids were reused rather than resolved by search.
 
-The one left uncategorised is **Shipping Protection**, the UpCart add-on. It is
-a service rather than a product: no category, no shipping rate, and correctly
-neither.
+The one left uncategorised is **Shipping Protection** — and the earlier note
+here, calling it "the UpCart add-on", read as though we installed it. We did
+not. It is vendor **Navigate Craft**, `productType` "UpCart - Shipping
+Protection": a SUPPLIER's own protection SKU that synced into our catalogue
+through Collective along with their real products. $12.50 against an $8.75
+cost, three variants, zero inventory.
+
+No category and no shipping rate, correctly on both counts — it is a service.
+It is also **unpublished**, tagged `no-ship-rate` by the sweep, which is the
+right outcome reached by the right route: a service has no shipping rate, so
+the unshippable check caught it without anyone having to special-case it.
+
+Worth knowing because it looks like a decision we made and is not one. **We do
+not sell shipping protection** — see decisions.md.
 
 **It stays complete on its own now.** The catalogue agent applies a
 `category_rule` metaobject — vendor + productType to taxonomy id — to any
@@ -186,14 +197,19 @@ edited by hand.
 
 ## What to check next session
 
-1. **7 August has no Yoink.** Its deal was removed because the product turned
-   out to be unshippable — see below. The rest run to 7 August, and nothing is
-   being promoted yet, so an empty day is a non-event rather than urgent.
+1. **The calendar is full through 31 August** — 8 to 31 August scheduled in one
+   batch, `batch_id: plan-aug2026fill`, no gap between today and the 31st. The
+   earlier note here said 7 August was empty; it was not, and the queue is no
+   longer eight days deep. **The runway is now checked by the invariants agent**
+   rather than by someone noticing, so this should never again be a thing to
+   look at by hand.
 2. **The Fidget Games** — 22 products unpublished and tagged `no-ship-rate`
    because Shopify offers no shipping rate for them, so checkout dead-ended.
    Needs raising with the supplier; nobody else can fix it.
-3. **Deals run out 8 August.** Nothing is queued past it, and the homepage
-   section simply hides itself on a day with nothing scheduled.
+3. **The 6 below-cost variants**, all Wags & Whiskers, worst $58.99 against a
+   $62.15 cost. The catalogue sweep reports them every 30 minutes now; it will
+   not fix them, because the price is the supplier's and dropping the line is a
+   human call.
 2. **The 6 August bin rotation** — vendor spread should return to twelve.
 3. **Enrichment coverage** should reach the full 1,294 within a few runs at 350
    per run. Until it does, a missing hero score means "not scored yet", never
@@ -208,7 +224,8 @@ edited by hand.
   because the ads agent will use this same token. See *decisions.md* — this
   reverses an earlier decision and moves a safeguard from the token to the code
   that has not been written yet.
-- **The shipping policy page is still unpublished.** Everything else is live.
+- ~~The shipping policy page is still unpublished.~~ **Published 31 July** — this
+  line contradicted the Returns section two screens down and was simply stale.
 - **Search & Discovery filters are not wired to the new metafields.** The
   definitions are filterable; making a filter appear is a manual step in the
   Search & Discovery app.
@@ -375,6 +392,70 @@ Three things remain structural:
 **So deep discounts on expensive items stay reckless.** Deal prices clamp to
 cost, so at maximum discount the margin is near zero and any return cost is a
 straight loss on a unit that never made money.
+
+## 31 July, later — margins, the calendar, and two silent holes
+
+**The margin floor is net of fees now.** Both floors were measured against cost
+alone, and the 2.9% + $0.30 sits outside the never-below-cost clamp, so "max
+discount equals the supplier's margin" was wrong by the fee every time. Real
+break-even is 43.6% on a $9 ornament, not the 50% the margin implies. Measured
+across the catalogue, qualifying candidates fall 1,393 → 1,302; the 91 excluded
+were sellable only at a loss. Survivors lose a median of 4 headline points.
+`margin.ts` owns the fee model, `candidates.server.ts` uses it, and
+`scripts/candidates.py` mirrors it so the CLI cannot answer a different question
+about money.
+
+**Two holes that had nothing looking for them:**
+
+- **`loadCandidates` never excluded `oos` or `no-ship-rate`.** Unpublishing does
+  not change `status`, so `query: "status:active"` still returns those products
+  — 88 of them were in the deal pool, and a `no-ship-rate` Fidget Games product
+  had been picked for 12 August. That is a deal priced, announced, counting
+  down, posted to Instagram, with a checkout that dead-ends. The Bargain Bin had
+  half the same hole: it checked `oos` and not `no-ship-rate`.
+- **Nothing checked catalogue prices against cost.** The `never-below-cost`
+  invariant only scans products WE priced, reasoning that a below-cost price
+  "could come from our own actions" — false on dropship, where Collective sets
+  both numbers. Six ACTIVE variants are underwater. The check now rides the
+  catalogue sweep, which has already paged every product; it reports and never
+  acts, because the fix is a supplier's price or a decision to drop the line.
+
+**The deal queue is paged where it matters.** It went 11 → 35 entries in an
+afternoon and every reader used a flat `first: 100`. The invariants agent pages
+properly now and shouts at 200; the other seven readers went to 250. `lifecycle`
+is among them, where truncation means a deal never activates or never restores.
+
+**`queueDeal` refuses an inverted window.** One queued entry ends twenty hours
+before it starts, so it can never run.
+
+**Storefront, all live:**
+
+- The claimed bar hides below 30% and never shows a percentage on an allocation
+  under 10 units. Its track failed WCAG 1.4.11 in all three colour schemes and
+  now carries a 0.55-alpha outline.
+- **Tomorrow's sneak peek**, below the add-to-cart on the homepage and the PDP.
+  Category and price band and drop time, never the product and never the
+  discount — a Collective SKU is not exclusive, and a queued discount is intent
+  until activation clamps it. Carries the email capture, which until now existed
+  only in the footer with nothing offered for it.
+- **A merch cart tier**, rendering nothing until `yoink-merch` has a product in
+  it. Deliberately outside the shipping-threshold logic: we post merch
+  ourselves, so it always adds a parcel and never clears a supplier's threshold.
+
+**Metafields the storefront can now read:** `ship.vendor_shape`,
+`ship.vendor_free_threshold`, `ship.vendor_reachable` projected onto every
+product (3,819 backfilled), plus `ship.checked_at`. The `vendor_shipping`
+metaobject is `PUBLIC_READ` but that is not enough on its own — reading a
+metaobject over the Storefront API needs `unauthenticated_read_metaobjects`,
+which lives on the public app and cannot be added without re-prompting every
+merchant on it. Same wall the daily deal hit, same answer.
+
+**Not a hole:** `SHOPIFY_WEBHOOK_SECRET` does not exist in this codebase.
+Shopify signs app webhooks with the client secret and `SHOPIFY_API_SECRET` is
+set; both webhook routes use `authenticate.webhook`, cron routes fail closed,
+and the app-proxy vote route verifies its signature. The cron secret is
+header-only now — the `?key=` form had no caller and only put the secret in
+logs.
 
 ## Things that bit us, so they don't again
 

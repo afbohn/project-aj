@@ -95,6 +95,37 @@ worst at $58.99 against a $62.15 cost. They lose money at full price with no
 discount involved, so no margin floor catches them — every floor here is
 expressed as a discount off a price that is already wrong.
 
+## We do not sell shipping protection
+
+31 July. The checkbox every deal site runs — a few dollars to insure the parcel
+— is tempting on a store whose orders net $2–3, because the fee is pure margin
+and would roughly double that.
+
+**We already promise it for free, in writing.** The refund policy says transit
+damage inside 48 hours is replaced or refunded in full including shipping, with
+the return paid. So a protection fee has exactly two shapes and both are bad:
+it duplicates a promise a customer can disprove by reading our own policy page,
+or we narrow the policy to make room for it — and narrowing the damage path is
+already refused above, because it converts refunds into chargebacks.
+
+Three more, in order of weight. Selling *insurance* without a licence is
+regulated state by state, and the apps in this space have been sued over
+precisely that framing. These offers are almost always pre-checked opt-outs,
+which is a negative-option dark pattern and the same family as the fabricated
+countdowns and invented "% claimed" bars this store already rules out — on a
+model built from repeat daily visits, that trust is the asset. And with no
+orders there is no claim rate to price against, on parcels packed in someone
+else's warehouse.
+
+The inverse is the better trade and costs nothing until someone claims: say the
+cover is free and included, which is differentiated AGAINST every site running
+the checkbox. Identical reasoning to "nothing is final sale". The margin we
+actually wanted comes from merch at ~68%, not from a fee that spends trust.
+
+Note that a **Shipping Protection product does exist in the catalogue** — it is
+vendor Navigate Craft's own UpCart SKU, synced in through Collective, and it is
+unpublished. Not ours, and not a decision. See state.md.
+
 ## Deals never price below cost
 `deal.py` reads each variant's unit cost from Shopify and clamps the deal price
 to cost, then reports the discount actually applied rather than the one asked
