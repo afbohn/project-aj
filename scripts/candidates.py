@@ -56,6 +56,7 @@ def fetch_products():
               vendor
               totalInventory
               featuredMedia { id }
+              shipCost: metafield(namespace: "ship", key: "cost") { value }
               variants(first: 100) {
                 nodes {
                   price
@@ -75,6 +76,12 @@ def fetch_products():
         cursor = page["pageInfo"]["endCursor"]
 
 
+# Shopify Payments, Basic plan. Mirrors PAYMENT_RATE / PAYMENT_FIXED in
+# app/lib/margin.ts.
+PAYMENT_RATE = Decimal("0.029")
+PAYMENT_FIXED = Decimal("0.30")
+
+
 def evaluate(product, margin_floor, margin_pct=0.0):
     """Deepest uniform discount this product can carry, or None.
 
@@ -82,10 +89,21 @@ def evaluate(product, margin_floor, margin_pct=0.0):
     deal price. The binding constraint is whichever is larger, which is what
     stops a flat floor from waving through absurd cases: $2 on a $127 hat is
     1.6% margin, and one return then costs more than sixty sales earn.
+
+    BOTH FLOORS ARE NET OF THE 2.9% + $0.30. Measured gross, against cost
+    alone, a $2 floor is NEGATIVE above about $50 of order value -- a quarter
+    of this catalogue -- because the fee sits outside the never-below-cost
+    clamp. Kept identical to app/lib/margin.ts on purpose: two implementations
+    that disagree about money is worse than either being wrong on its own.
     """
     variants = product["variants"]["nodes"]
     if not variants:
         return None
+
+    # Absence stays absent rather than becoming zero: the fee on shipping we
+    # never measured is unknown, and 0 understates it.
+    sc = (product.get("shipCost") or {}).get("value")
+    ship = Decimal(sc) if sc not in (None, "") else Decimal(0)
 
     worst_discount = None
     display_price = None
@@ -102,22 +120,24 @@ def evaluate(product, margin_floor, margin_pct=0.0):
         if price <= 0:
             return None
 
-        # A percentage floor is defined against the DEAL price, which is not
-        # known until the discount is. Solve it directly instead of iterating:
-        #   deal >= cost + pct*deal   ->   deal >= cost / (1 - pct)
-        floor_from_pct = Decimal(0)
-        if margin_pct > 0:
-            pct = Decimal(str(margin_pct)) / Decimal(100)
-            if pct >= 1:
-                return None
-            floor_from_pct = (cost / (Decimal(1) - pct)) - cost
+        # Solve for the lowest deal price that still KEEPS the floor after
+        # fees, rather than iterating:
+        #   keep = D(1 - rate) - cash_out
+        #   flat $m: D >= (cash_out + m) / (1 - rate)
+        #   pct p:   D >= cash_out / (1 - rate - p)
+        cash_out = cost + PAYMENT_RATE * ship + PAYMENT_FIXED
+        min_flat = (cash_out + margin_floor) / (Decimal(1) - PAYMENT_RATE)
 
-        effective_floor = max(margin_floor, floor_from_pct)
-        headroom = price - cost - effective_floor
-        if headroom <= 0:
-            return None  # cannot even hold the floor at full price
+        pct = Decimal(str(margin_pct)) / Decimal(100)
+        if pct >= Decimal(1) - PAYMENT_RATE:
+            return None
+        min_pct = cash_out / (Decimal(1) - PAYMENT_RATE - pct)
 
-        d = (headroom / price)
+        min_price = max(min_flat, min_pct)
+        if min_price >= price:
+            return None  # cannot hold the floor even at full price
+
+        d = ((price - min_price) / price)
         if worst_discount is None or d < worst_discount:
             worst_discount = d
 
@@ -139,7 +159,8 @@ def evaluate(product, margin_floor, margin_pct=0.0):
         "pct": pct,
         "deal_price": deal_price,
         "savings": display_price - deal_price,
-        "margin": deal_price - display_cost,
+        "margin": (deal_price * (Decimal(1) - PAYMENT_RATE)
+                   - (display_cost + PAYMENT_RATE * ship + PAYMENT_FIXED)).quantize(Decimal("0.01")),
         "stock": product["totalInventory"] or 0,
         "has_image": bool(product.get("featuredMedia")),
     }
