@@ -1,6 +1,6 @@
 # Where things stand
 
-Snapshot at the end of 31 July 2026. Written so tomorrow starts from facts
+Snapshot at the end of 1 August 2026. Written so tomorrow starts from facts
 rather than from re-reading commits.
 
 ## Live right now
@@ -27,9 +27,9 @@ through the app. The teaser campaign has started.
 | `afbohn/theyoink-meta` | `meta-app/` | **Retired.** Ported into the app; its workflow is disabled. |
 
 `theyoink-app` was laptop-only until today. It is now backed up, which matters
-more than it did before, because it is where all eight agents live.
+more than it did before, because it is where all nine agents live.
 
-## The eight agents
+## The nine agents
 
 All visible at **`/app/agents`** with health, last-run age, "Run now", and pause
 where pausing is safe.
@@ -44,6 +44,7 @@ where pausing is safe.
 | `teaser` | 60 min | Works the teaser queue, one a day | Yes — **currently on** |
 | `enrich` | Daily | Tags and scores the catalogue with a model | Yes — **currently on** |
 | `shipping` | 30 min | Measures what each supplier and product costs to ship | Yes — **currently on** |
+| `digest` | 15 min | Emails agent health to `hello@` once each morning | Yes — **currently on** |
 
 **The lifecycle and catalogue sweep have no pause button on purpose.** Both fail
 silently and expensively when they stop, and an off switch someone forgets to
@@ -430,11 +431,11 @@ before it starts, so it can never run.
 
 **Storefront, all live:**
 
-- The claimed bar hides below 30% and never shows a percentage on an allocation
-  under 10 units. Its track failed WCAG 1.4.11 in all three colour schemes and
-  now carries a 0.55-alpha outline.
-- **Tomorrow's sneak peek**, below the add-to-cart on the homepage and the PDP.
-  Category and price band and drop time, never the product and never the
+- ~~The claimed bar hides below 30%~~ — **removed 1 August**, see below. The
+  WCAG 1.4.11 failure in its track went with it.
+- **Tomorrow's sneak peek**, below the add-to-cart on the homepage and the PDP,
+  now its own block and carrying an AI-written hint. Category, a price band only
+  when it is a LOW one, and drop time — never the product and never the
   discount — a Collective SKU is not exclusive, and a queued discount is intent
   until activation clamps it. Carries the email capture, which until now existed
   only in the footer with nothing offered for it.
@@ -518,6 +519,72 @@ both the homepage and the PDP, carrying the email capture that until now
 existed only in the footer; and a merch cart tier that renders nothing until
 `yoink-merch` has a product in it.
 
+## 1 August — midnight rollover, the sold count, and three enrichment bugs
+
+**The Yoink rolls over at midnight Central**, not 9am. The queue is rewritten:
+31 windows from today, no gaps and no overlaps, with one 15-hour bridge on 1
+August because a running deal must never be moved. Reasoning in decisions.md.
+
+**Changing the constant alone would have shifted every deal back a day.**
+`localDayStartUtc` derived the zone offset by comparing HOUR NUMBERS, which
+breaks silently the moment the guess crosses a date boundary — midnight on 15
+August returned 14 August. It measures the offset at the instant now, in two
+passes so DST days converge; verified across 2026-11-01 and 2027-03-08.
+
+**"Only N left" and the % claimed bar are gone**, replaced by "N yoinked today"
+hidden below ten. The allocation was never enforced and the decision is that it
+should not be — if a supplier has stock we sell it — which made the scarcity
+line false at the moment it printed. The bar's WCAG problem disappeared with it
+rather than needing a fix.
+
+**Every product now carries an `enrich.teaser`**, a one-clause hint shown the
+day before it drops. PUBLIC_READ, written under a rule it cannot break: evoke a
+person or a moment, never the object. It renders as "Hint: …" under the factual
+line in the sneak peek.
+
+**The PDP is reordered.** Everything that argues for the sale is above the
+button; everything else below. `aj-deal-urgency` was split, because it bundled
+the countdown with the sneak peek and those argue opposite things. Two new
+blocks: `aj-deal-price` (price, struck former price, saving pill — built on four
+CSS custom properties so Jake's palette is a variable swap) and
+`aj-deal-tomorrow`.
+
+**A sold-out Yoink now says so and pivots.** "Gone. Today's Yoink sold out.",
+and the sneak peek swaps its heading — "not your thing?" reads as a taunt to
+someone who could not buy.
+
+### Three enrichment bugs, all of which looked like working code
+
+1. **`PROMPT_VERSION` was never in the hash.** decisions.md said it was fixed;
+   the constant was imported into `enrichment.server.ts` and never referenced.
+   Every prompt improvement since the port reached only products that happened
+   to arrive afterwards. The symptom is a run that reports success and changes
+   nothing.
+2. **No wall-clock budget.** `MAX_PER_RUN` caps what a run ATTEMPTS, not what it
+   SPENDS. Harmless while everything was skipped by hash; the moment the hash
+   genuinely invalidated, a full run became 35 sequential model calls, blew the
+   request timeout and died writing nothing. Same failure the shipping agent
+   already paid for.
+3. **Sequential model calls.** One ten-product call takes ~35s, so a run got
+   through ten products. Now four in flight: **39 per run**. The Shopify writes
+   stay serial deliberately — that is the shared bucket the sweeps compete for.
+
+Also: queued deal products are enriched first, so the teaser reaches tomorrow's
+Yoink within a run rather than around day forty; and the system prompt is
+cached (~7.7k tokens read per run, four batches sharing one prefix).
+
+**If a full-catalogue re-enrichment ever becomes routine, the answer is
+Anthropic's Message Batches API** — async, 50% cheaper, 100k requests a batch.
+Not needed for this backfill, which finishes in about a day at 39/run hourly.
+
+### Corrections to earlier entries
+
+- **Judge.me IS wired now.** This file said no review UI was wired; that was
+  true until 1 August, when the review-widget block was added in the theme
+  editor. It renders on the PDP and on collection cards. `number_of_reviews` is
+  0 — the gap is having no orders, not missing UI.
+- **The scheduler's stagger only ever applied to the first run.** See below.
+
 ## Things that bit us, so they don't again
 
 **From earlier sessions**
@@ -575,6 +642,32 @@ existed only in the footer; and a merch cart tier that renders nothing until
   denial as "already exists" and carries on.
 - **Polaris `Text` does not accept `as="pre"`.** Use a span with
   `white-space: pre-wrap`.
+
+**From 1 August**
+
+- **`setTimeout(fn, offset); setInterval(fn, period)` staggers only the FIRST
+  run.** The interval starts counting at boot, so every job sharing a period
+  converges on the same instants immediately after. Catalogue and shipping fired
+  in the same second every 30 minutes and drained the rate-limit bucket
+  together. It looked fine whenever anyone deployed, because a deploy
+  re-staggers the first run. Nest the interval inside the timeout.
+- **A zone offset derived from hour numbers breaks across a date boundary.**
+  Right for 9am only because 9am UTC and 4am Chicago share a date.
+- **A constant can be imported and never used, and nothing complains.**
+  `PROMPT_VERSION` sat in the import list of the file that was supposed to hash
+  it, for as long as the port has existed.
+- **A cap on units attempted is not a cap on time spent** when each unit is a
+  live third-party call.
+- **Counting markup is not counting DOM.** Judge.me's app embed ships a large
+  `<style>` block, so grepping the page for `jdgm-widget` matched CSS rules and
+  reported a widget that was not rendered. Strip `<style>` and `<script>` before
+  believing a count.
+- **A literal Liquid tag inside a Liquid comment is still parsed.** A comment
+  explaining which tag form to use, written with real tag syntax as the example,
+  left an unclosed branch.
+- **A displayed limit that nothing enforces is a false claim**, however
+  carefully the code comment explains the intention. `units_allocated` was
+  documented as "the allocation is what we will honour" and honoured by nothing.
 
 **From 31 July, night**
 

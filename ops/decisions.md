@@ -13,6 +13,12 @@ trust the model depends on.
 
 ## The claimed bar is disclosed selectively, never adjusted
 
+**SUPERSEDED 1 August — the bar itself is gone.** See "Momentum, not scarcity"
+below: the allocation turned out never to have been enforced, which made "Only 3
+left" false rather than merely coarse. The disclosure principle here survived
+intact and is what the sold count's threshold is built on; only the figure being
+disclosed changed. Kept because the reasoning is still the reasoning.
+
 31 July. The bar now hides below 30% claimed and never shows a percentage at
 all on an allocation under 10 units. Both numbers are theme settings, in Theme
 settings → Deal urgency, shared by the homepage section and the PDP block so
@@ -123,6 +129,99 @@ better offer there and costs less because credit is costed at COGS.
 
 The general form, worth keeping: **a cost argument may decide logistics and
 must not decide an obligation.**
+
+## The Yoink rolls over at midnight, because the boundary is the decision
+
+1 August. A 24-hour window contains one of every hour, so the only real choice
+is which hours get the countdown's final and most persuasive stretch. At 9am
+Central the last hours ran 6-9am — the deadest window in the country — so the
+clock did its best work in front of nobody, and a West Coast shopper who slept
+on a deal found it gone before waking.
+
+Midnight Central puts the closing hours at 9pm-midnight Eastern and 6-10pm
+Pacific, prime time on both coasts, and leaves a fresh deal waiting when
+everyone wakes up. It also moves the sold count's hidden stretch — below ten,
+where it renders nothing — out of the morning and into the small hours. Woot and
+Meh both roll overnight, for the same reason.
+
+The cost is that activation is now unattended, and that is only affordable
+because the 8am digest catches a failed rollover before the day's traffic. The
+ordering matters: the digest had to exist first.
+
+## Momentum, not scarcity — count what sold, never what is left
+
+1 August. "Only 12 left" and the % claimed bar both rested on `units_allocated`
+being a limit we would honour. It never was — nothing caps sales at the
+allocation — and the decision is that nothing should: **if a supplier has stock,
+we want to sell it.**
+
+That makes the scarcity line false at the moment it prints, on a product whose
+supplier holds fourteen thousand units. It is the manufactured urgency this file
+rules out at the top, arrived at by accident rather than intent, which is the
+only way it could have survived this long.
+
+So the claim goes and the count stays. Two urgencies remain and both are real:
+**time**, via a countdown against an absolute timestamp, and **momentum**, via
+units that genuinely sold. Momentum cannot become a lie however much we sell,
+which is exactly why it survives a decision to sell everything available. A
+percentage cannot — it needs a denominator, and the only one available is a
+number we have decided not to enforce.
+
+The display threshold survives in its new form: "3 yoinked today" argues against
+the deal exactly as "3% claimed" did, so nothing renders below ten.
+
+## The teaser may evoke a person; it may never identify the product
+
+1 August. The sneak peek shows a hint about tomorrow's Yoink, written per
+product by the enrichment agent. One rule governs it, and it is the rule that
+already keeps vendors out of social posts: **a Collective SKU is not exclusive**,
+so naming tomorrow's item gives a day's head start to anyone who wants to
+price-compare it.
+
+So the hint evokes a person or a moment and never the object — no category,
+brand, material, colour, price or discount. "For whoever still keeps the good
+dice in a velvet bag", not "a D&D book". An empty string is an explicitly good
+answer, and the block reads fine without one, which is why the hint is last
+rather than load-bearing.
+
+It is also the only line the enrichment agent writes FOR A SHOPPER rather than
+for a colleague — everything else it produces is curation signal read by
+machines. The same constraint that governs deal captions applies: flavour cannot
+be false.
+
+## The product page is ordered by what each block argues
+
+1 August. The full description sat between the price and the variant picker,
+pushing add-to-cart down on every product — median description is 645
+characters, p90 is 1,605, and the longest is 11,836.
+
+The ordering rule is not "important things first", it is **everything that
+argues for the sale goes above the button, everything else below**: title,
+price, supplier shipping, countdown, sold count, variants, buy. Then ships-from,
+then the description, then the sneak peek last — so a shopper who has not bought
+gets the full description before being offered tomorrow.
+
+That rule also forced a split. `aj-deal-urgency` bundled the countdown with the
+sneak peek, and those argue opposite things: one that you should buy now, one
+that there is another chance tomorrow. While they shared a block the page could
+only ever put one of them in the right place, and the editor had reasonably
+placed the pair above the button — which put the argument against buying at the
+moment of highest intent.
+
+## A number only gets stated when it helps
+
+1 August. Two instances of the same rule, worth naming once.
+
+The sneak peek said "priced over $50", which on a store whose whole promise is a
+bargain reads as a warning rather than a hook. The pull is asymmetric — "under
+$10" is a reason to come back and "over $50" is a reason not to — so the copy is
+asymmetric too: the cheap bands are stated, the expensive ones are not mentioned
+and the category carries the line alone.
+
+Same shape as the sold count's threshold, and the same distinction throughout:
+**this is omission, never adjustment.** Nothing claims tomorrow is cheap; a
+figure that does not help is simply not the thing we lead with. Adjusting a real
+number to look better is the line, and it is not crossed here.
 
 ## The API budget is a library, not a supervisor
 

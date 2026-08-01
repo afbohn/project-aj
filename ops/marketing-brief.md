@@ -221,6 +221,13 @@ cards or the PDP. Verified on the live storefront, 1 Aug: `jdgm-widget`,
 `jdgm-rev` and `jdgm-carousel` render on the PDP, and `jdgm-prev-badge` renders
 on collection cards.
 
+**Both were right when written.** The review-widget block was added in the theme
+editor on the morning of 1 August, which is also why it does not appear in any
+commit — the editor writes back to `product.json` directly. Check the live page,
+not the repo, and strip `<style>` before counting: Judge.me's app embed ships a
+large stylesheet whose rules name every one of those classes, so a naive grep
+reports a widget on pages that render none.
+
 `number_of_reviews: 0`. **You cannot wire your way to social proof.** The
 constraint is that the store has no orders, so it has no reviews. That is a
 consequence of having launched, not a task.
