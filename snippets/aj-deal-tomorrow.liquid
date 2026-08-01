@@ -41,6 +41,7 @@
   assign now = 'now' | date: '%s' | plus: 0
   assign next_deal = null
   assign next_starts = 0
+  assign live_ends = 0
 
   comment
     Earliest deal that has not started yet. Iterating rather than relying on
@@ -58,6 +59,10 @@
       continue
     endif
 
+    if starts <= now and ends > now
+      assign live_ends = ends
+    endif
+
     if starts > now
       if next_starts == 0 or starts < next_starts
         assign next_starts = starts
@@ -65,6 +70,23 @@
       endif
     endif
   endfor
+
+  comment
+    Deals run back-to-back in 24-hour windows, so the next one almost always
+    opens at the exact instant this one closes — which made a second countdown
+    tick in perfect lockstep with the first, to the second, forever. Two clocks
+    saying one thing is not urgency, it is noise, and it made the real one
+    look decorative.
+
+    So the timing is a sentence when the handover is seamless and a date when
+    it is not. It is checked rather than assumed: a gap day would make "the
+    moment this one ends" false, and a claim that is usually true is exactly
+    the kind this store does not make.
+  endcomment
+  assign seamless = false
+  if live_ends > 0 and next_starts == live_ends
+    assign seamless = true
+  endif
 -%}
 
 {%- if next_deal != blank and next_deal.product.value != blank -%}
@@ -100,7 +122,14 @@
       if cat_label == '' and tag contains 'cat-'
         assign cat_collection = collections[tag]
         if cat_collection != blank and cat_collection.title != blank
-          assign cat_label = cat_collection.title | downcase
+          comment
+            NOT downcased. The collection title is already the shopper-facing
+            wording — it is the string that turns Shopify's "Food, Beverages &
+            Tobacco" segment into "Food & Beverages" — and lowercasing it
+            turned a proper category into "in media", which reads like a typo
+            rather than a category.
+          endcomment
+          assign cat_label = cat_collection.title
         endif
       endif
     endfor
@@ -113,23 +142,22 @@
 
     <p class="aj-tomorrow__body">
       {%- if cat_label != blank and band_label != blank -%}
-        Tomorrow's is in <strong>{{ cat_label }}</strong>, priced
+        The next one is <strong>{{ cat_label }}</strong>, priced
         <strong>{{ band_label }}</strong>.
       {%- elsif cat_label != blank -%}
-        Tomorrow's is in <strong>{{ cat_label }}</strong>.
+        The next one is <strong>{{ cat_label }}</strong>.
       {%- elsif band_label != blank -%}
-        Tomorrow's is priced <strong>{{ band_label }}</strong>.
+        The next one is priced <strong>{{ band_label }}</strong>.
       {%- else -%}
         There's a new one on the way.
       {%- endif -%}
-    </p>
 
-    {% render 'aj-deal-countdown',
-      ends_at: next_deal.starts_at.value,
-      reload_on_expire: false,
-      heading: 'Drops in',
-      fallback_verb: 'Starts'
-    %}
+      {%- if seamless -%}
+        It drops the moment this one ends.
+      {%- else -%}
+        It drops {{ next_deal.starts_at.value | date: '%A %-d %B, %-l%P' }}.
+      {%- endif -%}
+    </p>
 
     {%- if show_signup -%}
       {%- comment -%}
