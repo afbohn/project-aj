@@ -95,6 +95,79 @@ worst at $58.99 against a $62.15 cost. They lose money at full price with no
 discount involved, so no margin floor catches them — every floor here is
 expressed as a discount off a price that is already wrong.
 
+## The API budget is a library, not a supervisor
+
+31 July, late. Two agents started returning `Throttled` in the same minute.
+Shopify's GraphQL limit is a leaky bucket per app per shop, so all eight agents
+draw from one balance — which makes it the first genuinely scarce shared
+resource here, and the exact condition "an invariant checker, not an
+orchestrator" named as the trigger to revisit itself.
+
+Revisited, and the answer is unchanged. A supervisor cannot make a query
+cheaper or refill the bucket, and it would add a second thing to diagnose when
+a run fails — "what did the supervisor decide?" — which is the original
+objection. What the bucket needs is for callers to WAIT when it is empty, and
+Shopify states in every response how many points remain and how fast they
+refill, so the wait is arithmetic rather than negotiation. That belongs in the
+client, wrapped once where the admin client is created so no job can forget it.
+
+Capped at four attempts and ten seconds. A job that sleeps longer than its own
+budget is killed by the request timeout having written nothing, which is the
+failure the shipping agent already paid for once. Give up, report, let the next
+tick make progress.
+
+## Shopify bills the connection size you ASK for
+
+31 July, late, and this is why the bucket was empty. Every full-catalogue sweep
+requested `variants(first: 100)` on all 1,503 products. Measured, the catalogue
+is p50 **3** variants, p75 7, p90 16, p95 24, p99 85 — so the median product was
+billed for a hundred and used three, in three separate agents, every half hour.
+
+A smaller number alone would have been the wrong fix, because it truncates, and
+truncation is the thing this repo has paid for repeatedly. So each sweep asks
+for 25 AND asks `variantsCount` how many there really are, then tops up the few
+that exceed it. Roughly 47 extra small calls against a 4x cut on every page.
+
+It is also more correct than what it replaced: `first: 100` truncated silently
+AT 100, with no way to detect it, and one product sits on exactly 100 variants
+today. The margin floor is measured on the WORST variant, so a short list there
+is not merely incomplete — it is optimistic, in the direction that loses money.
+
+**The next lever is Bulk Operations, and the trigger is growth.** Cheaper pages
+scale with variants; page COUNT scales with the catalogue. Bulk is the only
+option indifferent to catalogue size. Do it when any of these fire: `Throttled`
+returns despite the backoff, the catalogue sweep's "variant lists completed"
+climbs past ~150, or a sweep's duration approaches the request timeout. Note it
+allows one operation at a time per app per shop, so three sweeps wanting it is
+the one place a lock is genuinely warranted.
+
+## The brand palette, measured
+
+31 July. Sampled from `Logo-Test-2.png` rather than chosen: purple `#814a9e`,
+yellow `#ffde00`, cyan `#43afca`. Against white:
+
+| | ratio | verdict |
+|---|---|---|
+| purple | 6.16:1 | passes as text |
+| yellow | **1.34:1** | fails as text AND as a 3:1 UI border |
+| cyan | **2.55:1** | fails as text AND as a 3:1 UI border |
+
+So **purple carries every word**, and yellow and cyan may only ever be
+BACKGROUNDS with dark text on them — ink on yellow is 12.65:1, ink on cyan
+6.62:1. Yellow cannot even be a hairline rule against white, which is why it
+appears in the digest email as a chunky band: decoration carries no information
+and therefore has no contrast requirement.
+
+This is the "yellow on white will fail" case the brief predicted, now confirmed
+by measurement. It will be tempting when the real brand work starts, because
+yellow is the most energetic colour in the mark and the obvious thing to set
+type in. It cannot be used that way on white at any size.
+
+**Status colours stay separate from brand colours.** Red, amber and green in
+the digest are information; repainting them on-brand would put "yellow means
+late" beside "yellow means The Yoink". Every row also keeps its word, so state
+never rides on colour alone.
+
 ## We do not sell shipping protection
 
 31 July. The checkbox every deal site runs — a few dollars to insure the parcel

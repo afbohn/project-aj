@@ -457,6 +457,67 @@ and the app-proxy vote route verifies its signature. The cron secret is
 header-only now — the `?key=` form had no caller and only put the secret in
 logs.
 
+## 31 July, night — throttling, the digest, and a pile of new scopes
+
+**Two agents throttled, and it was self-inflicted.** Catalogue and shipping both
+returned `Throttled` within an hour of that afternoon's changes — a `unitCost`
+field added to a query already pulling 100 products x 100 variants, and three
+extra metafield writes per product on the shipping sweep. Fixed twice over: a
+throttle-aware wrapper around the admin client (waits the amount Shopify states
+in the response, capped at 10s and four tries), and the variant page size cut
+from 100 to 25 with a top-up for the few products that have more. See
+decisions.md for both, and for why the answer was not a supervising agent.
+
+**A morning digest now emails `hello@` between 8 and 11am**, problems first,
+branded HTML with a plain-text alternative. Sent through Google Workspace
+because SPF authorises Google and nothing else — Resend or Postmark would fail
+SPF from the first message. `hello@` is confirmed a real mailbox with its own
+app password, which also closes the old "does hello@ actually receive mail?"
+question. `SMTP_USER` / `SMTP_PASS` / `DIGEST_TO` are Fly secrets. Without them
+it reports "not configured" rather than erroring, because an unconfigured
+feature is not a broken one.
+
+**Paused agents are never flagged.** The first real digest led with "Meta
+posting needs a look" — an agent deliberately off until the teasers end, whose
+last run before pausing errored. Left alone that heads the list every morning
+for weeks, which is how a monitor teaches you to ignore it.
+
+**The teaser agent was never broken.** It posts one a day, so 23 of every 24
+hourly ticks correctly do nothing — and that branch returned without writing a
+heartbeat, so the dashboard reported the last time it POSTED and called a
+healthy agent 32 hours stale.
+
+**A `returns/close` handler exists and does not pay.** It reads the closed
+return, values it from its own line items, takes the WORST reason on a mixed
+return, decides refund-vs-keep-it-and-credit, and writes a `return_decision`
+metaobject keyed on the return id so a retried webhook updates one record
+rather than creating a second. Registered as app version `theyoink-app-9`.
+
+**72 scopes are now granted**, added in the Developer Dashboard.
+`shopify.app.toml` was still declaring the original nine, so the next
+`shopify app deploy` would have reverted them all — pulled and committed.
+
+Two things that follow from that, and both are decisions rather than tasks:
+
+1. **`write_orders` is granted, so the returns handler COULD refund.** It still
+   does not. Switching it on is deliberate, and belongs with a human watching.
+2. **There is still no store-credit scope.** `write_store_credit_account_transactions`
+   is absent, so keep-it-and-credit — the entire reason automatic refunds were
+   turned off — cannot execute even now. Cash refunds could; credit cannot.
+
+**62 of the 72 scopes are referenced nowhere in `app/`,** and eleven carry real
+blast radius: `write_discounts` and `write_price_rules` change what customers
+pay, `write_checkouts` and `write_order_edits` alter live orders,
+`read_customer_payment_methods` and `read_all_orders` are sensitive customer
+data, `write_customer_data_erasure` is destructive. decisions.md already reasons
+about exactly this for the Meta token: what a credential CAN do is the blast
+radius when it leaks, independent of what the code chooses to do with it.
+
+**Storefront, added tonight:** tomorrow's sneak peek below the add-to-cart on
+both the homepage and the PDP, carrying the email capture that until now
+existed only in the footer; and a merch cart tier that renders nothing until
+`yoink-merch` has a product in it.
+
 ## Things that bit us, so they don't again
 
 **From earlier sessions**
@@ -514,6 +575,32 @@ logs.
   denial as "already exists" and carries on.
 - **Polaris `Text` does not accept `as="pre"`.** Use a span with
   `white-space: pre-wrap`.
+
+**From 31 July, night**
+
+- **Shopify bills the connection size you REQUEST, not the one you get.**
+  `variants(first: 100)` cost the same on a 3-variant product as a 100-variant
+  one, on 1,503 products, in three agents, every half hour.
+- **`first: 100` on variants truncates silently at 100**, and one product sits
+  on exactly 100 right now. Ask `variantsCount` as well, or a short list looks
+  identical to a complete one.
+- **A note pushed into `result.errors` turns a healthy run red.** The catalogue
+  sweep reported "completed variants for 55 products" as an error and the
+  dashboard showed a failing agent doing precisely what it was built to do.
+  Introduced while fixing the same class of bug an hour earlier.
+- **A deliberate no-op still has to write a heartbeat**, or the dashboard
+  reports the last time the agent DID something as the last time it ran.
+- **A monitor that sends outside its window is worse than none.** The digest's
+  first version checked `hour < 8` and would have mailed at 8pm, then every
+  fifteen minutes. Bound both ends.
+- **Unconfigured is not broken.** A missing credential reported as an error
+  every tick buries the real errors the monitor exists to surface.
+- **A literal Liquid tag inside a Liquid comment is still parsed.** A comment
+  reading "use the plain if-tag, not the stripping one" — written with real tag
+  syntax as the example — left an unclosed branch. theme-check caught it.
+- **Scopes added in the Developer Dashboard do not reach `shopify.app.toml`,**
+  and the next `shopify app deploy` reverts them without a word. Pull after
+  changing anything in the dashboard.
 
 **From 31 July**
 
