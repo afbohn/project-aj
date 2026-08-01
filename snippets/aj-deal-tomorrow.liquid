@@ -32,6 +32,8 @@
   Today's deal needs no excluding: the search takes the earliest window that has
   not STARTED yet, and a live deal started in the past by definition.
 
+  @param {string} [eyebrow] - Small label naming the block. Keep it a name, not
+    a pitch — it exists so the panel does not open mid-conversation.
   @param {string} [heading] - Opening line. Phrase it as a question to the
     non-buyer, so a buyer skims past it.
   @param {boolean} [show_signup] - Offer the email capture underneath.
@@ -143,6 +145,17 @@
   -%}
 
   <aside class="aj-tomorrow" aria-labelledby="aj-tomorrow-heading">
+    {%- comment -%}
+      NAMES THE BLOCK BEFORE IT SPEAKS. Without this the panel opens on a
+      question, which is what made the whole thing read as the product listing
+      talking rather than as a section of its own. `aria-hidden` because the
+      heading below already labels the region for a screen reader, and having
+      both announced would read the section name twice.
+    {%- endcomment -%}
+    <span class="aj-tomorrow__eyebrow" aria-hidden="true">
+      {{ eyebrow | default: 'Tomorrow' }}
+    </span>
+
     <p class="aj-tomorrow__heading" id="aj-tomorrow-heading">
       {{ heading | default: "Today's Yoink not your thing?" }}
     </p>

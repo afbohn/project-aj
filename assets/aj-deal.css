@@ -89,16 +89,64 @@
 /* Tomorrow's sneak peek ---------------------------------------------------- */
 
 /*
-  Sits below the add-to-cart, so it is styled to read as an aside rather than a
-  second offer. A bordered card competing visually with the deal would pull
-  attention back up the page from the button it sits under.
+  A RECESSED PANEL, NOT A RAISED CARD, and the distinction is the whole design.
+
+  This began as a single hairline rule above loose stacked text, on the
+  reasoning that a card would compete with the deal. The reasoning was right and
+  the result was wrong: with no container the block read as more product copy,
+  so a shopper met "Today's Yoink not your thing?" as though the listing itself
+  had said it.
+
+  A card would have fixed cohesion by ESCALATING — border, shadow, contrast, a
+  thing that sits forward of the page. That is the one move this block cannot
+  make, because it sits under the add-to-cart and must never pull the eye back
+  up. So it goes the other way: a faint inset surface with a hairline edge,
+  which reads as a distinct region of the page while sitting BEHIND it. Cohesion
+  and de-emphasis at once, which a card cannot do.
+
+  The tint is 0.045 of the foreground. Deliberately below the threshold where it
+  reads as a colour — it should register as "a different surface", not as a
+  panel someone has coloured in. Everything inside keeps the contrast it had:
+measured after tinting, body
+  text is 6.9-11.8:1 and the input and button borders are 3.3-5.7:1 across the
+  light, slate and dark schemes, so 1.4.3 and 1.4.11 both still hold. The
+  eyebrow is 0.7 rather than the 0.65 it started at: at 11px it is small text
+  and needs the full 4.5:1, which 0.65 missed on the slate scheme at 4.38:1.
 */
 .aj-tomorrow {
   margin-block-start: var(--padding-lg, 2rem);
-  padding-block-start: var(--padding-md, 1.5rem);
-  /* 0.55 alpha, same as the claimed bar's outline: measured at 4.74:1 on the
-     light scheme, 5.01 dark, 3.44 teal, so it clears WCAG 1.4.11 in all three. */
-  border-block-start: 1px solid rgb(var(--color-foreground-rgb) / 0.55);
+  padding: 1.15rem 1.25rem 1.3rem;
+  border-radius: var(--style-border-radius-buttons-primary, 8px);
+  background: rgb(var(--color-foreground-rgb) / 0.045);
+  border: 1px solid rgb(var(--color-foreground-rgb) / 0.18);
+}
+
+/*
+  Names the block so it does not open mid-conversation. Without it the first
+  thing in the panel is a question, which is what made the text read as the page
+  talking rather than as a section of its own. Quiet by construction — small,
+  letterspaced, 0.65 of the foreground — because naming the block is a
+  navigational job, not a persuasive one.
+*/
+.aj-tomorrow__eyebrow {
+  display: block;
+  margin: 0 0 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(var(--color-foreground-rgb) / 0.7);
+}
+
+/*
+  Forced colours discard the tint, which would return the panel to loose text.
+  A system border is guaranteed to be visible and keeps the region readable as
+  a region.
+*/
+@media (forced-colors: active) {
+  .aj-tomorrow {
+    border: 1px solid CanvasText;
+  }
 }
 
 /*
