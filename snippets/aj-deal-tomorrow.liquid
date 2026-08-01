@@ -1,0 +1,168 @@
+{% doc %}
+  A sneak peek at the NEXT Yoink, for the shopper who has decided against
+  today's.
+
+  WHY IT SITS BELOW THE ADD-TO-CART AND NOT BESIDE THE PRICE. This is the only
+  element on the page whose job is to be read by someone who is not going to
+  buy. Between the price and the button it would interrupt the highest-intent
+  moment on the site with a reason to leave; underneath, it is only reached by
+  someone who has already seen the price, seen the button, and kept scrolling.
+  The conditional opening line does the same work in words — it addresses the
+  non-buyer explicitly, so a buyer skims past it.
+
+  WHAT IT MAY NEVER SAY.
+
+  Not the product, and not its image. Collective SKUs are not exclusive, so
+  naming tomorrow's item gives a deal-hunter a day to find it cheaper somewhere
+  else — the same reasoning that keeps the vendor out of every social post.
+
+  Not the discount. `discount_percent` on a queued deal is INTENT: activation
+  clamps the price to cost and reports the discount actually applied, so a
+  queued 45 can land at 42. Quoting it here would be a promise the pricing path
+  is explicitly designed not to keep.
+
+  What is left is true without being identifying: the category, the price band,
+  and the drop time. All three are read from Shopify. The band and category come
+  from the product's own `band-` and `cat-` tags, which the catalogue agent
+  maintains, so they cannot drift from what the product actually is.
+
+  Renders NOTHING when there is no next deal, which is the honest answer on a
+  day the queue has run out — and is why the runway invariant exists.
+
+  Today's deal needs no excluding: the search takes the earliest window that has
+  not STARTED yet, and a live deal started in the past by definition.
+
+  @param {string} [heading] - Opening line. Phrase it as a question to the
+    non-buyer, so a buyer skims past it.
+  @param {boolean} [show_signup] - Offer the email capture underneath.
+{% enddoc %}
+
+{%- liquid
+  assign now = 'now' | date: '%s' | plus: 0
+  assign next_deal = null
+  assign next_starts = 0
+
+  comment
+    Earliest deal that has not started yet. Iterating rather than relying on
+    metaobject order, which is not guaranteed to be chronological.
+  endcomment
+  for entry in shop.metaobjects.daily_deal.values
+    assign starts = entry.starts_at.value | date: '%s' | plus: 0
+    assign ends = entry.ends_at.value | date: '%s' | plus: 0
+
+    comment
+      An inverted window can never run, so it must never be teased. queueDeal
+      refuses to create these now, but one already exists in the queue.
+    endcomment
+    if ends <= starts
+      continue
+    endif
+
+    if starts > now
+      if next_starts == 0 or starts < next_starts
+        assign next_starts = starts
+        assign next_deal = entry
+      endif
+    endif
+  endfor
+-%}
+
+{%- if next_deal != blank and next_deal.product.value != blank -%}
+  {%- liquid
+    assign next_product = next_deal.product.value
+    assign band_label = ''
+    assign cat_label = ''
+
+    for tag in next_product.tags
+      if band_label == '' and tag contains 'band-'
+        assign band = tag | remove_first: 'band-'
+        case band
+          when 'under-10'
+            assign band_label = 'under $10'
+          when '10-20'
+            assign band_label = 'between $10 and $20'
+          when '20-30'
+            assign band_label = 'between $20 and $30'
+          when '30-50'
+            assign band_label = 'between $30 and $50'
+          when '50-up'
+            assign band_label = 'over $50'
+        endcase
+      endif
+    endfor
+
+    comment
+      The category collection carries a shopper-facing title, which is the one
+      overridden away from Shopify's taxonomy wording — "Food & Beverages"
+      rather than the segment name that still ends in Tobacco.
+    endcomment
+    for tag in next_product.tags
+      if cat_label == '' and tag contains 'cat-'
+        assign cat_collection = collections[tag]
+        if cat_collection != blank and cat_collection.title != blank
+          assign cat_label = cat_collection.title | downcase
+        endif
+      endif
+    endfor
+  -%}
+
+  <aside class="aj-tomorrow" aria-labelledby="aj-tomorrow-heading">
+    <p class="aj-tomorrow__heading" id="aj-tomorrow-heading">
+      {{ heading | default: "Today's Yoink not your thing?" }}
+    </p>
+
+    <p class="aj-tomorrow__body">
+      {%- if cat_label != blank and band_label != blank -%}
+        Tomorrow's is in <strong>{{ cat_label }}</strong>, priced
+        <strong>{{ band_label }}</strong>.
+      {%- elsif cat_label != blank -%}
+        Tomorrow's is in <strong>{{ cat_label }}</strong>.
+      {%- elsif band_label != blank -%}
+        Tomorrow's is priced <strong>{{ band_label }}</strong>.
+      {%- else -%}
+        There's a new one on the way.
+      {%- endif -%}
+    </p>
+
+    {% render 'aj-deal-countdown',
+      ends_at: next_deal.starts_at.value,
+      reload_on_expire: false,
+      heading: 'Drops in',
+      fallback_verb: 'Starts'
+    %}
+
+    {%- if show_signup -%}
+      {%- comment -%}
+        The reason to hand over an email, rather than a bare "join our list".
+        Capture lives only in the footer today, where nothing is offered for it.
+      {%- endcomment -%}
+      {%- form 'customer', class: 'aj-tomorrow__form' -%}
+        <input type="hidden" name="contact[tags]" value="yoink-preview">
+        <label class="aj-tomorrow__label" for="aj-tomorrow-email">
+          Want to know what it is before anyone else?
+        </label>
+        <div class="aj-tomorrow__row">
+          <input
+            type="email"
+            id="aj-tomorrow-email"
+            name="contact[email]"
+            class="aj-tomorrow__input"
+            placeholder="you@example.com"
+            autocomplete="email"
+            required
+          >
+          <button type="submit" class="button aj-tomorrow__button">Send it to me</button>
+        </div>
+        {%- if form.posted_successfully? -%}
+          <p class="aj-tomorrow__note" role="status">
+            You're on the list. Tomorrow's Yoink lands in your inbox first.
+          </p>
+        {%- elsif form.errors -%}
+          <p class="aj-tomorrow__note aj-tomorrow__note--error" role="alert">
+            {{ form.errors.messages['email'] | default: 'That email did not look right.' }}
+          </p>
+        {%- endif -%}
+      {%- endform -%}
+    {%- endif -%}
+  </aside>
+{%- endif -%}

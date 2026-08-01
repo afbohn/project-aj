@@ -2182,6 +2182,35 @@
         "unit": "u",
         "default": 10,
         "info": "On a 3-unit deal one sale reads as 33%: true, and misleading. Allocations below this show \"Only 3 left\" instead, at any percentage."
+      },
+      {
+        "type": "header",
+        "content": "Tomorrow's sneak peek"
+      },
+      {
+        "type": "paragraph",
+        "content": "Shown BELOW the add to cart, on the homepage and the deal's product page. It speaks to the shopper who has already decided against today's Yoink, so it never sits above the buy button. It names a category and a price band and never the product — a Collective item is not exclusive, so naming it a day early hands a deal-hunter time to find it cheaper. It never quotes tomorrow's discount either: that number is not final until the deal activates and clamps to cost."
+      },
+      {
+        "type": "checkbox",
+        "id": "tomorrow_enabled",
+        "label": "Show tomorrow's sneak peek",
+        "default": true,
+        "info": "Renders nothing when no deal is queued after today."
+      },
+      {
+        "type": "text",
+        "id": "tomorrow_heading",
+        "label": "Opening line",
+        "default": "Today's Yoink not your thing?",
+        "info": "Phrase it as a question to the non-buyer. It lets a buyer skim past."
+      },
+      {
+        "type": "checkbox",
+        "id": "tomorrow_signup",
+        "label": "Ask for an email",
+        "default": true,
+        "info": "The sneak peek is the reason to sign up. Capture otherwise lives only in the footer, where nothing is offered in return. Subscribers are tagged yoink-preview."
       }
     ]
   }

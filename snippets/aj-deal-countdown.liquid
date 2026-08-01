@@ -10,11 +10,16 @@
     so the server can resolve the next one. Only sensible where the deal is the
     whole point of the page.
   @param {string} [heading] - Small label above the digits.
+  @param {string} [fallback_verb] - Verb for the no-JS line. Defaults to "Ends",
+    which is wrong when the target is a START — the sneak peek counts down to
+    the next deal opening, and "Ends August 9" would be the one piece of that
+    block that is not true.
 {% enddoc %}
 
 {%- liquid
   assign ends_ms = ends_at | date: '%s' | times: 1000
   assign heading_text = heading | default: 'Deal ends in'
+  assign fallback_text = fallback_verb | default: 'Ends'
 -%}
 
 {{ "aj-deal.css" | asset_url | stylesheet_tag }}
@@ -30,7 +35,7 @@
     No-JS fallback. Hidden by the component as soon as it connects.
   {%- endcomment -%}
   <p class="aj-countdown__fallback" data-countdown-fallback>
-    Ends {{ ends_at | date: '%B %-d at %H:%M' }}
+    {{ fallback_text }} {{ ends_at | date: '%B %-d at %H:%M' }}
   </p>
 
   {%- comment -%}

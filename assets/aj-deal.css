@@ -139,3 +139,73 @@
     transition: none;
   }
 }
+
+/* Tomorrow's sneak peek ---------------------------------------------------- */
+
+/*
+  Sits below the add-to-cart, so it is styled to read as an aside rather than a
+  second offer. A bordered card competing visually with the deal would pull
+  attention back up the page from the button it sits under.
+*/
+.aj-tomorrow {
+  margin-block-start: var(--padding-lg, 2rem);
+  padding-block-start: var(--padding-md, 1.5rem);
+  /* 0.55 alpha, same as the claimed bar's outline: measured at 4.74:1 on the
+     light scheme, 5.01 dark, 3.44 teal, so it clears WCAG 1.4.11 in all three. */
+  border-block-start: 1px solid rgb(var(--color-foreground-rgb) / 0.55);
+}
+
+.aj-tomorrow__heading {
+  margin: 0 0 0.25rem;
+  font-weight: 600;
+}
+
+.aj-tomorrow__body {
+  margin: 0 0 0.75rem;
+  /* 0.8, not the 0.7 used for the claimed bar's remaining count: this is a
+     full sentence rather than a short label, and it is body-sized. */
+  color: rgb(var(--color-foreground-rgb) / 0.8);
+}
+
+.aj-tomorrow__label {
+  display: block;
+  margin-block: 0.75rem 0.4rem;
+  font-size: 0.875rem;
+}
+
+.aj-tomorrow__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.aj-tomorrow__input {
+  flex: 1 1 14rem;
+  min-width: 0;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgb(var(--color-foreground-rgb) / 0.55);
+  border-radius: var(--style-border-radius-buttons-primary, 4px);
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font: inherit;
+}
+
+.aj-tomorrow__input::placeholder {
+  /* 0.7 rather than a lighter grey: placeholder text still has to be read, and
+     the usual near-invisible placeholder fails 1.4.3 outright. */
+  color: rgb(var(--color-foreground-rgb) / 0.7);
+}
+
+.aj-tomorrow__input:focus-visible {
+  outline: 2px solid rgb(var(--color-foreground-rgb));
+  outline-offset: 2px;
+}
+
+.aj-tomorrow__note {
+  margin: 0.5rem 0 0;
+  font-size: 0.875rem;
+}
+
+.aj-tomorrow__note--error {
+  color: rgb(var(--color-error, 180 30 30));
+}

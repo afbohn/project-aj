@@ -86,6 +86,9 @@
     "cart_upsell_fallback": "",
     "claimed_min_percent": 30,
     "claimed_min_units": 10,
+    "tomorrow_enabled": true,
+    "tomorrow_heading": "Today's Yoink not your thing?",
+    "tomorrow_signup": true,
     "content_for_index": [],
     "blocks": {
       "14060646107696862457": {

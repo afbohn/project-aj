@@ -61,6 +61,20 @@
         min_units: settings.claimed_min_units
       %}
     {%- endif -%}
+
+    {%- comment -%}
+      PLACE THIS BLOCK BELOW THE BUY BUTTONS in the theme editor. On the
+      homepage the order is fixed in the section; here the position is whatever
+      the product template says, and a sneak peek at tomorrow sitting above
+      add-to-cart is an argument against buying today, delivered at the moment
+      of highest intent.
+    {%- endcomment -%}
+    {%- if block.settings.show_tomorrow and settings.tomorrow_enabled -%}
+      {% render 'aj-deal-tomorrow',
+        heading: settings.tomorrow_heading,
+        show_signup: settings.tomorrow_signup
+      %}
+    {%- endif -%}
   </div>
 {%- endif -%}
 
@@ -97,6 +111,13 @@
       "id": "show_claimed",
       "label": "Show % claimed",
       "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_tomorrow",
+      "label": "Show tomorrow's sneak peek",
+      "default": true,
+      "info": "Place this block BELOW the buy buttons. Above them it argues against buying today, at the moment of highest intent. Wording is in Theme settings → Deal urgency."
     },
     {
       "type": "header",

@@ -229,6 +229,19 @@
             <p class="aj-deal__soldout">Sold out</p>
           {%- endif -%}
         </div>
+
+        {%- comment -%}
+          BELOW the add-to-cart, deliberately. Its whole job is to catch someone
+          who is not buying today, and between the price and the button it would
+          interrupt the highest-intent moment on the site with a reason to leave.
+          Here it is only reached by someone who scrolled past the button.
+        {%- endcomment -%}
+        {%- if settings.tomorrow_enabled -%}
+          {% render 'aj-deal-tomorrow',
+            heading: settings.tomorrow_heading,
+            show_signup: settings.tomorrow_signup
+          %}
+        {%- endif -%}
       </div>
     </div>
   </div>
