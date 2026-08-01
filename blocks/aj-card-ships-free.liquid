@@ -1,0 +1,79 @@
+{%- doc -%}
+  AJ Ships Free — a free-shipping line on a product card.
+
+  WHY THIS IS NOT A BADGE. The card's badge slot holds exactly one thing, and
+  that thing is the size of the discount. On a store whose whole promise is a
+  bargain, the saving is what stops the scroll; a second badge in the same
+  corner either displaces it or crowds it, and "Ships free" loses that contest
+  every time against "40% off". So this sits with the PRICE instead, which is
+  also where it is most useful — free shipping is arithmetic, not a hook, and
+  the shopper doing the sum is looking at the number.
+
+  IT READS FROM THE MEASUREMENT, NOT FROM THE VENDOR. `ship.cost` is a real
+  `draftOrderCalculate` quote for this exact product, so a zero here means
+  Shopify offered a free rate on this product rather than that its supplier is
+  usually free. The vendor shape is a good predictor and not a guarantee — Fuse
+  Audio ships six of seven products free and charges $12 on a heavy radio — and
+  a claim on a grid of cards is exactly where a shape-level guess would go
+  wrong at scale.
+
+  Absent means absent. A product the weekly sweep has not reached yet renders
+  nothing rather than being assumed either way.
+
+  THE COST OF DOING THIS AT ALL, stated so it is a choice and not an oversight:
+  279 of 1,472 published products ship free, so this marks 19% of cards and the
+  other 81% implicitly read as "shipping extra". That is true, and it moves the
+  discovery of it from checkout — where it causes abandonment — to browsing,
+  where it informs a choice. It is the same trade as naming the supplier on the
+  product page.
+{%- enddoc -%}
+
+{%- liquid
+  assign product = closest.product
+  assign cost = product.metafields.ship.cost.value
+
+  assign show = false
+  if cost != blank and cost == 0
+    assign show = true
+  endif
+
+  # Redundant inside the collection that is DEFINED by this fact — every card
+  # would carry it, which makes it decoration rather than information. The
+  # collection's own description already says it once, properly.
+  if collection.handle == 'ships-free'
+    assign show = false
+  endif
+-%}
+
+{{ 'aj-ships-free.css' | asset_url | stylesheet_tag }}
+{%- if show -%}
+  <p class="aj-card-free" {{ block.shopify_attributes }}>
+    {{ block.settings.label | default: 'Ships free' }}
+  </p>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "AJ Ships Free",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Marks cards whose product was measured at $0 shipping. Renders nothing on products that cost something to ship, and nothing on products the shipping agent has not measured yet. Hidden inside the Ships Free collection, where it would be on every card."
+    },
+    {
+      "type": "text",
+      "id": "label",
+      "label": "Label",
+      "default": "Ships free",
+      "info": "Shipping is charged per maker, so keep this about THIS item — 'Free shipping on your order' would not be true once a second maker is in the cart."
+    }
+  ],
+  "presets": [
+    {
+      "name": "AJ Ships Free",
+      "category": "Product"
+    }
+  ]
+}
+{% endschema %}

@@ -195,6 +195,11 @@
                 <p class="aj-past__missed">You missed {{ missed_cents | money }} off</p>
               {%- endif -%}
 
+              {%- assign past_ship = past_product.metafields.ship.cost.value -%}
+              {%- if past_ship != blank and past_ship == 0 -%}
+                <p class="aj-card-free">Ships free</p>
+              {%- endif -%}
+
               {%- if section.settings.show_bring_back -%}
                 <aj-bring-back class="aj-past__bringback" data-deal-id="gid://shopify/Metaobject/{{ entry.system.id }}">
                   <button type="button" class="aj-past__vote">
@@ -227,6 +232,8 @@
     </p>
   </div>
 {%- endif -%}
+
+{{ 'aj-ships-free.css' | asset_url | stylesheet_tag }}
 
 {% stylesheet %}
   .aj-past__heading {

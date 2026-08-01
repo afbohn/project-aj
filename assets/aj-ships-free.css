@@ -1,0 +1,70 @@
+/*
+  AJ Ships Free — the free-shipping mark on a product card.
+
+  ONE FILE BECAUSE THERE ARE THREE RENDER SITES. The theme's own product cards
+  get this through `blocks/aj-card-ships-free.liquid`, but the homepage grids —
+  the Bargain Bin and Recent Yoinks — draw their own tiles and cannot use a
+  block. A `{% stylesheet %}` inside the block would leave those two looking
+  different in the same scroll, which the Bargain Bin's own comment already
+  argues against for card treatment generally.
+
+  IT IS NOT A BADGE, and the distinction is deliberate. The badge slot on a card
+  holds the size of the discount, which is what stops the scroll on a store
+  built around a bargain. This sits with the price, because free shipping is
+  arithmetic rather than a hook and the shopper doing the sum is looking at the
+  number.
+
+  THE ACCENT IS A TINT, NOT A FILL. Same 18% as the PDP's free-shipping pill.
+  At that alpha the surface barely moves, so the text stays at full page
+  foreground and keeps the contrast body text already has — measured 10.4-19.7:1
+  across the three brand accents on both palettes. A solid fill would force the
+  text to ink, because #ffde00 is 1.34:1 against white and #43afca is 2.55:1.
+*/
+
+.aj-card-free {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  background: color-mix(
+    in srgb,
+    var(--aj-price-accent, rgb(var(--color-foreground-rgb) / 0.5)) 18%,
+    transparent
+  );
+}
+
+/* Without color-mix the pill keeps its shape on a neutral tint rather than
+   losing its background entirely, which would leave the padding reading as a
+   layout bug. */
+@supports not (background: color-mix(in srgb, red 18%, transparent)) {
+  .aj-card-free {
+    background: rgb(var(--color-foreground-rgb) / 0.08);
+  }
+}
+
+/* A drawn tick rather than an emoji: it inherits colour, scales with the text,
+   and renders as the same shape on every platform. */
+.aj-card-free::before {
+  content: "";
+  flex: none;
+  width: 0.45rem;
+  height: 0.25rem;
+  border-left: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg) translateY(-0.05rem);
+}
+
+/* Forced colours discard backgrounds, which would flatten the mark into the
+   card and lose the only thing distinguishing it from a line of small print. */
+@media (forced-colors: active) {
+  .aj-card-free {
+    background: Canvas;
+    border: 1px solid CanvasText;
+  }
+}

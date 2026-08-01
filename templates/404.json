@@ -235,12 +235,17 @@
                 "padding-inline-end": 0
               },
               "blocks": {}
+            },
+            "aj_ships_free": {
+              "type": "aj-card-ships-free",
+              "settings": {}
             }
           },
           "block_order": [
             "product_card_gallery_wxYqE3",
             "product_title_83YMDL",
-            "price_A6DYPt"
+            "price_A6DYPt",
+            "aj_ships_free"
           ]
         }
       },

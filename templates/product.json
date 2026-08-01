@@ -462,12 +462,17 @@
                 "padding-inline-end": 0
               },
               "blocks": {}
+            },
+            "aj_ships_free": {
+              "type": "aj-card-ships-free",
+              "settings": {}
             }
           },
           "block_order": [
             "product_card_gallery_DNizbJ",
             "product_title_M7MJkb",
-            "price_gLWgA6"
+            "price_gLWgA6",
+            "aj_ships_free"
           ]
         }
       },

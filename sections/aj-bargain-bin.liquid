@@ -73,6 +73,15 @@
                   <s class="aj-bin__was">{{ v.compare_at_price | money }}</s>
                 {%- endif -%}
               </span>
+              {%- comment -%}
+                Reads the per-product measurement, not the vendor shape. A bin
+                item that also ships free is the strongest card in the grid and
+                the tile had no way to say so.
+              {%- endcomment -%}
+              {%- assign bin_ship = product.metafields.ship.cost.value -%}
+              {%- if bin_ship != blank and bin_ship == 0 -%}
+                <span class="aj-card-free">Ships free</span>
+              {%- endif -%}
             </a>
           </li>
         {%- endfor -%}
@@ -89,6 +98,8 @@
     </p>
   </div>
 {%- endif -%}
+
+{{ 'aj-ships-free.css' | asset_url | stylesheet_tag }}
 
 {% stylesheet %}
   .aj-bin__head {
