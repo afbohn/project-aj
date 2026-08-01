@@ -577,6 +577,36 @@ cached (~7.7k tokens read per run, four batches sharing one prefix).
 Anthropic's Message Batches API** — async, 50% cheaper, 100k requests a batch.
 Not needed for this backfill, which finishes in about a day at 39/run hourly.
 
+### Shipping, later the same day
+
+**A `Ships Free` smart collection**, handle `ships-free`, 279 products, sorted
+price-ascending, published to all five channels. It is keyed on the `ship.cost`
+metafield definition — which already carried `smartCollectionCondition` — so
+Shopify keeps it current the moment the shipping agent writes a value. **No
+agent work and no tag.** Verified: all 250 sampled members measure exactly zero.
+
+**Cards carry a "Ships free" line next to the price** — `blocks/aj-card-ships-free.liquid`
+on the theme's own cards (added to all five templates that render one), plus
+inline markup in the Bargain Bin and Recent Yoinks, which draw their own tiles
+and cannot take a block. Styles are one asset, `aj-ships-free.css`, so the three
+sites cannot drift. Suppressed inside `ships-free`, where every card would have
+it.
+
+**The PDP shipping block now says what it costs.** A measured non-zero cost was
+silent for scaling suppliers even though the number was sitting in `ship.cost`.
+Also guarded: `checked_at` present with `cost` absent means Shopify offered no
+rate at all, which would have had a free-shaped vendor's brand claim printed
+over an unshippable product.
+
+Live census, 1 August: **1,472 published, 279 ship free (19%), 1,168 paid, 25
+unmeasured, 0 with no rate** — the 24 unshippable products this file recorded in
+July are resolved. Free shipping is concentrated: Vogueen, Runic Dice, Navigate
+Craft and AURA 8 HOME are 190 of the 279 between them, across 20 vendors total.
+
+**Still manual:** nothing links to the collection. The app has no
+`read_online_store_navigation` scope, so menus cannot be read or edited from
+here — adding `Ships Free` to the main menu is an admin click.
+
 ### Corrections to earlier entries
 
 - **Judge.me IS wired now.** This file said no review UI was wired; that was

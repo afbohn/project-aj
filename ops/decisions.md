@@ -223,6 +223,41 @@ Same shape as the sold count's threshold, and the same distinction throughout:
 figure that does not help is simply not the thing we lead with. Adjusting a real
 number to look better is the line, and it is not crossed here.
 
+## Shipping is emphasised by what the line is doing, and free shipping is not a badge
+
+1 August. Emphasis was inverted. "Free shipping" rendered at 0.85 opacity and
+"Add $44.00 more from this brand" rendered at weight 600 — shouting the ask and
+whispering the gift. Three tones now, decided in the snippet rather than by
+whoever places the block: **free is a pill, a line that names a cost is plain
+body text, and the nudge is plain and cart-only.**
+
+The nudge had to move regardless. It reads `cart_vendor_total`, no caller has
+ever passed one, so `spent` was always 0 and every threshold supplier printed
+"Add $44.00 more" on the PDP to a shopper with an empty cart who had not yet
+added the item in front of them. Absent is now distinguished from zero: with
+cart context it asks for the gap, without it states the same fact as a fact.
+
+**On cards the mark is not a badge, and that is the decision.** The badge slot
+holds exactly one thing and that thing is the size of the discount, which is
+what stops the scroll on a store built around a bargain — a second badge there
+either displaces it or crowds it, and "Ships free" loses that contest against
+"40% off" every time. It sits with the price instead, which is also where it is
+most useful: free shipping is arithmetic, not a hook, and the shopper doing the
+sum is looking at the number.
+
+The cost, stated so it stays a choice: 279 of 1,472 published products ship
+free, so marking 19% of cards makes the other 81% implicitly read as "shipping
+extra". That is true, and it moves the discovery from checkout — where it causes
+abandonment — to browsing, where it informs a choice. Same trade as naming the
+supplier on the product page.
+
+**A shipping number is stated as "from", never as a price.** `ship.cost` is a
+real `draftOrderCalculate` quote, so it is what a customer pays rather than what
+the supplier charges us — but it is measured to one destination, at quantity 1,
+taking the cheapest rate. "From" is honest in all three directions and errs
+toward overstating the cost, which is the safe direction for a claim and the
+same reasoning that keeps a delivery date off `aj-ships-from`.
+
 ## The API budget is a library, not a supervisor
 
 31 July, late. Two agents started returning `Throttled` in the same minute.
