@@ -96,19 +96,26 @@
     assign cat_label = ''
 
     for tag in next_product.tags
+      comment
+        A PRICE BAND ONLY HELPS WHEN IT IS LOW. "Under $10" is a reason to come
+        back; "over $50" is a reason not to, and on a store whose whole promise
+        is a bargain it reads as a warning. The pull is asymmetric, so the copy
+        is too: the cheap bands are stated, the expensive ones are simply not
+        mentioned and the category carries the line alone.
+
+        This is omission, not misdirection — nothing here claims tomorrow is
+        cheap. Same shape as the claimed bar, which shows a real number or
+        nothing rather than dressing up a weak one.
+      endcomment
       if band_label == '' and tag contains 'band-'
         assign band = tag | remove_first: 'band-'
         case band
           when 'under-10'
             assign band_label = 'under $10'
           when '10-20'
-            assign band_label = 'between $10 and $20'
+            assign band_label = 'under $20'
           when '20-30'
-            assign band_label = 'between $20 and $30'
-          when '30-50'
-            assign band_label = 'between $30 and $50'
-          when '50-up'
-            assign band_label = 'over $50'
+            assign band_label = 'under $30'
         endcase
       endif
     endfor
