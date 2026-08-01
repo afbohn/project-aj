@@ -2211,6 +2211,49 @@
         "label": "Ask for an email",
         "default": true,
         "info": "The sneak peek is the reason to sign up. Capture otherwise lives only in the footer, where nothing is offered in return. Subscribers are tagged yoink-preview."
+      },
+      {
+        "type": "header",
+        "content": "Our own merch (cart)"
+      },
+      {
+        "type": "paragraph",
+        "content": "A second cart tier for products WE fulfil — stickers and the like. Separate from the vendor upsell on purpose: that tier's argument is that the item adds no extra parcel, and merch always does. It is never counted toward a supplier's free-shipping threshold, because posting an envelope ourselves does not change what that supplier charges. Renders nothing until the collection has something in it, so it can be set up now and goes live the moment a product is published into it."
+      },
+      {
+        "type": "checkbox",
+        "id": "merch_enabled",
+        "label": "Show the merch tier",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "merch_collection",
+        "label": "Merch collection handle",
+        "default": "yoink-merch",
+        "info": "Create it empty. Nothing renders until it has an available product."
+      },
+      {
+        "type": "text",
+        "id": "merch_heading",
+        "label": "Heading",
+        "default": "Make it yours"
+      },
+      {
+        "type": "text",
+        "id": "merch_blurb",
+        "label": "One line underneath",
+        "default": "Ours, not a supplier's. Posted separately, so it turns up on its own.",
+        "info": "Say it arrives on its own. A shopper told up front cannot be annoyed later."
+      },
+      {
+        "type": "range",
+        "id": "merch_count",
+        "label": "How many to show",
+        "min": 1,
+        "max": 4,
+        "step": 1,
+        "default": 2
       }
     ]
   }

@@ -1,0 +1,88 @@
+{% doc %}
+  Our own merch, offered in the cart. A separate tier from the vendor upsell,
+  deliberately.
+
+  WHY IT IS NOT PART OF THE VENDOR UPSELL. That tier's entire argument is
+  shipping: something from a supplier already in the cart adds no extra parcel,
+  which is a genuine reason to say yes. Merch is the opposite — we fulfil it
+  ourselves, from our own location, in our own envelope, so it ALWAYS adds a
+  shipment. Slotting it into a tier whose copy says "ships with what's already
+  in your cart" would make that line false.
+
+  It must also never be counted toward a free-shipping threshold. Those
+  thresholds belong to suppliers and are cleared by adding more of THEIR items;
+  a sticker sheet we post ourselves moves a supplier's cart total without moving
+  their shipping at all. Quoting it as progress toward free shipping would be a
+  promise with nothing behind it, which is the failure the shipping work exists
+  to prevent.
+
+  So this tier argues from margin and brand, not logistics, and says nothing
+  about shipping at all.
+
+  RENDERS NOTHING UNTIL THE COLLECTION HAS SOMETHING IN IT. The collection can
+  be created empty and this stays invisible; the moment a product is published
+  into it the tier appears, with no deploy. That is the point — the merch does
+  not exist yet.
+
+  @param {string} collection - Handle of the merch collection.
+  @param {string} [heading] - Section heading.
+  @param {string} [blurb] - One line under the heading.
+  @param {number} [limit] - How many to show. Default 2.
+{% enddoc %}
+
+{%- liquid
+  assign merch_handle = collection | default: 'yoink-merch'
+  assign merch = collections[merch_handle]
+  assign max_items = limit | default: 2 | plus: 0
+
+  comment
+    Everything already in the cart is excluded, so the tier disappears once the
+    add-on has been added rather than nagging for a second one.
+  endcomment
+  assign in_cart = ','
+  for line in cart.items
+    assign in_cart = in_cart | append: line.product.id | append: ','
+  endfor
+
+  assign available_count = 0
+  for item in merch.products limit: 12
+    assign probe = ',' | append: item.id | append: ','
+    unless in_cart contains probe or item.available == false
+      assign available_count = available_count | plus: 1
+    endunless
+  endfor
+-%}
+
+{%- if merch != blank and available_count > 0 -%}
+  {{ 'aj-cart-upsell.css' | asset_url | stylesheet_tag }}
+
+  <section class="aj-cart-upsell aj-cart-merch" aria-labelledby="aj-cart-merch-heading">
+    <h3 class="aj-cart-upsell__heading" id="aj-cart-merch-heading">
+      {{ heading | default: 'Make it yours' | escape }}
+    </h3>
+
+    {%- assign blurb_text = blurb | default: 'Ours, not a supplier’s. Posted separately, so it turns up on its own.' -%}
+    {%- if blurb_text != blank -%}
+      {%- comment -%}
+        Says outright that it arrives on its own. Every Collective order is
+        already multi-parcel and the storefront says so everywhere else; this
+        one genuinely is a separate envelope, and a shopper who is told that up
+        front cannot be annoyed by it later.
+      {%- endcomment -%}
+      <p class="aj-cart-merch__blurb">{{ blurb_text | escape }}</p>
+    {%- endif -%}
+
+    <ul class="aj-cart-upsell__list" role="list">
+      {%- assign shown = 0 -%}
+      {%- for item in merch.products limit: 12 -%}
+        {%- assign probe = ',' | append: item.id | append: ',' -%}
+        {%- if in_cart contains probe or item.available == false -%}
+          {%- continue -%}
+        {%- endif -%}
+        {%- if shown >= max_items -%}{%- break -%}{%- endif -%}
+        {%- assign shown = shown | plus: 1 -%}
+        {% render 'aj-cart-upsell-item', item: item %}
+      {%- endfor -%}
+    </ul>
+  </section>
+{%- endif -%}

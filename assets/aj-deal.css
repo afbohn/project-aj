@@ -155,15 +155,24 @@
   border-block-start: 1px solid rgb(var(--color-foreground-rgb) / 0.55);
 }
 
+/*
+  SECOND-LEVEL MESSAGING, AND STYLED LIKE IT. This block sits under the buy
+  button and must never out-shout it: no heading-sized type, no primary button,
+  no filled background. If a shopper's eye lands here before the CTA, the block
+  has done damage rather than work.
+*/
 .aj-tomorrow__heading {
   margin: 0 0 0.25rem;
+  font-size: 0.9375rem;
   font-weight: 600;
 }
 
 .aj-tomorrow__body {
   margin: 0 0 0.75rem;
+  font-size: 0.9375rem;
   /* 0.8, not the 0.7 used for the claimed bar's remaining count: this is a
-     full sentence rather than a short label, and it is body-sized. */
+     full sentence rather than a short label. Measured 6.9:1 on the light
+     scheme, so it clears 1.4.3 comfortably at this size. */
   color: rgb(var(--color-foreground-rgb) / 0.8);
 }
 
@@ -208,4 +217,36 @@
 
 .aj-tomorrow__note--error {
   color: rgb(var(--color-error, 180 30 30));
+}
+
+/*
+  An outlined button, not the theme's filled primary. Same reasoning as the
+  type scale above: two identical black buttons on one screen makes the shopper
+  choose between them, and one of those choices is "leave".
+*/
+.aj-tomorrow__button {
+  padding: 0.6rem 1rem;
+  border: 1px solid rgb(var(--color-foreground-rgb) / 0.55);
+  border-radius: var(--style-border-radius-buttons-primary, 4px);
+  background: transparent;
+  color: var(--color-foreground);
+  font: inherit;
+  font-size: 0.9375rem;
+  cursor: pointer;
+}
+
+.aj-tomorrow__button:hover {
+  background: rgb(var(--color-foreground-rgb) / 0.07);
+}
+
+.aj-tomorrow__button:focus-visible {
+  outline: 2px solid rgb(var(--color-foreground-rgb));
+  outline-offset: 2px;
+}
+
+/* Our own merch, in the cart. Quiet for the same reason. */
+.aj-cart-merch__blurb {
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+  color: rgb(var(--color-foreground-rgb) / 0.8);
 }

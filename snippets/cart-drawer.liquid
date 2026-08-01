@@ -132,6 +132,19 @@
                       fallback: settings.cart_upsell_fallback
                     %}
                   {%- endif -%}
+
+                  {%- comment -%}
+                    After the vendor upsell: that tier adds no parcel, merch
+                    always does, so it makes the weaker case and goes second.
+                  {%- endcomment -%}
+                  {%- if settings.merch_enabled -%}
+                    {% render 'aj-cart-merch',
+                      collection: settings.merch_collection,
+                      heading: settings.merch_heading,
+                      blurb: settings.merch_blurb,
+                      limit: settings.merch_count
+                    %}
+                  {%- endif -%}
                 </scroll-hint>
 
                 <div class="cart-drawer__summary">

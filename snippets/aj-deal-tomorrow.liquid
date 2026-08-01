@@ -179,7 +179,13 @@
             autocomplete="email"
             required
           >
-          <button type="submit" class="button aj-tomorrow__button">Send it to me</button>
+          {%- comment -%}
+            NOT the theme's primary `button` class. That renders identically to
+            Add to cart, so the page offered two equally weighted black buttons
+            and the second-level message looked like a second offer. This is
+            deliberately quieter than the CTA it sits beneath.
+          {%- endcomment -%}
+          <button type="submit" class="aj-tomorrow__button">Send it to me</button>
         </div>
         {%- if form.posted_successfully? -%}
           <p class="aj-tomorrow__note" role="status">

@@ -71,6 +71,19 @@
             fallback: settings.cart_upsell_fallback
           %}
         {%- endif -%}
+
+        {%- comment -%}
+          AFTER the vendor upsell. That tier has the stronger reason — it adds
+          no parcel — and merch always adds one, so it goes second.
+        {%- endcomment -%}
+        {%- if settings.merch_enabled and cart.item_count > 0 -%}
+          {% render 'aj-cart-merch',
+            collection: settings.merch_collection,
+            heading: settings.merch_heading,
+            blurb: settings.merch_blurb,
+            limit: settings.merch_count
+          %}
+        {%- endif -%}
       </div>
 
       {%- unless cart.empty? -%}

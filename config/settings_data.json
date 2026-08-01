@@ -89,6 +89,11 @@
     "tomorrow_enabled": true,
     "tomorrow_heading": "Today's Yoink not your thing?",
     "tomorrow_signup": true,
+    "merch_enabled": true,
+    "merch_collection": "yoink-merch",
+    "merch_heading": "Make it yours",
+    "merch_blurb": "Ours, not a supplier's. Posted separately, so it turns up on its own.",
+    "merch_count": 2,
     "content_for_index": [],
     "blocks": {
       "14060646107696862457": {
