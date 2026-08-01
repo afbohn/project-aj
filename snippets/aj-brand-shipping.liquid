@@ -18,10 +18,50 @@
   is free above $56 and sells one $14 product, so "add $42 more" is a promise
   with nothing behind it. Both cases render nothing at all.
 
+  ── EMPHASIS IS A FUNCTION OF WHAT THE LINE IS DOING ──────────────────────────
+
+  1 August. Three tones, and which one applies is decided here rather than by
+  whoever places the block:
+
+    FREE   — a pill. Free shipping is the strongest thing this store can say
+             after the discount itself, and it was rendering at 0.85 opacity
+             with a tick: whispered. The accent is a tint rather than a solid
+             block so it does not compete with the saving pill directly above
+             it; two solid pills stacked leaves the eye no way to rank them.
+    PLAIN  — a normal line of body text. It NAMES A COST, so it is stated
+             clearly and not sold.
+    NUDGE  — "add this much more". Was the loudest thing in the block at
+             weight 600, which had it shouting the ask and whispering the gift.
+             Now plain, and CART-ONLY (see below).
+
+  WHY THE NUDGE IS CART-ONLY NOW. It needs `cart_vendor_total` to mean anything,
+  and no caller has ever passed one — so on the PDP `spent` was 0 and every
+  threshold supplier printed "Add $44.00 more from this brand for free shipping"
+  in bold, directly under the price, to a shopper with an empty cart who has not
+  yet added the item in front of them. A demand at the point of highest
+  purchase intent, out-weighting the price. On a page with no cart context the
+  same fact is stated as a fact — "free over $44" — which motivates without
+  asking for anything.
+
+  ── ON PRINTING A SHIPPING NUMBER ─────────────────────────────────────────────
+
+  `ship.cost` is a real quote from `draftOrderCalculate`, so it is what a
+  customer would be charged and not what the supplier charges us. Three things
+  keep it from being an exact promise: it is measured to ONE destination
+  (Austin, TX), at QUANTITY 1, taking the CHEAPEST available rate. Hence "from",
+  which is honest in all three directions and errs toward overstating the cost —
+  the safe direction for a claim, and the same reasoning that keeps a delivery
+  date off `aj-ships-from`.
+
+  Saying it at all beats the alternative: late-discovered shipping is the
+  single biggest cause of cart abandonment, and this store adds a parcel per
+  supplier. Better refused on the PDP than abandoned at checkout.
+
   @param product - the product whose vendor we are describing
   @param cart_vendor_total - optional. Cart subtotal for THIS vendor, so the cart
          can say how far away free shipping is. Shipping is charged per supplier,
-         so a whole-cart total would be the wrong number.
+         so a whole-cart total would be the wrong number. ABSENT means "no cart
+         context", which is a different thing from zero and is treated as such.
 {%- endcomment -%}
 
 {%- liquid
@@ -30,6 +70,7 @@
   # products free and charges $12 on a heavy radio. A badge is a promise, so it
   # reads the number measured for this exact product where one exists.
   assign own_cost = product.metafields.ship.cost.value
+  assign checked_at = product.metafields.ship.checked_at.value
   assign vs = nil
   for entry in shop.metaobjects.vendor_shipping.values
     if entry.vendor.value == product.vendor
@@ -39,61 +80,100 @@
   endfor
 -%}
 
-{%- if vs -%}
+{%- liquid
+  assign shape = vs.shape.value
+  assign msg = nil
+  assign tone = 'plain'
+
+  # A measured cost for THIS product overrules the vendor's shape, in both
+  # directions. Zero is the strongest claim available. Non-zero MUTES the
+  # brand-level "free" and "ships free" claims, which is the whole reason the
+  # per-product number exists — Fuse Audio ships six of seven free and charges
+  # $12 on a heavy radio, and the vendor shape would have promised free on it.
+  assign measured = false
+  if own_cost != blank
+    assign measured = true
+    assign cost_money = own_cost | times: 100 | round | money
+  endif
+
+  # ASKED AND GOT NOTHING IS NOT THE SAME AS NEVER ASKED. `checked_at` with no
+  # `cost` means Shopify offered no rate at all for this product, which means it
+  # cannot be shipped and therefore cannot be bought. Without this guard a
+  # `free`-shaped vendor would have had its brand-level claim printed over the
+  # top of an unshippable product — the most expensive sentence on the page.
+  assign no_rate = false
+  if measured == false and checked_at != blank
+    assign no_rate = true
+  endif
+
+  # Absent is not zero. An empty cart and no cart at all want different copy.
+  assign has_cart_context = false
+  if cart_vendor_total != blank
+    assign has_cart_context = true
+    assign spent = cart_vendor_total | plus: 0
+  endif
+-%}
+
+{%- comment -%}
+  Gated on `no_rate` alone rather than on having a vendor entry. A per-product
+  measured cost stands on its own — it needs no vendor shape to be true — so a
+  supplier the weekly sweep has not reached yet can still say what shipping
+  costs. With no vendor entry AND no measurement the branches below all fall
+  through and nothing renders, which is the same silence as before.
+{%- endcomment -%}
+{%- unless no_rate -%}
   {%- liquid
-    assign shape = vs.shape.value
-    assign msg = nil
-    assign tone = 'plain'
-
-    # A measured cost for THIS product overrules the vendor's shape, in both
-    # directions. Zero is the strongest claim available. Non-zero MUTES the
-    # brand-level "free" and "ships free" claims, which is the whole reason the
-    # per-product number exists — Fuse Audio ships six of seven free and charges
-    # $12 on a heavy radio, and the vendor shape would have promised free on it.
-    assign measured = false
-    if own_cost != blank
-      assign measured = true
-    endif
-
     if measured and own_cost == 0
       assign msg = 'Free shipping.'
-      assign tone = 'good'
+      assign tone = 'free'
 
     elsif shape == 'free' and measured == false
       assign msg = 'Free shipping on this brand.'
-      assign tone = 'good'
+      assign tone = 'free'
 
     elsif shape == 'flat' and measured == false
       assign msg = 'Anything else from this brand ships together, free.'
-      assign tone = 'good'
+      assign tone = 'free'
 
     elsif shape == 'flat' and measured
       # Measured non-zero, but a flat supplier genuinely does carry extra items
-      # for nothing. The claim narrows from "free" to "no more than this".
-      assign msg = 'Anything else from this brand ships together, no extra shipping.'
-      assign tone = 'good'
+      # for nothing. Both halves are useful and neither is free, so the line
+      # states the cost first and the benefit second, plainly.
+      assign msg = 'Shipping from ' | append: cost_money | append: '. Anything else from this brand ships with it, free.'
 
     elsif shape == 'threshold' and vs.reachable.value
       assign threshold = vs.free_threshold.value | plus: 0
-      assign spent = cart_vendor_total | default: 0 | plus: 0
-      if spent >= threshold
-        assign msg = 'Shipping on this brand is free.'
-        assign tone = 'good'
+      # Rounded explicitly: free_threshold is a decimal metafield and Liquid
+      # arithmetic on those goes float, so `43.99 | times: 100` can land on
+      # 4398.9999 and render as a price nobody would ever write down.
+      assign threshold_money = threshold | times: 100 | round | money
+
+      if has_cart_context
+        if spent >= threshold
+          assign msg = 'Shipping on this brand is free.'
+          assign tone = 'free'
+        else
+          assign gap = threshold | minus: spent
+          assign gap_money = gap | times: 100 | round | money
+          assign msg = 'Add ' | append: gap_money | append: ' more from this brand for free shipping.'
+          assign tone = 'nudge'
+        endif
+      elsif measured
+        assign msg = 'Shipping from ' | append: cost_money | append: ', or free over ' | append: threshold_money | append: '.'
       else
-        assign gap = threshold | minus: spent
-        # Rounded explicitly: free_threshold is a decimal metafield and Liquid
-        # arithmetic on those goes float, so `43.99 | times: 100` can land on
-        # 4398.9999 and render as a price nobody would ever write down.
-        assign gap_money = gap | times: 100 | round | money
-        assign msg = 'Add ' | append: gap_money | append: ' more from this brand for free shipping.'
-        assign tone = 'nudge'
+        assign msg = 'Free shipping on this brand over ' | append: threshold_money | append: '.'
       endif
+
+    elsif measured
+      # Everything else — scaling suppliers, shapes with no claim to make. The
+      # number is the only honest thing available and it is worth saying.
+      assign msg = 'Shipping from ' | append: cost_money | append: '.'
     endif
   -%}
 
   {%- if msg -%}
     <p class="aj-brand-ship aj-brand-ship--{{ tone }}">
-      {{ msg }}
+      <span class="aj-brand-ship__text">{{ msg }}</span>
       {%- if tone == 'nudge' -%}
         {%- assign vendor_handle = product.vendor | handle -%}
         <a class="aj-brand-ship__link" href="{{ routes.collections_url }}/vendor-{{ vendor_handle }}">
@@ -102,7 +182,7 @@
       {%- endif -%}
     </p>
   {%- endif -%}
-{%- endif -%}
+{%- endunless -%}
 
 {% stylesheet %}
   .aj-brand-ship {
@@ -116,8 +196,10 @@
   }
 
   /* A drawn tick rather than an emoji: it inherits colour, scales with the
-     text, and does not render as a different glyph on every platform. */
-  .aj-brand-ship--good::before {
+     text, and does not render as a different glyph on every platform. Only the
+     free tone earns it — a tick in front of a line that names a cost reads as
+     a benefit that is not being offered. */
+  .aj-brand-ship--free::before {
     content: "";
     flex: none;
     width: 0.55rem;
@@ -125,11 +207,57 @@
     border-left: 2px solid currentColor;
     border-bottom: 2px solid currentColor;
     transform: rotate(-45deg);
-    opacity: 0.75;
     align-self: center;
   }
 
-  .aj-brand-ship--good { opacity: 0.85; }
-  .aj-brand-ship--nudge { font-weight: 600; }
-  .aj-brand-ship__link { text-decoration: underline; }
+  /* The pill. A TINT of the brand accent rather than the solid fill the saving
+     pill uses, so the two can sit inches apart and still be ranked. Text stays
+     the page foreground: at this alpha the surface barely moves, so the
+     measured contrast of normal body text carries over — which is not true of
+     the solid accent, where #ffde00 is 1.34:1 against white and the text has to
+     become ink. */
+  .aj-brand-ship--free {
+    display: inline-flex;
+    width: fit-content;
+    margin-top: 0.6rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: color-mix(
+      in srgb,
+      var(--aj-price-accent, rgb(var(--color-foreground-rgb) / 0.5)) 18%,
+      transparent
+    );
+    font-weight: 600;
+  }
+
+  /* Browsers without color-mix get a neutral tint rather than no pill at all —
+     the shape is doing most of the work and a transparent background would
+     leave the padding looking like a layout bug. */
+  @supports not (background: color-mix(in srgb, red 18%, transparent)) {
+    .aj-brand-ship--free {
+      background: rgb(var(--color-foreground-rgb) / 0.08);
+    }
+  }
+
+  /* Stated, not sold. */
+  .aj-brand-ship--plain {
+    color: rgb(var(--color-foreground-rgb) / 0.8);
+  }
+
+  .aj-brand-ship--nudge {
+    color: rgb(var(--color-foreground-rgb) / 0.8);
+  }
+
+  .aj-brand-ship__link {
+    text-decoration: underline;
+  }
+
+  /* Forced colours discard backgrounds, which would flatten the pill into the
+     page and lose the only thing separating it from the plain line. */
+  @media (forced-colors: active) {
+    .aj-brand-ship--free {
+      background: Canvas;
+      border: 1px solid CanvasText;
+    }
+  }
 {% endstylesheet %}
