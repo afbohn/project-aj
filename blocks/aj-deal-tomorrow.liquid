@@ -1,0 +1,82 @@
+{%- comment -%}
+  AJ Tomorrow's Yoink — the sneak peek, as its own block.
+
+  SPLIT OUT OF aj-deal-urgency BECAUSE THE TWO HAVE OPPOSITE JOBS. The countdown
+  and the claimed bar argue FOR buying now and belong beside the price, above
+  the button. This block argues that there is another chance tomorrow, and must
+  sit below the button or it undercuts the very thing the countdown is doing.
+  While they shared one block the product page could only ever have one of them
+  in the right place.
+
+  Renders ONLY when the product being viewed is the deal running right now — the
+  same gate the urgency block uses, because "Today's Yoink not your thing?"
+  makes no sense on a page that is not today's Yoink.
+
+  Resolution is duplicated from sections/aj-daily-deal.liquid and
+  blocks/aj-deal-urgency.liquid rather than shared, because `render` gives a
+  snippet its own scope and cannot hand variables back. Keep the three in step.
+{%- endcomment -%}
+
+{%- liquid
+  assign this_product = closest.product
+  assign now = 'now' | date: '%s' | plus: 0
+  assign is_live_deal = false
+
+  for entry in shop.metaobjects.daily_deal.values
+    assign starts = entry.starts_at.value | date: '%s' | plus: 0
+    assign ends = entry.ends_at.value | date: '%s' | plus: 0
+    if starts <= now and ends > now
+      if entry.product.value.id == this_product.id
+        assign is_live_deal = true
+      endif
+      break
+    endif
+  endfor
+-%}
+
+{%- if is_live_deal and settings.tomorrow_enabled -%}
+  <div
+    class="aj-pdp-tomorrow spacing-style"
+    style="{% render 'spacing-style', settings: block.settings %}"
+    {{ block.shopify_attributes }}
+  >
+    {% render 'aj-deal-tomorrow',
+      heading: settings.tomorrow_heading,
+      show_signup: settings.tomorrow_signup
+    %}
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "AJ Tomorrow's Yoink",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "A sneak peek at the next Yoink, for the shopper who has decided against this one. PLACE IT BELOW THE BUY BUTTONS — above them it argues against buying at the moment of highest intent. Shows only on the product that is the live deal, and only when a next deal is queued. Wording is in Theme settings → Deal urgency."
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [{ "name": "AJ Tomorrow's Yoink" }]
+}
+{% endschema %}

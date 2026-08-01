@@ -330,16 +330,24 @@
                 "padding-block-end": 0
               },
               "blocks": {}
+            },
+            "aj_deal_tomorrow": {
+              "type": "aj-deal-tomorrow",
+              "settings": {
+                "padding-block-start": 0,
+                "padding-block-end": 0
+              }
             }
           },
           "block_order": [
             "group_icgrde",
-            "text_aEtTtq",
+            "aj_deal_urgency",
             "divider_VJhene",
             "variant_picker_R3rGDr",
             "buy_buttons_eYQEYi",
-            "aj_deal_urgency",
-            "aj_ships_from"
+            "aj_ships_from",
+            "text_aEtTtq",
+            "aj_deal_tomorrow"
           ]
         }
       },

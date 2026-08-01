@@ -1,6 +1,12 @@
 {%- comment -%}
   AJ Deal Urgency — the countdown and claimed bar, for a product page.
 
+  PLACE THIS ABOVE THE BUY BUTTONS, beside the price. Both things it renders
+  argue for buying now, so they belong where the buying decision is made.
+  Tomorrow's sneak peek used to live here and has moved to its own block: it
+  argues the opposite and has to sit below the button, so one block could only
+  ever put one of them in the right place.
+
   Closes a gap in the funnel: the homepage deal's call to action sends anyone
   buying a multi-variant product to the PDP to choose options, and until now
   that page carried none of the urgency that got them to click. The clock
@@ -62,19 +68,6 @@
       %}
     {%- endif -%}
 
-    {%- comment -%}
-      PLACE THIS BLOCK BELOW THE BUY BUTTONS in the theme editor. On the
-      homepage the order is fixed in the section; here the position is whatever
-      the product template says, and a sneak peek at tomorrow sitting above
-      add-to-cart is an argument against buying today, delivered at the moment
-      of highest intent.
-    {%- endcomment -%}
-    {%- if block.settings.show_tomorrow and settings.tomorrow_enabled -%}
-      {% render 'aj-deal-tomorrow',
-        heading: settings.tomorrow_heading,
-        show_signup: settings.tomorrow_signup
-      %}
-    {%- endif -%}
   </div>
 {%- endif -%}
 
@@ -113,11 +106,8 @@
       "default": true
     },
     {
-      "type": "checkbox",
-      "id": "show_tomorrow",
-      "label": "Show tomorrow's sneak peek",
-      "default": true,
-      "info": "Place this block BELOW the buy buttons. Above them it argues against buying today, at the moment of highest intent. Wording is in Theme settings → Deal urgency."
+      "type": "paragraph",
+      "content": "Tomorrow's sneak peek is now its own block, \"AJ Tomorrow's Yoink\" — add it separately and place it BELOW the buy buttons. This block belongs ABOVE them, beside the price."
     },
     {
       "type": "header",
