@@ -1,0 +1,119 @@
+{%- comment -%}
+  AJ Deal Price — the price, the former price, and what you save.
+
+  REPLACES HORIZON'S STOCK PRICE BLOCK ON THE PDP, which renders the number
+  and the compare-at at the same weight and says nothing about the gap between
+  them. On a store whose entire proposition IS the gap, that is the one thing
+  the page should not be quiet about.
+
+  WORKS ON EVERY PRODUCT, not just the deal. Most of the catalogue is not on
+  sale, and a price block that only behaves on deal days would leave 1,500
+  product pages with nothing. With no compare-at it renders a plain price and
+  no savings line — the emphasis appears only when there is a real saving to
+  emphasise.
+
+  THE SAVING IS COMPUTED, NEVER TYPED. price and compare_at_price are read from
+  the variant, so this cannot advertise a discount the product does not have —
+  the same guarantee the deal captions run on. `deal.py` guarantees compare-at
+  holds a genuine former price or the supplier's MSRP, never an inflated number
+  invented to manufacture a gap.
+
+  BUILT FOR A BRAND THAT HAS NOT LANDED YET. Every colour is a CSS custom
+  property with the current neutral as its fallback, so applying Jake's palette
+  is setting four variables rather than editing this file. The accent is used
+  as a BACKGROUND with dark text on it, never as text: measured against white,
+  the logo's yellow is 1.34:1 and its cyan 2.55:1 — both fail as type at any
+  size — while ink on that yellow is 12.65:1. The one arrangement that works is
+  the one this is built around.
+{%- endcomment -%}
+
+{%- liquid
+  assign product = closest.product
+  assign variant = product.selected_or_first_available_variant
+  assign price = variant.price
+  assign was = variant.compare_at_price
+
+  assign on_sale = false
+  if was and was > price
+    assign on_sale = true
+    assign saving = was | minus: price
+    assign saving_percent = saving | times: 100.0 | divided_by: was | round
+  endif
+-%}
+
+{{ 'aj-deal-price.css' | asset_url | stylesheet_tag }}
+
+<div
+  class="aj-price{% if on_sale %} aj-price--deal{% endif %} spacing-style"
+  style="{% render 'spacing-style', settings: block.settings %}"
+  {{ block.shopify_attributes }}
+>
+  {%- if block.settings.price_label != blank -%}
+    <p class="aj-price__label">{{ block.settings.price_label | escape }}</p>
+  {%- endif -%}
+
+  <p class="aj-price__row">
+    <span class="aj-price__now">{{ price | money }}</span>
+    {%- if on_sale -%}
+      {%- comment -%}
+        The former price is struck and unlabelled. Naming it is a claim we
+        cannot make uniformly: on some products compare-at is the supplier's
+        MSRP and on others it is our own former price, so "MSRP" would be false
+        for half the catalogue and "was" false for the other half.
+      {%- endcomment -%}
+      <s class="aj-price__was">{{ was | money }}</s>
+    {%- endif -%}
+  </p>
+
+  {%- if on_sale -%}
+    <p class="aj-price__saving">
+      You save {{ saving | money }}
+      <span class="aj-price__saving-pct">({{ saving_percent }}%)</span>
+    </p>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "AJ Price",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "The price, the former price struck through, and the saving computed from both. Every figure is read from the variant, so it cannot advertise a saving the product does not have. On a product with no compare-at it renders a plain price and nothing else."
+    },
+    {
+      "type": "text",
+      "id": "price_label",
+      "label": "Label above the price",
+      "default": "Our price",
+      "info": "Leave empty for no label. Avoid \"sale\" and \"discount\" — see the voice rules."
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 8
+    }
+  ],
+  "presets": [{ "name": "AJ Price", "category": "Product" }]
+}
+{% endschema %}

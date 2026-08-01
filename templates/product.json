@@ -152,38 +152,24 @@
                   },
                   "blocks": {}
                 },
-                "price_tVjtKg": {
-                  "type": "price",
-                  "settings": {
-                    "show_sale_price_first": true,
-                    "show_installments": true,
-                    "show_tax_info": true,
-                    "type_preset": "paragraph",
-                    "width": "100%",
-                    "alignment": "left",
-                    "font": "var(--font-body--family)",
-                    "font_size": "1rem",
-                    "line_height": "normal",
-                    "letter_spacing": "normal",
-                    "case": "none",
-                    "text_color": "",
-                    "padding-block-start": 4,
-                    "padding-block-end": 0,
-                    "padding-inline-start": 0,
-                    "padding-inline-end": 0
-                  },
-                  "blocks": {}
-                },
                 "aj_brand_shipping_QCePN3": {
                   "type": "aj-brand-shipping",
                   "name": "Brand shipping",
                   "settings": {},
                   "blocks": {}
+                },
+                "aj_price": {
+                  "type": "aj-deal-price",
+                  "settings": {
+                    "price_label": "Our price",
+                    "padding-block-start": 0,
+                    "padding-block-end": 8
+                  }
                 }
               },
               "block_order": [
                 "text_xpVMaM",
-                "price_tVjtKg",
+                "aj_price",
                 "aj_brand_shipping_QCePN3"
               ]
             },

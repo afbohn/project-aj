@@ -1,0 +1,95 @@
+/*
+  AJ Price — PDP price, former price, and saving.
+
+  FOUR VARIABLES ARE THE WHOLE BRAND SURFACE. Each falls back to the current
+  neutral, so this renders correctly today and takes Jake's palette by setting
+  them once in a theme stylesheet — no edits here.
+
+      --aj-price-ink      the price itself
+      --aj-price-accent   the saving BACKGROUND
+      --aj-price-on-accent  text sitting on that background
+      --aj-price-font     an optional display face for the number
+
+  THE ACCENT IS A BACKGROUND, NEVER TEXT, and that is a measured constraint
+  rather than a stylistic one. Against white the logo's yellow (#ffde00) is
+  1.34:1 and its cyan (#43afca) is 2.55:1 — both fail WCAG 1.4.3 as type at any
+  size, and fail 1.4.11 as a border. Ink on that yellow is 12.65:1 and ink on
+  the cyan is 6.62:1. So the saving is dark text on a colour block, which is the
+  one arrangement that both reads and passes. The purple (#814a9e) is the
+  exception at 6.16:1 and is safe as type — it is the sensible --aj-price-ink.
+*/
+
+.aj-price {
+  display: block;
+}
+
+.aj-price__label {
+  margin: 0 0 0.15rem;
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  /* 0.7 of the foreground: measured 8.45:1 light, 7.09 dark, 5.34 teal — all
+     clear 4.5:1, so the label can be quiet without becoming unreadable. */
+  color: rgb(var(--color-foreground-rgb) / 0.7);
+}
+
+.aj-price__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.aj-price__now {
+  font-family: var(--aj-price-font, var(--font-heading--family));
+  font-size: 2rem;
+  line-height: 1.1;
+  font-weight: 700;
+  color: var(--aj-price-ink, var(--color-foreground));
+}
+
+.aj-price--deal .aj-price__now {
+  font-size: 2.5rem;
+}
+
+.aj-price__was {
+  font-size: 1.125rem;
+  /* Struck-through text is already de-emphasised by the line through it, so it
+     keeps a readable weight rather than being faded twice. */
+  color: rgb(var(--color-foreground-rgb) / 0.7);
+}
+
+.aj-price__saving {
+  display: inline-block;
+  margin: 0.5rem 0 0;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: var(--aj-price-accent, rgb(var(--color-foreground-rgb) / 0.09));
+  color: var(--aj-price-on-accent, var(--color-foreground));
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.aj-price__saving-pct {
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+@media (max-width: 480px) {
+  .aj-price--deal .aj-price__now {
+    font-size: 2.125rem;
+  }
+}
+
+/*
+  Forced colours throw away backgrounds, which would flatten the saving pill
+  into the page. System colours are guaranteed to contrast with each other.
+*/
+@media (forced-colors: active) {
+  .aj-price__saving {
+    background: Canvas;
+    border: 1px solid CanvasText;
+    color: CanvasText;
+  }
+}
