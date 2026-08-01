@@ -95,6 +95,35 @@ worst at $58.99 against a $62.15 cost. They lose money at full price with no
 discount involved, so no margin floor catches them — every floor here is
 expressed as a discount off a price that is already wrong.
 
+## Keeping the item and taking store credit are two separate offers
+
+31 July, late. The returns logic was run over real deal values for the first
+time and got the case this store cares most about wrong: a $5.66 DEFECTIVE
+return came back as keep-it-and-credit — no cash, $6.23 in store credit.
+
+The keep-it arithmetic is right. Below roughly $25, return postage plus
+handling exceeds what the item recovers, and recovery is not even certain
+because ~40 suppliers have ~40 different terms. Asking for a cheap item back is
+worse than letting it go.
+
+**But that is an argument about the ITEM, and it was being used to decide the
+MONEY.** The published refund policy says of anything damaged, defective or
+wrong: *"We'll replace it or refund it in full, including shipping."* Answering
+that with a voucher contradicts a page the customer can open in another tab —
+on the one clause this file has most deliberately kept generous. The 30-day
+defect window exists because narrowing the defect path does not reduce exposure,
+it converts refunds into chargebacks; offering credit for a broken item is the
+most reliable way to produce one. A few dollars of margin against a dispute fee,
+the goods, and the ratio that gets a payments account reviewed.
+
+So a fault under the line is **keep it AND refund cash**: they keep it, because
+posting a broken thing back helps nobody, and the money goes back as money.
+Change-of-mind under the line still gets credit at 110%, which is a genuinely
+better offer there and costs less because credit is costed at COGS.
+
+The general form, worth keeping: **a cost argument may decide logistics and
+must not decide an obligation.**
+
 ## The API budget is a library, not a supervisor
 
 31 July, late. Two agents started returning `Throttled` in the same minute.
