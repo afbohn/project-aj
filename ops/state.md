@@ -607,6 +607,10 @@ Craft and AURA 8 HOME are 190 of the 279 between them, across 20 vendors total.
 `read_online_store_navigation` scope, so menus cannot be read or edited from
 here — adding `Ships Free` to the main menu is an admin click.
 
+**The sneak peek is a recessed panel**, not loose text — 0.045 tint, 0.18
+hairline, its own padding, and an eyebrow reading "Tomorrow". Same on the
+homepage and the PDP, both of which render `snippets/aj-deal-tomorrow.liquid`.
+
 ### Corrections to earlier entries
 
 - **Judge.me IS wired now.** This file said no review UI was wired; that was

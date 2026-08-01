@@ -258,6 +258,28 @@ taking the cheapest rate. "From" is honest in all three directions and errs
 toward overstating the cost, which is the safe direction for a claim and the
 same reasoning that keeps a delivery date off `aj-ships-from`.
 
+## Second-level messaging is contained by recessing it, never by carding it
+
+1 August. The sneak peek was a hairline rule above loose stacked text, on the
+reasoning that a card would compete with the deal. The reasoning was right and
+the result was wrong: with no container it read as more of the product listing,
+so a shopper met "Today's Yoink not your thing?" as though the listing itself
+had said it.
+
+The general problem: **a block can need to be more cohesive and less prominent
+at the same time**, and the usual fix for the first makes the second worse. A
+card fixes cohesion by escalating — border, contrast, something sitting forward
+of the page — which is exactly what a block under the add-to-cart cannot do.
+
+The answer is to recess rather than raise: a faint inset surface with a hairline
+edge reads as a distinct region while sitting BEHIND the page. Plus an eyebrow
+naming the block, because without one the panel opens on a question, which is
+most of why the text read as the page talking rather than as a section.
+
+It stays neutral rather than accented on purpose. When Jake's palette lands the
+tint is the obvious place to put it, and doing so would re-escalate the block
+above the CTA — undoing the thing this design spends its whole effort on.
+
 ## The API budget is a library, not a supervisor
 
 31 July, late. Two agents started returning `Throttled` in the same minute.
