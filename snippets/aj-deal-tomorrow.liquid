@@ -147,6 +147,22 @@
       {{ heading | default: "Today's Yoink not your thing?" }}
     </p>
 
+    {%- comment -%}
+      THE TEASER LEADS WHEN THERE IS ONE. It is written by the enrichment agent
+      under a rule that it may evoke a person or a moment and never the object,
+      because these SKUs are not exclusive and naming tomorrow's item hands a
+      deal-hunter a day to find it cheaper. It is also the only line here
+      written for a shopper rather than a colleague.
+
+      The category-and-band sentence stays underneath as the factual half, and
+      carries the page on its own when the teaser is blank — which the prompt
+      treats as a good answer rather than a failure.
+    {%- endcomment -%}
+    {%- assign teaser = next_product.metafields.enrich.teaser.value -%}
+    {%- if teaser != blank -%}
+      <p class="aj-tomorrow__teaser">{{ teaser | escape }}</p>
+    {%- endif -%}
+
     <p class="aj-tomorrow__body">
       {%- if cat_label != blank and band_label != blank -%}
         The next one is <strong>{{ cat_label }}</strong>, priced

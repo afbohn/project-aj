@@ -212,3 +212,16 @@
   color: var(--color-foreground);
   font-size: 0.9375rem;
 }
+
+/*
+  The teaser leads the sneak peek, so it is the one line there allowed a little
+  weight — still under the block's own heading, and well under the CTA above it.
+  Italic rather than bold: it is a voice, not an announcement.
+*/
+.aj-tomorrow__teaser {
+  margin: 0 0 0.4rem;
+  font-size: 1.0625rem;
+  font-style: italic;
+  line-height: 1.4;
+  color: var(--color-foreground);
+}
