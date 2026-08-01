@@ -198,12 +198,12 @@ edited by hand.
 
 ## What to check next session
 
-1. **The calendar is full through 31 August** — 8 to 31 August scheduled in one
-   batch, `batch_id: plan-aug2026fill`, no gap between today and the 31st. The
-   earlier note here said 7 August was empty; it was not, and the queue is no
-   longer eight days deep. **The runway is now checked by the invariants agent**
-   rather than by someone noticing, so this should never again be a thing to
-   look at by hand.
+1. **The calendar runs 1 to 11 August, and no further.** The `plan-aug2026fill`
+   batch that filled through the 31st was cleared and replaced late on 1 August;
+   see the incident section below. Eleven days is a real runway but it is not
+   the month this line used to claim. **The invariants agent checks the runway**,
+   so the warning will arrive on its own rather than waiting for someone to read
+   this file.
 2. **The Fidget Games** — 22 products unpublished and tagged `no-ship-rate`
    because Shopify offers no shipping rate for them, so checkout dead-ended.
    Needs raising with the supplier; nobody else can fix it.
@@ -611,6 +611,66 @@ here — adding `Ships Free` to the main menu is an admin click.
 hairline, its own padding, and an eyebrow reading "Tomorrow". Same on the
 homepage and the PDP, both of which render `snippets/aj-deal-tomorrow.liquid`.
 
+## 1 August, night — a stranded discount, and the one-Yoink rule
+
+The August batch was cleared and rebuilt by hand. Seven new deals were queued
+for 2 to 8 August. **One product was left discounted with nothing owning the
+restore**, and it was found by reading the live queue rather than by anything in
+the system noticing.
+
+**Panama Hat Australian sold at $86.50 against a real price of $129.75** —
+roughly a day, before it was restored. It carried no `yoink-of-the-day` tag, no
+countdown and no badge: an ordinary-looking listing at a third off. That is the
+worst shape this failure can take, because nothing about the storefront suggests
+anything is wrong.
+
+How it got there, in order:
+
+1. Two entries for 1 August pointed at DIFFERENT products. `hasLiveDeal` guards
+   against compounding a discount on the same product, so both passed it, and
+   both were activated and repriced. A day has one Yoink, so only one could show.
+2. The clear then ran. `undoBatch` correctly refuses to delete an entry carrying
+   a `price_snapshot` — that snapshot is the only record of the real price — but
+   it reported this as `keptActivated: 1`, a number with no product in it.
+3. The survivor's window had been moved to 11 August, so the sweep that would
+   have restored it was not due until the 12th.
+
+**Compare-at would not have saved it.** The bin-rotation orphan in July was
+recovered because compare-at still held the original prices; state.md called that
+luck at the time, and this is the case that proves it. Here compare-at held the
+$173.00 MSRP, not the $129.75 we were charging. The `price_snapshot` field was
+the only surviving copy.
+
+Both holes are fixed and deployed:
+
+- **One Yoink at a time.** `liveDealNow` asks whether ANY deal is running, not
+  just one on the same product, and activation refuses while one is. Checked
+  before the product is fetched so a blocked deal costs nothing. It reports to
+  `errors`, not `skipped`, because overlapping windows are a misconfiguration and
+  the light should stay red until the schedule is fixed. **The trade is real:** a
+  stranded activated entry now blocks activation for the length of its window —
+  the Yoink goes dark for a day and says so loudly, naming the blocking handle —
+  rather than letting a second product be silently discounted.
+- **`undoBatch` names what it kept**, with product, deal price and window,
+  instead of counting it.
+
+**Restoring it was done by hand, not with `deal.py end`.** That command winds
+`ends_at` back to now, which on an entry whose window has not opened yet writes
+an INVERTED window and leaves the snapshot in place. The advice to use it has
+been removed from the dashboard message that used to suggest it.
+
+**9 and 10 August were filled** — Gleamin's Vitamin C Clay Mask at 35% and White
+Water Life's Hampton Pullover at 38%, the latter hero score 4 and shipping free.
+Clearing the snapshot on the Panama Hat entry also turned it back into an
+ordinary queued deal, so 11 August recovered on its own.
+
+**`candidates.py` still has the hole this file records as fixed.** The `oos` and
+`no-ship-rate` exclusions landed in `candidates.server.ts` and never reached the
+Python mirror, whose query is still a bare `status:active`. The CLI can hand you
+an unbuyable product. Both picks above were verified by hand instead. The mirror
+is meant to make the CLI and the app answer the same question about money; on
+this question they do not.
+
 ### Corrections to earlier entries
 
 - **Judge.me IS wired now.** This file said no review UI was wired; that was
@@ -702,6 +762,22 @@ homepage and the PDP, both of which render `snippets/aj-deal-tomorrow.liquid`.
 - **A displayed limit that nothing enforces is a false claim**, however
   carefully the code comment explains the intention. `units_allocated` was
   documented as "the allocation is what we will honour" and honoured by nothing.
+- **A guard scoped to one product cannot see a collision between two.**
+  `hasLiveDeal` was right about what it checked and blind to the case next door:
+  two deals on one day, different products, both priced, one invisible.
+- **A safety rule that reports a COUNT hides the thing it just saved.**
+  `undoBatch` refused to delete a discounted entry — correctly — and said "1".
+  Nobody can act on a 1. Name the product or the refusal is decoration.
+- **The most expensive failure looks like a normal product page.** A stranded
+  discount has no badge, no countdown and no tag; it is a listing at the wrong
+  price. Sold-out and unshippable products at least LOOK broken.
+- **A mirror only mirrors on the day you write it.** `candidates.py` was built to
+  answer the same question as `candidates.server.ts` so the CLI could not
+  disagree about money. The `oos` / `no-ship-rate` exclusions were added to one
+  and not the other, and nothing anywhere fails when they drift.
+- **`deal.py end` assumes the deal is running now.** It winds `ends_at` back to
+  the current time, so pointing it at a future-dated entry manufactures an
+  inverted window and leaves the snapshot behind.
 
 **From 31 July, night**
 
