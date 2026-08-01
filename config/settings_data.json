@@ -88,6 +88,7 @@
     "sold_label": "[count] yoinked today",
     "tomorrow_enabled": true,
     "tomorrow_heading": "Today's Yoink not your thing?",
+    "soldout_heading": "Missed it? Here's what's next.",
     "tomorrow_signup": true,
     "merch_enabled": true,
     "merch_collection": "yoink-merch",

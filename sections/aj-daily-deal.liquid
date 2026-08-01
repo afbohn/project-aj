@@ -226,7 +226,23 @@
 
             <a href="{{ product.url }}" class="aj-deal__details">See full details</a>
           {%- else -%}
-            <p class="aj-deal__soldout">Sold out</p>
+            {%- comment -%}
+              A SOLD-OUT YOINK IS NOT A BROKEN PAGE, and until now it read like
+              one: a bare "Sold out" under a countdown still ticking, on a
+              product the homepage hero and every share still point at. The deal
+              deliberately stays visible when it sells out — hiding it would 404
+              the announcement bar, the Meta post and every link anyone shared —
+              so the page has to say something worth reading for the rest of the
+              window.
+
+              This is the best available outcome from the worst case. Someone
+              arriving at a sold-out deal has already shown they wanted it, so
+              peak disappointment is also peak intent for "tell me about the
+              next one" — which is exactly what the block below already offers.
+            {%- endcomment -%}
+            <p class="aj-deal__soldout">
+              <strong>Gone.</strong> Today's Yoink sold out.
+            </p>
           {%- endif -%}
         </div>
 
@@ -237,8 +253,19 @@
           Here it is only reached by someone who scrolled past the button.
         {%- endcomment -%}
         {%- if settings.tomorrow_enabled -%}
+          {%- comment -%}
+            The heading changes when the deal is gone. "Today's Yoink not your
+            thing?" is addressed to someone who chose not to buy; to someone who
+            could not, it reads as a taunt.
+          {%- endcomment -%}
+          {%- liquid
+            assign peek_heading = settings.tomorrow_heading
+            unless variant.available
+              assign peek_heading = settings.soldout_heading | default: "Missed it? Here's what's next."
+            endunless
+          -%}
           {% render 'aj-deal-tomorrow',
-            heading: settings.tomorrow_heading,
+            heading: peek_heading,
             show_signup: settings.tomorrow_signup
           %}
         {%- endif -%}

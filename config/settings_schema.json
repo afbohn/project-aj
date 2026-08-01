@@ -2206,6 +2206,13 @@
         "info": "Phrase it as a question to the non-buyer. It lets a buyer skim past."
       },
       {
+        "type": "text",
+        "id": "soldout_heading",
+        "label": "Opening line when the deal has sold out",
+        "default": "Missed it? Here's what's next.",
+        "info": "Replaces the line above once the Yoink is gone. \"Not your thing?\" reads as a taunt to someone who could not buy rather than chose not to."
+      },
+      {
         "type": "checkbox",
         "id": "tomorrow_signup",
         "label": "Ask for an email",
