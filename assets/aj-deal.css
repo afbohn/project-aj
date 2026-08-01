@@ -250,3 +250,19 @@
   font-size: 0.875rem;
   color: rgb(var(--color-foreground-rgb) / 0.8);
 }
+
+/*
+  The confirmation replaces the form, so it has to carry the weight the form
+  did. A line of small grey text under an untouched-looking input is what made
+  a successful signup read as nothing having happened.
+*/
+.aj-tomorrow__success {
+  margin: 0.75rem 0 0;
+  padding: 0.75rem 1rem;
+  border-radius: var(--style-border-radius-buttons-primary, 4px);
+  /* 0.07 is a wash, not a boundary — the text on it is full-strength
+     foreground, so contrast is unaffected and nothing here rides on the tint. */
+  background: rgb(var(--color-foreground-rgb) / 0.07);
+  color: var(--color-foreground);
+  font-size: 0.9375rem;
+}

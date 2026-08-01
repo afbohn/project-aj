@@ -152,11 +152,16 @@
         There's a new one on the way.
       {%- endif -%}
 
-      {%- if seamless -%}
+      {%- comment -%}
+        The tags below deliberately do NOT use the whitespace-stripping hyphen
+        form. Stripping ate the space between the two sentences and the page
+        printed "over $50.It drops the moment this one ends."
+      {%- endcomment -%}
+      {% if seamless %}
         It drops the moment this one ends.
-      {%- else -%}
+      {% else %}
         It drops {{ next_deal.starts_at.value | date: '%A %-d %B, %-l%P' }}.
-      {%- endif -%}
+      {% endif %}
     </p>
 
     {%- if show_signup -%}
@@ -164,37 +169,54 @@
         The reason to hand over an email, rather than a bare "join our list".
         Capture lives only in the footer today, where nothing is offered for it.
       {%- endcomment -%}
-      {%- form 'customer', class: 'aj-tomorrow__form' -%}
+      {%- comment -%}
+        The form carries an `id`, which is what makes the page come BACK here.
+        Shopify redirects to `?customer_posted=true` and jumps to the form's id
+        as an anchor; without one the browser lands wherever it likes — which on
+        a long deal page meant scrolling somewhere else entirely and looking as
+        though the click did nothing at all.
+      {%- endcomment -%}
+      {%- form 'customer', id: 'aj-tomorrow-signup', class: 'aj-tomorrow__form' -%}
         <input type="hidden" name="contact[tags]" value="yoink-preview">
-        <label class="aj-tomorrow__label" for="aj-tomorrow-email">
-          Want to know what it is before anyone else?
-        </label>
-        <div class="aj-tomorrow__row">
-          <input
-            type="email"
-            id="aj-tomorrow-email"
-            name="contact[email]"
-            class="aj-tomorrow__input"
-            placeholder="you@example.com"
-            autocomplete="email"
-            required
-          >
-          {%- comment -%}
-            NOT the theme's primary `button` class. That renders identically to
-            Add to cart, so the page offered two equally weighted black buttons
-            and the second-level message looked like a second offer. This is
-            deliberately quieter than the CTA it sits beneath.
-          {%- endcomment -%}
-          <button type="submit" class="aj-tomorrow__button">Send it to me</button>
-        </div>
+
         {%- if form.posted_successfully? -%}
-          <p class="aj-tomorrow__note" role="status">
-            You're on the list. Tomorrow's Yoink lands in your inbox first.
+          {%- comment -%}
+            THE FORM IS REPLACED, not annotated. Leaving the input and button in
+            place with a line of small text underneath is what made a successful
+            signup read as a no-op: the thing you interacted with looked exactly
+            as it did before you touched it. Removing it is the confirmation.
+          {%- endcomment -%}
+          <p class="aj-tomorrow__success" role="status">
+            <strong>You're on the list.</strong>
+            Tomorrow's Yoink lands in your inbox before it goes live.
           </p>
-        {%- elsif form.errors -%}
-          <p class="aj-tomorrow__note aj-tomorrow__note--error" role="alert">
-            {{ form.errors.messages['email'] | default: 'That email did not look right.' }}
-          </p>
+        {%- else -%}
+          <label class="aj-tomorrow__label" for="aj-tomorrow-email">
+            Want to know what it is before anyone else?
+          </label>
+          <div class="aj-tomorrow__row">
+            <input
+              type="email"
+              id="aj-tomorrow-email"
+              name="contact[email]"
+              class="aj-tomorrow__input"
+              placeholder="you@example.com"
+              autocomplete="email"
+              required
+            >
+            {%- comment -%}
+              NOT the theme's primary `button` class. That renders identically to
+              Add to cart, so the page offered two equally weighted black buttons
+              and the second-level message looked like a second offer. This is
+              deliberately quieter than the CTA it sits beneath.
+            {%- endcomment -%}
+            <button type="submit" class="aj-tomorrow__button">Send it to me</button>
+          </div>
+          {%- if form.errors -%}
+            <p class="aj-tomorrow__note aj-tomorrow__note--error" role="alert">
+              {{ form.errors.messages['email'] | default: 'That email did not look right.' }}
+            </p>
+          {%- endif -%}
         {%- endif -%}
       {%- endform -%}
     {%- endif -%}
