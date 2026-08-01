@@ -502,11 +502,27 @@ Two things that follow from that, and both are decisions rather than tasks:
 
 1. **`write_orders` is granted, so the returns handler COULD refund.** It still
    does not. Switching it on is deliberate, and belongs with a human watching.
-2. **There is still no store-credit scope.** `write_store_credit_account_transactions`
-   is absent, so keep-it-and-credit — the entire reason automatic refunds were
-   turned off — cannot execute even now. Cash refunds could; credit cannot.
+2. ~~There is still no store-credit scope.~~ **Wrong within hours of being
+   written.** A later pull the same night brought the count to **77 scopes**,
+   including `write_store_credit_account_transactions` and all five store-credit
+   scopes. Both halves of the handler — `refundCreate` and
+   `storeCreditAccountCredit` — are permitted.
 
-**62 of the 72 scopes are referenced nowhere in `app/`,** and eleven carry real
+   **The blocker is not scopes. It is that the store has zero orders.** Verified
+   live on 1 August: `ordersCount` is 0, EXACT, and no return has ever existed,
+   so `returns/close` has never fired. Execution written now could not be
+   exercised against anything, and `refundCreate` is not a one-liner — it takes
+   refund line items with quantities, a parent transaction to refund against,
+   and its own decisions about shipping and tax. Those are the details that
+   review passes and production fails.
+
+   Unblocking it means a real order or a deliberately created test one, with a
+   human present. **On a Collective store that is not a free action:** an order
+   may be forwarded to the supplier as a real purchase, so "just make a test
+   order" needs an answer about supplier fulfilment before anyone makes one.
+
+**62 of the scopes are referenced nowhere in `app/`** — 72 at the time of
+writing, 77 by the end of the night — and eleven carry real
 blast radius: `write_discounts` and `write_price_rules` change what customers
 pay, `write_checkouts` and `write_order_edits` alter live orders,
 `read_customer_payment_methods` and `read_all_orders` are sensitive customer
