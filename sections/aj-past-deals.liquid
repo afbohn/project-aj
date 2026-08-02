@@ -287,18 +287,29 @@
     height: 100%;
     object-fit: cover;
     display: block;
-    /* History, not merchandise. Greyed so today's live deal stays unmistakably
-       the thing to act on; restored on hover so the product is still
-       inspectable. */
-    filter: grayscale(1);
-    opacity: 0.62;
+    /* History, not merchandise — but this section's job is to make a card land
+       as a LOSS, and that needs the product to still look worth having. There
+       is no regret without desire.
+
+       It was dimmed three times over: full desaturation, 38% transparency, AND
+       the 42% ink veil above. Any one of those reads as past; all three read as
+       dead, which is the opposite of the intended feeling.
+
+       The veil stays, because it is what guarantees the white "81% off" is
+       legible over an arbitrary product photo. The other two go: half
+       desaturation is enough to keep today's live deal unmistakably the thing
+       to act on, while leaving the product recognisable as something you wanted.
+
+       Half also matters on mobile, where the hover restore below never fires —
+       the resting state is the only state most people will see. */
+    filter: grayscale(0.45);
     transition: filter 0.2s ease, opacity 0.2s ease;
   }
 
   .aj-past__link:hover .aj-past__image,
   .aj-past__link:focus-visible .aj-past__image {
+    /* opacity is no longer set at rest, so there is nothing to restore. */
     filter: grayscale(0);
-    opacity: 1;
   }
 
   .aj-past__day {
