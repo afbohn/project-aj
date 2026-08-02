@@ -42,6 +42,22 @@ sys.path.insert(0, __import__("os").path.dirname(__import__("os").path.abspath(_
 from shopify_auth import gql  # noqa: E402  (see module docstring for auth order)
 
 
+# Products that must never be offered as a deal, whatever their margin.
+#
+# `status:active` DOES NOT EXCLUDE THESE. Unpublishing a product does not change
+# its status, so a sold-out or unshippable product is still returned by that
+# query — which is how 88 of them once sat in the app's deal pool and a
+# no-ship-rate product got scheduled as a Yoink for 12 August: priced,
+# announced, counting down, with a checkout that dead-ends.
+#
+# That hole was closed in app/lib/candidates.server.ts and never reached this
+# file, which is meant to mirror it so the CLI and the app cannot answer
+# different questions about money. Read the tags array rather than adding
+# `-tag:oos` to the query: Shopify tokenizes on hyphens, so a `tag:` term also
+# matches `oos-pending` and would exclude products that are merely suspected.
+BLOCKING_TAGS = {"oos", "no-ship-rate"}
+
+
 def fetch_products():
     products, cursor = [], None
     while True:
@@ -54,10 +70,12 @@ def fetch_products():
               title
               handle
               vendor
+              tags
+              publishedAt
               totalInventory
               featuredMedia { id }
               shipCost: metafield(namespace: "ship", key: "cost") { value }
-              variants(first: 100) {
+              variants(first: 25) {
                 nodes {
                   price
                   compareAtPrice
@@ -70,7 +88,14 @@ def fetch_products():
         }
         """ % after)
         page = data["products"]
-        products.extend(page["nodes"])
+        for p in page["nodes"]:
+            # Unpublished is unbuyable, and so is a blocking tag. Both look
+            # entirely normal in the response; neither can be sold.
+            if not p.get("publishedAt"):
+                continue
+            if BLOCKING_TAGS & set(p.get("tags") or []):
+                continue
+            products.append(p)
         if not page["pageInfo"]["hasNextPage"]:
             return products
         cursor = page["pageInfo"]["endCursor"]
