@@ -26,7 +26,7 @@
         "heading": "Start a return",
         "intro": "Tell us the order and what you'd like to send back. You'll get an answer on this page, not in three days.",
         "policy_note": "14 days from delivery to change your mind, 30 days if something's faulty. Nothing here is ever final sale.",
-        "policy_page": "",
+        "policy_page": "shopify://policies/refund-policy",
         "color_scheme": ""
       }
     }
