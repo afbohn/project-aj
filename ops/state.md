@@ -294,11 +294,14 @@ which is normal for a terms-of-service contact section.
 region United States. Canada and International are not active markets, so there
 is no international dead-end at checkout.
 
-## Shipping — measured, and deliberately left as pass-through
+## Shipping — measured, and marked up 15% since 1 August
 
-**The customer pays the supplier's rate, unmarked-up, calculated at checkout.**
-Shipping is net zero to us: we never lose money on it and never make any. That
-is a decision, not an accident — see decisions.md.
+~~The customer pays the supplier's rate, unmarked-up.~~ **Superseded.** Shipping
+was net zero to us by decision until late on 1 August, when a 15%
+percentage-of-rate fee went on the Collective carrier participant — see the
+1 August, late section for the reasoning and the before/after rates. The rest of
+this section describes how rates are MEASURED, which is unchanged: Collective
+still calculates, and Shopify adds our margin to its answer.
 
 **A flat $6.95 was attempted on 31 July and broke checkout.** Collective products
 ship from SUPPLIER locations, so a delivery profile scoped to our own location
@@ -695,6 +698,144 @@ this question they do not.
   0 — the gap is having no orders, not missing UI.
 - **The scheduler's stagger only ever applied to the first run.** See below.
 
+## 1 August, late — returns proven, Yoink Sweep retired, shipping earns
+
+### The returns handler ran for the first time
+
+**`returns/close` had never fired in this store's life**, so nothing had ever
+tested it. It turned out to be broken in a way no amount of review would have
+caught, because the failure was in a permission rather than in logic.
+
+**The app held no returns scope at all.** Its first action is a `return(id:)`
+read, which answered `ACCESS_DENIED — requires read_returns`, verified against
+the live store with the app's own token. Worse than a plain bug: every failure
+returned 500 on the reasoning that a read failure is usually transient, and
+Shopify retries a non-2xx for 48 hours and then DISABLES the subscription. A
+missing scope is not transient, so the handler would have taken itself down for
+every future return, days later, with nobody watching. Permanent failures now
+answer 200 and log loudly instead.
+
+**All scopes are now granted — 183 of them**, deliberately, so nothing is
+blocked waiting on a permissions round-trip. The standing rule that comes with
+that breadth: **ask before building anything that uses a scope the code does not
+already use, and before using one by hand.** Availability is not permission. The
+guardrail moved off the token and onto the asking.
+
+**A test harness exists and cost nothing.** `TEST — Returns Harness (do not
+sell)`, vendor `Yoink Internal`, **DRAFT status on purpose** — every agent
+queries `status:active`, so a draft product cannot be picked as a Yoink or pulled
+into the bin. No supplier behind it, so no Collective order can result. Three
+variants priced to land in three different branches: $18 under the keep-it line,
+$40 ordinary, $100 above the approval line.
+
+Order **#1001** ($40, tagged `internal-test`) and return **#1001-R1** exercised
+the path end to end. The record written:
+
+```
+rd-57347047526   action=refund_cash   refund_value=40.0   reason=UNWANTED
+                 we_pay_return_shipping=false   credit_amount=44.0   status=pending
+```
+
+Correct on every field — valued from its own line items rather than the order
+total, handle derived from the return id so a retry updates one record. **Three
+branches remain untested**: $18 fault, $18 non-fault, and $100. Worth doing
+before any money-moving code goes near this.
+
+**Still nothing pays.** `write_orders` and all five store-credit scopes are
+granted, so both halves are permitted — but `refundCreate` takes refund line
+items, a parent transaction, and its own decisions about shipping and tax, and
+those are the details review passes and production fails.
+
+### Yoink Sweep is retired
+
+**It had no codebase.** It was a second Shopify app whose client id and secret
+sat in this repo's Actions secrets, driving two workflows —
+`sweep-expired-deals.yml` and `sync-catalog.yml`. Everything they ran already
+lives in the app: `deal.py activate`/`sweep` became the lifecycle agent,
+`bands.py` and `vendors.py` became the catalogue agent. Both had been disabled
+since 30 July.
+
+Deleted rather than left disabled. A dormant second scheduler that activates and
+sweeps deals is not a harmless fallback — re-enabled by accident it fights the
+lifecycle agent over the same metaobjects and the same prices, and this project
+has already paid once for two systems believing they owned a restore.
+
+The reason it existed separately is also gone: it held
+`write_metaobject_definitions`, which the app lacked. The app now has it.
+**`unauthenticated_read_metaobjects` is granted too**, which this file twice
+records as a hard wall keeping the Storefront API blind to the daily deal. That
+wall is gone and worth revisiting.
+
+The Python scripts do NOT depend on it — `shopify_auth.py` falls back to the
+Shopify CLI when the env vars are absent, which is the path they take locally.
+
+**`candidates.py` had the hole this file recorded as fixed.** The `oos` and
+`no-ship-rate` exclusions landed in `candidates.server.ts` and never reached the
+mirror, whose query was a bare `status:active` — and unpublishing does not change
+status, so the CLI could and did offer unbuyable products. 1,607 → 1,564.
+
+### Shipping earns 15% now
+
+**The customer paid the supplier's rate at exactly cost and we kept nothing**,
+while carrying the conversion drag of a median $6.40 added to a $37.99 item.
+
+Shopify's `DeliveryParticipant` carries `fixedFee` and `percentageOfRateFee`,
+applied on top of whatever the carrier returns. On the Collective participant
+both were unset. **`percentageOfRateFee` is now 15.**
+
+**A PERCENTAGE, NOT A FIXED FEE, AND THAT IS THE WHOLE DESIGN.** 279 products are
+marketed as shipping free — the `ships-free` collection, a line on cards in five
+templates, a PDP block — all keyed on the measured cost being zero. A flat $1.50
+would leave every one of them claiming free shipping while checkout charged for
+it: the same class of failure as the "Only N left" counter nothing enforced. 15%
+of $0 is $0, so the claim stays true with nothing to keep in sync.
+
+Verified by quoting live rates before and after:
+
+| | before | after |
+|---|---|---|
+| Hampton Pullover, free option | $0.00 | **$0.00** |
+| Hampton Pullover, Standard | $10.00 | $11.50 |
+| Vitamin C Clay Mask | $4.90 | $5.64 |
+| Panama Hat Quickstep, Ground | $17.78 | $20.45 |
+
+Every product still returns rates. **This is not the July flat-rate attempt**,
+which replaced the rate SOURCE with a profile scoped to our own location, matched
+no Collective product and returned no rates at all. Here Collective still
+calculates; Shopify adds to the answer.
+
+**`ship.cost` now means what the CUSTOMER pays, not what the supplier charges.**
+The shipping agent measures through `draftOrderCalculate`, the same path, so its
+next run records marked-up figures. Correct for the PDP line and the cart
+threshold, which should show the real price — but it shifts the 35%-of-price
+exclusion slightly, so the deal pool shrinks a little. Free stays zero.
+
+**An order that clears a vendor's free-shipping threshold earns no markup.** That
+is the right trade and not a flaw: clearing a threshold adds an item worth ~$10.22
+in contribution against the ~$0.96 of shipping margin given up. Roughly ten to
+one. The markup is self-limiting exactly where you are already making more.
+
+### What the numbers say about the model
+
+Measured across 1,516 products carrying both a price and a cost, net of fees:
+**full-price contribution $10.22** (30% of a $37.99 median), **Bargain Bin at 25%
+off $6.53** with only 45% of the catalogue eligible, **Yoink $4.02**.
+
+**The acquisition offer is the lowest-margin thing we sell.** Max supportable CAC
+at 3:1 is **$6.69** on realistic assumptions and **$20.44** at the absolute
+ceiling — no deals at all, 50% attach, 4 lifetime orders. Cold paid acquisition
+runs $25-60. The gap is 3-5x, and no repeat rate a new brand can assume closes it.
+
+This does not say the model fails. It says **paid cannot buy the first cohort.**
+Build the list organically, then paid becomes retargeting off that list at
+$12-18, which the model does support. And **AOV is the strongest lever**: at $35
+CAC and 4 orders you need $82.71 AOV against $37.99 today — which is why the
+same-vendor threshold upsell already in the cart is the highest-leverage thing
+built so far.
+
+Fixed costs are not the constraint. Roughly **30 full-price orders a month covers
+the entire operation.**
+
 ## Things that bit us, so they don't again
 
 **From earlier sessions**
@@ -794,6 +935,31 @@ this question they do not.
 - **`deal.py end` assumes the deal is running now.** It winds `ends_at` back to
   the current time, so pointing it at a future-dated entry manufactures an
   inverted window and leaves the snapshot behind.
+- **`shopify store execute` authenticates as the Shopify CLI Connector App**, not
+  as our app. It reports 24 scopes where the app has 183, so any scope check run
+  through it describes the wrong application entirely. Ask the app's own token.
+- **The stored session token is short-lived and expires.** Lifting it out of the
+  session table works until it doesn't — one read succeeded and the next 401'd
+  ten minutes later, because the row holds a token-exchange token that the app
+  refreshes on request and nothing refreshes out of band. Mint one with the
+  client-credentials grant instead.
+- **A permanent failure answered with a 500 disables the webhook.** Shopify
+  retries a non-2xx for 48 hours and then switches the subscription off, so
+  "retry on every error" turns a missing scope into a handler that is silently
+  dead for every future event.
+- **App-declared webhooks never appear in `webhookSubscriptions`.** Topics
+  declared in `shopify.app.toml` are managed at app level, so an empty result
+  from that query is not evidence the subscription is missing.
+- **No Shopify Function can raise a shipping rate.** Delivery customizations move,
+  rename and hide; the only price operation on a delivery option is a discount,
+  which reduces. Markup lives on `DeliveryParticipant`, not in a Function.
+- **A flat handling fee would have falsified a live storefront claim.** 279
+  products advertise free shipping keyed on a measured zero. Any fixed amount
+  makes every one of those badges a lie at checkout. A percentage cannot.
+- **A returned `Count` can be capped.** The Collective delivery profile reports
+  500 variants against a catalogue of ~7,000. Rates demonstrably work, so this is
+  near-certainly a display cap — but ask for `precision` before believing a count,
+  because "a profile containing the wrong variants" is what broke checkout in July.
 
 **From 31 July, night**
 
@@ -936,3 +1102,21 @@ this question they do not.
   campaign budgets set at Meta so the kill switch works when the app is down, and
   approval per campaign. Use `utm_medium=paid_social` so paid and organic sit
   side by side in one scheme.
+
+  **And read the CAC arithmetic above before spending anything.** The model
+  supports $6.69 CAC on realistic assumptions and $20.44 at its absolute ceiling.
+  Cold paid runs $25-60. Ads are not the growth lever until AOV roughly doubles
+  or there is a list to retarget — the guardrails matter less than the fact that
+  the first cohort cannot be bought.
+- **Grow AOV.** The single strongest lever in the model, and the mechanism —
+  same-vendor items chosen to clear a free-shipping threshold — is already in the
+  cart. At $35 CAC and 4 lifetime orders the model needs $82.71 AOV against
+  $37.99 today.
+- **A recurring "win today's Yoink" draw**, rather than a one-off giveaway. Costs
+  one wholesale unit a week (~$70) and builds the daily-open habit the whole model
+  depends on, instead of one spike of sweepstakes hunters. Needs official rules
+  drafted, and needs the list warmed carefully — `hello@` has SPF and DKIM but
+  zero sending reputation, and a low-engagement blast would burn the domain before
+  the daily email ever matters.
+- **Finish the returns branches** — $18 fault, $18 non-fault, $100 approval — on
+  the existing test harness before writing anything that moves money.
