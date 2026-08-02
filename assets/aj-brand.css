@@ -132,10 +132,35 @@ h1, h2, h3, h4 {
 .aj-price__label,
 .aj-deal__badge,
 .aj-bin__badge,
-.aj-past__meta {
+.aj-past__meta,
+.aj-countdown__display,
+.aj-countdown__value,
+.aj-countdown__unit {
   font-family: "Ohpixel", var(--font-heading--family);
   font-weight: 400;
   /* A pixel grid needs air between glyphs at small sizes; without this the
      uppercase runs together into a block. */
   letter-spacing: 0.06em;
+}
+
+/*
+  THE COUNTDOWN NEEDS ITS DIGITS PINNED, and this is measured rather than
+  precautionary. Ohpixel gives "1" an advance of 0.400em and every other digit
+  0.600em, and it ships no `tnum` feature — its OpenType tables carry aalt,
+  ccmp, dlig, frac, kern, liga, locl, ordn, salt and sups, and nothing tabular.
+  So `font-variant-numeric: tabular-nums` has nothing to switch on.
+
+  Left alone, a two-digit group swings 0.400em between "11" and "88": the clock
+  would visibly shudder every second and lurch again when an hour rolls 09 -> 10.
+  A jittering countdown reads as broken, which is a bad thing for the element
+  whose entire job is to make the deal feel real.
+
+  1.4em holds two 0.600em digits with a little air. Centred, so the odd narrow
+  "1" sits in the middle of its slot rather than dragging the pair sideways.
+*/
+.aj-countdown__value {
+  display: inline-block;
+  min-width: 1.4em;
+  text-align: center;
+  font-variant-numeric: tabular-nums; /* harmless here, correct if the face ever gains tnum */
 }
