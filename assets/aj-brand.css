@@ -260,35 +260,40 @@
 }
 
 /*
-  STACKED UNITS, NOT A SENTENCE.
+  02:27:14 — the clock reads as a readout, not as prose.
 
-  It read "2 h 27 m 14 s" — number, word, number, word, along a baseline. That
-  is the shape of prose, and it fought the LED idiom the pixel face is
-  borrowing. Clocks are read as columns: the figure large, its unit small
-  underneath, each unit its own cell.
+  It said "2 h 27 m 14 s": number, word, number, word, along a baseline. That is
+  the shape of a sentence, and it fought the LED idiom the pixel face borrows.
+  Colons need no reading at all — everyone parses hh:mm:ss on sight, which is
+  the point of an element whose job is pressure.
 
-  The digits carry the meaning and the labels are grammar, so the sizes are far
-  apart deliberately — and the labels are dimmed rather than shrunk to
-  illegibility, since at 0.6em an already-blocky pixel face stops resolving.
+  DROPPING THE LETTERS COSTS NOTHING IN ACCESSIBILITY. Every group carries
+  aria-hidden="true" and the component keeps a separate visually-hidden
+  role="status" region that announces the real remaining time. The h/m/s spans
+  are decoration for sighted users, and the colons replace them.
+
+  The separator hangs off each group except the last, so when the days group is
+  hidden at under 24 hours its colon goes with it and the clock reads 02:27:14
+  rather than :02:27:14.
 */
 .aj-countdown__display .aj-countdown__group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.1rem;
-  min-width: 2.6rem;
-  padding: 0.15rem 0.1rem;
-}
-
-.aj-countdown__display .aj-countdown__value {
-  font-size: 1.6rem;
-  line-height: 1;
-  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+  padding: 0;
 }
 
 .aj-countdown__display .aj-countdown__unit {
-  font-size: 0.625rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  opacity: 0.6;
+  display: none;
+}
+
+.aj-countdown__display .aj-countdown__group:not(:last-child)::after {
+  content: ":";
+  margin: 0 0.06em;
+  opacity: 0.5;
+}
+
+.aj-countdown__display .aj-countdown__value {
+  font-size: 2rem;
+  line-height: 1;
 }
