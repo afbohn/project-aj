@@ -1162,12 +1162,62 @@ charge and the refund moves no real money. All test orders deleted afterwards;
 examples of what correct output looks like, including one `paid` and one
 `needs_approval` at $118 from a mixed-reason return.
 
-### What is still not built
+### Store credit works too
 
-**Store credit.** `keep_it_and_credit` is decided, recorded, and never paid —
-`storeCreditAccountCredit` has not been written. The scopes are granted. That is
-the remaining half of the reason automatic refunds were turned off in the first
-place.
+`keep_it_and_credit` settles now — `storeCreditAccountCredit` against the order's
+customer. Tested live: an $18 UNWANTED return produced **$19.80 of credit**,
+balance verified, record marked `credited` rather than `paid` so a reader can
+tell at a glance whether someone got money or spending power.
+
+**CREDIT IS A DIFFERENT SETTLEMENT, NOT A CHEAPER REFUND.** Nothing goes back to
+a supplier on a keep-it decision, so there is no recovery to wait for and no
+refund to create. The customer already has the goods; what they get is spending
+power.
+
+**NO EXPIRY, DELIBERATELY.** The 110% multiplier is worth more to them than cash
+AND costs us less, because credit is costed at COGS — roughly $9 of real cost for
+$19.80 of credit on a 50%-margin item. That margin is the whole reason the action
+exists. Breakage is not, and an expiry date would turn a generous-looking offer
+into a trick.
+
+**Both settlements share one switch.** Cash and credit both move value, so
+neither can be turned on alone — nobody gets to enable "only the cheap one" and
+forget which is which. It refuses when there is no customer on the order, because
+credit needs somewhere to go.
+
+### Does keep-it-and-credit fit Collective?
+
+**Yes, because it is downstream of Collective entirely.** Collective governs what
+happens when goods go BACK to a supplier — label, 2-day processing, 30-day
+window. On a keep-it decision nothing goes back, so none of that engages. What
+the customer receives is ours to decide.
+
+The consequence is economic, not contractual: **no return means no recovery**, so
+we eat the full wholesale cost. That is the deliberate trade — on an $18 item
+return postage plus handling costs more than the item recovers, and recovery from
+the supplier was never guaranteed.
+
+Note we are STRICTER than Collective on the window: our policy is 14 days for a
+change of mind against Collective's 30. Normal, but it means a day-20 request is
+one Collective would accept and our policy would not.
+
+### Returns start by EMAIL, not self-serve — and the reason is sequencing
+
+Decided 2 August. `hello@theyoink.com` is the route; Shopify's self-serve returns
+stay off.
+
+**Self-serve would generate return labels on exactly the items the policy says
+should not come back.** A customer self-serving an $18 return creates the return,
+Collective generates a label, the item ships — and only when the return CLOSES
+does the keep-it logic run and conclude they should have kept it. Postage paid on
+something we had decided not to recover, and a confused customer.
+
+The decision engine fires at close. Self-serve commits before then.
+
+**Switch self-serve on when keep-it can be decided at return CREATION rather than
+close.** That is real work and worth doing when volume justifies it. Until then
+the manual step is also the only chance to check the $25 line and the 110%
+multiplier against real human reactions before they are automated.
 
 ## Things that bit us, so they don't again
 
@@ -1520,9 +1570,13 @@ place.
   **Done.** Twelve cases verified against the pure function, worst-reason-wins
   and multi-line valuation proven live, and `refundCreate` built and tested both
   ways.
-- **Store credit.** `keep_it_and_credit` decides and records but never pays.
-  `storeCreditAccountCredit` is the missing call, and it is the other half of why
-  Collective's automatic refunds were turned off.
+- ~~Store credit.~~ **Built 2 August**, tested, off with everything else.
+- **NOTHING WATCHES `hello@`.** Returns start by email, and no agent reads that
+  mailbox — a return request sits there until a human opens it and creates the
+  return in Shopify by hand. The webhook fires on the RETURN, never on the email.
+  The morning digest does not mention returns either, so a `return_decision`
+  written overnight is invisible until someone goes looking in the metaobject
+  browser. Adding pending decisions to the digest is small and worth doing.
 - **Decide whether to switch refunds on.** The switch is `agent-returns-pay` and
   it is off. Nothing needs it while the store has no orders; the question becomes
   real with the first genuine return.
