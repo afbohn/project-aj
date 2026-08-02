@@ -93,3 +93,49 @@
   font-style: normal;
   font-display: swap;
 }
+
+/*
+  THREE FACES, THREE JOBS.
+
+  Flashy displays, Ohpixel labels, Archivo reads. Neither display face can do
+  the third job: Flashy's counters close up below about 22px, and Ohpixel is a
+  pixel grid that turns to mush in lowercase or in sentences. Archivo is set in
+  the theme settings and carries roughly 90% of the words on the site.
+*/
+
+/*
+  Flashy on headings — h1 to h4 ONLY, and the cutoff is measured rather than
+  chosen. The theme sizes them 56 / 48 / 32 / 24px, all comfortably above where
+  Flashy holds; h5 and h6 are 14px and 12px, well below it. Setting a display
+  face on those would be shipping something illegible on purpose.
+
+  Weight is normal because Flashy has one weight. Left at the theme's 700 it
+  renders synthetically emboldened — the browser smearing the outline sideways,
+  which on a face with this much character looks like a rendering fault.
+*/
+h1, h2, h3, h4 {
+  font-family: "Flashy", var(--font-heading--family);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+/*
+  Ohpixel on the labels. Every one of these is a short uppercase string — an
+  eyebrow, a badge, a countdown — which is the only shape a pixel face reads
+  well in. Deliberately NOT applied to .aj-bin__name or any product title:
+  those are real words of arbitrary length and belong to the text face.
+*/
+.aj-deal__eyebrow,
+.aj-tomorrow__eyebrow,
+.aj-tomorrow__label,
+.aj-announce__label,
+.aj-price__label,
+.aj-deal__badge,
+.aj-bin__badge,
+.aj-past__meta {
+  font-family: "Ohpixel", var(--font-heading--family);
+  font-weight: 400;
+  /* A pixel grid needs air between glyphs at small sizes; without this the
+     uppercase runs together into a block. */
+  letter-spacing: 0.06em;
+}
