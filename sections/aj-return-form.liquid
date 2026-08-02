@@ -1,0 +1,213 @@
+{%- comment -%}
+  Start a return.
+
+  TWO STEPS ON PURPOSE. Order number and email first, then the items. Asking for
+  everything at once means asking someone to name items before we have confirmed
+  we can even find their order, and the second screen is the only place we can
+  show them what is actually returnable.
+
+  THE ANSWER COMES BACK IMMEDIATELY, AND SOMETIMES IT IS "KEEP IT". That is the
+  reason this page exists rather than Shopify's self-serve returns: the decision
+  runs before any label is created, so a cheap item never gets posted back at a
+  cost greater than the item. See app/routes/proxy.return.tsx.
+
+  Everything is posted to the app through Shopify's signed proxy at
+  /apps/yoink/return — same origin, so no CORS, and signed, so the endpoint
+  cannot be driven from anywhere but this storefront.
+{%- endcomment -%}
+
+<div class="aj-rf color-{{ section.settings.color_scheme }} section spacing-style"
+     style="{% render 'spacing-style', settings: section.settings %}">
+  <div class="page-width aj-rf__wrap">
+    <h1 class="aj-rf__heading">{{ section.settings.heading | escape }}</h1>
+    <p class="aj-rf__intro">{{ section.settings.intro | escape }}</p>
+
+    <form class="aj-rf__step" data-step="find">
+      <label class="aj-rf__label" for="aj-rf-order">Order number</label>
+      <input class="aj-rf__input" id="aj-rf-order" name="order" inputmode="numeric"
+             placeholder="1024" autocomplete="off" required>
+
+      <label class="aj-rf__label" for="aj-rf-email">Email on the order</label>
+      <input class="aj-rf__input" id="aj-rf-email" name="email" type="email"
+             placeholder="you@example.com" autocomplete="email" required>
+
+      <button class="aj-rf__button" type="submit" data-find>Find my order</button>
+    </form>
+
+    <form class="aj-rf__step" data-step="items" hidden>
+      <p class="aj-rf__found" data-found></p>
+
+      <fieldset class="aj-rf__items">
+        <legend class="aj-rf__label">What are you sending back?</legend>
+        <div data-items></div>
+      </fieldset>
+
+      <label class="aj-rf__label" for="aj-rf-reason">Why?</label>
+      <select class="aj-rf__input" id="aj-rf-reason" name="reason">
+        <option value="UNWANTED">Changed my mind</option>
+        <option value="DEFECTIVE">It arrived damaged or faulty</option>
+        <option value="NOT_AS_DESCRIBED">Not what was described</option>
+        <option value="WRONG_ITEM">Wrong item sent</option>
+        <option value="SIZE_TOO_LARGE">Too big</option>
+        <option value="SIZE_TOO_SMALL">Too small</option>
+        <option value="COLOR">Colour wasn't right</option>
+        <option value="STYLE">Not my style</option>
+        <option value="OTHER">Something else</option>
+      </select>
+
+      <button class="aj-rf__button" type="submit" data-submit>Request the return</button>
+      <button class="aj-rf__back" type="button" data-back>Start again</button>
+    </form>
+
+    <div class="aj-rf__result" data-result hidden>
+      <p class="aj-rf__outcome" data-outcome></p>
+      <p class="aj-rf__note">A confirmation is on its way to your email.</p>
+    </div>
+
+    <p class="aj-rf__error" data-error hidden role="alert"></p>
+
+    <p class="aj-rf__policy">
+      {{ section.settings.policy_note | escape }}
+      {%- if section.settings.policy_page != blank -%}
+        <a href="{{ section.settings.policy_page }}">Read the full policy</a>.
+      {%- endif -%}
+    </p>
+  </div>
+</div>
+
+<script src="{{ 'aj-return-form.js' | asset_url }}" type="module" defer></script>
+
+{% stylesheet %}
+  .aj-rf__wrap { max-width: 34rem; }
+
+  .aj-rf__heading { margin: 0 0 0.5rem; }
+
+  .aj-rf__intro {
+    margin: 0 0 1.75rem;
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+  }
+
+  .aj-rf__label {
+    display: block;
+    margin: 1rem 0 0.35rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .aj-rf__input {
+    width: 100%;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid rgb(var(--color-foreground-rgb) / 0.25);
+    border-radius: 6px;
+    background: rgb(var(--color-background-rgb));
+    color: rgb(var(--color-foreground-rgb));
+    font: inherit;
+  }
+
+  .aj-rf__input:focus-visible {
+    outline: 2px solid var(--aj-brand-purple, currentColor);
+    outline-offset: 1px;
+  }
+
+  .aj-rf__items { border: 0; padding: 0; margin: 1.25rem 0 0; }
+
+  .aj-rf__item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    padding: 0.6rem 0;
+    border-block-end: 1px solid rgb(var(--color-foreground-rgb) / 0.12);
+  }
+
+  .aj-rf__item input { margin: 0; }
+  .aj-rf__item span { flex: 1; }
+
+  .aj-rf__item small {
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    white-space: nowrap;
+  }
+
+  .aj-rf__button {
+    margin-block-start: 1.5rem;
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 0;
+    border-radius: 6px;
+    background: var(--aj-brand-purple, rgb(var(--color-foreground-rgb)));
+    color: #ffffff;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .aj-rf__button[disabled] { opacity: 0.55; cursor: default; }
+
+  .aj-rf__back {
+    margin-block-start: 0.6rem;
+    width: 100%;
+    padding: 0.5rem;
+    border: 0;
+    background: none;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .aj-rf__found { margin: 0 0 0.5rem; font-weight: 600; }
+
+  /* The outcome is the point of the page, so it gets the brand rather than
+     sitting as another paragraph. */
+  .aj-rf__result {
+    margin-block-start: 1.5rem;
+    padding: 1.25rem;
+    border-radius: 8px;
+    background: var(--aj-price-accent, rgb(var(--color-foreground-rgb) / 0.06));
+    color: var(--aj-price-on-accent, rgb(var(--color-foreground-rgb)));
+  }
+
+  .aj-rf__outcome { margin: 0; font-size: 1.0625rem; line-height: 1.5; font-weight: 600; }
+
+  .aj-rf__note {
+    margin: 0.6rem 0 0;
+    font-size: 0.875rem;
+    opacity: 0.75;
+  }
+
+  .aj-rf__error {
+    margin-block-start: 1.25rem;
+    padding: 0.85rem 1rem;
+    border-radius: 6px;
+    border: 1px solid rgb(var(--color-foreground-rgb) / 0.2);
+    font-size: 0.9375rem;
+  }
+
+  .aj-rf__policy {
+    margin-block-start: 2rem;
+    font-size: 0.875rem;
+    color: rgb(var(--color-foreground-rgb) / 0.65);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Return form",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Start a return" },
+    {
+      "type": "text", "id": "intro", "label": "Intro",
+      "default": "Tell us the order and what you'd like to send back. You'll get an answer on this page, not in three days."
+    },
+    {
+      "type": "text", "id": "policy_note", "label": "Policy note",
+      "default": "14 days from delivery to change your mind, 30 days if something's faulty. Nothing here is ever final sale."
+    },
+    { "type": "url", "id": "policy_page", "label": "Link to the refund policy" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Colour scheme", "default": "scheme-1" }
+  ],
+  "presets": [{ "name": "Return form" }]
+}
+{% endschema %}
