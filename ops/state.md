@@ -508,8 +508,9 @@ rather than creating a second. Registered as app version `theyoink-app-9`.
 
 Two things that follow from that, and both are decisions rather than tasks:
 
-1. **`write_orders` is granted, so the returns handler COULD refund.** It still
-   does not. Switching it on is deliberate, and belongs with a human watching.
+1. ~~`write_orders` is granted, so the returns handler COULD refund. It still
+   does not.~~ **Built on 2 August** — `refundCreate` works and is switched off.
+   See "the returns handler can pay" below.
 2. ~~There is still no store-credit scope.~~ **Wrong within hours of being
    written.** A later pull the same night brought the count to **77 scopes**,
    including `write_store_credit_account_transactions` and all five store-credit
@@ -746,10 +747,10 @@ total, handle derived from the return id so a retry updates one record. **Three
 branches remain untested**: $18 fault, $18 non-fault, and $100. Worth doing
 before any money-moving code goes near this.
 
-**Still nothing pays.** `write_orders` and all five store-credit scopes are
-granted, so both halves are permitted — but `refundCreate` takes refund line
-items, a parent transaction, and its own decisions about shipping and tax, and
-those are the details review passes and production fails.
+~~Still nothing pays.~~ **Cash refunds pay as of 2 August**, off by default —
+the details that "review passes and production fails" turned out to be real, and
+the answer was to let Shopify compute them rather than to write them carefully.
+Store credit is still unbuilt. See the 2 August section below.
 
 ### Yoink Sweep is retired
 
@@ -1093,6 +1094,80 @@ and they had to be cleared by hand. The account state was one Graph API call awa
 and the credentials were already to hand. **Verify the destination, not the
 report about the destination** — the same rule this file already keeps for the
 Shopify catalogue, applied one system over.
+
+## 2 August — the returns handler can pay
+
+**`refundCreate` is built, proven, and switched OFF.** That is the resting state
+and it is deliberate.
+
+### How it is guarded
+
+**Shopify computes the refund; we do not.** `order.suggestedRefund(refundLineItems)`
+returns the amount AND the transactions to refund against, each already carrying
+the correct gateway and parent transaction. Hand-building those is exactly where
+this goes wrong in ways that pass review — the parent is the original sale, the
+gateway has to match it, and tax and shipping are not ours to guess at.
+
+**But we check its answer.** If Shopify's figure and the decision's own
+`refund_value` differ by more than a cent, nothing is paid. Both are derived from
+the same line items by different code, so a divergence means one is wrong and
+neither is trustworthy enough to spend on.
+
+**The switch has NO environment fallback.** Every other agent falls back to an
+env var when no metaobject has been set. This one must not: an env var is set
+once, somewhere nobody looks, by someone who has since forgotten. Fine for
+pausing a catalogue sweep, wrong for authorising refunds. **Absent means off,
+and unreadable means off.** The handle is `agent-returns-pay`.
+
+**Only cash actions pay.** `needs_approval` exists to stop the arithmetic
+spending on its own and must never pay itself. `keep_it_and_credit` owes store
+credit, which is `storeCreditAccountCredit` — a different call, and cheaper than
+cash by design.
+
+**Idempotency is the `status` field.** `pending` is the only payable state, and
+the record is marked `paid` only AFTER the money moved. The other order would
+leave a record claiming paid when nothing was, which is the one lie this system
+cannot afford.
+
+**A payment failure does not fail the webhook.** The decision is written first,
+so a failure loses the money movement and not the reasoning — the record still
+says pending and can be paid later. Retrying the whole handler would re-run a
+path that may have half-succeeded.
+
+### NEVER RESTOCK, and it is not a simplification
+
+The first live attempt failed with `refundCreate: You need to set a location to
+restock items`, and the fix is a fact about this business.
+
+**Every sellable product here is Collective dropship** — shipped from a supplier
+location and returned to one. Nothing ever arrives at a location we own, so
+restocking would invent inventory that is not in any building we have, and the
+only `locationId` we could name would be the wrong one. On a keep-it decision the
+customer still physically has the item, which reaches the same answer by a
+shorter route.
+
+### Proven both ways
+
+| switch | result |
+|---|---|
+| OFF | decision recorded `pending`, **zero** refunds on the order |
+| ON | decision `paid`, **one $40 refund**, order `REFUNDED` |
+
+Run against throwaway orders on the draft-status test product, completed with
+`paymentPending: false` so the payment is a manual record rather than a card
+charge and the refund moves no real money. All test orders deleted afterwards;
+`ordersCount` is back to 0.
+
+**Five `return_decision` records are kept on purpose.** They are the only worked
+examples of what correct output looks like, including one `paid` and one
+`needs_approval` at $118 from a mixed-reason return.
+
+### What is still not built
+
+**Store credit.** `keep_it_and_credit` is decided, recorded, and never paid —
+`storeCreditAccountCredit` has not been written. The scopes are granted. That is
+the remaining half of the reason automatic refunds were turned off in the first
+place.
 
 ## Things that bit us, so they don't again
 
@@ -1441,5 +1516,13 @@ Shopify catalogue, applied one system over.
   drafted, and needs the list warmed carefully — `hello@` has SPF and DKIM but
   zero sending reputation, and a low-engagement blast would burn the domain before
   the daily email ever matters.
-- **Finish the returns branches** — $18 fault, $18 non-fault, $100 approval — on
-  the existing test harness before writing anything that moves money.
+- ~~Finish the returns branches before writing anything that moves money.~~
+  **Done.** Twelve cases verified against the pure function, worst-reason-wins
+  and multi-line valuation proven live, and `refundCreate` built and tested both
+  ways.
+- **Store credit.** `keep_it_and_credit` decides and records but never pays.
+  `storeCreditAccountCredit` is the missing call, and it is the other half of why
+  Collective's automatic refunds were turned off.
+- **Decide whether to switch refunds on.** The switch is `agent-returns-pay` and
+  it is off. Nothing needs it while the store has no orders; the question becomes
+  real with the first genuine return.
