@@ -181,8 +181,11 @@
     border-radius: 999px;
     font-size: 0.75rem;
     font-weight: 700;
-    background: rgb(var(--color-foreground-rgb) / 0.9);
-    color: rgb(var(--color-background-rgb, 255 255 255));
+    /* Solid, not the old 0.9 alpha. That opacity existed to soften a black chip
+       against a photo; a yellow one washes out through it and loses the contrast
+       the ink text depends on. Ink on solid yellow is 11.17:1 over any image. */
+    background: var(--aj-price-accent, rgb(var(--color-foreground-rgb) / 0.9));
+    color: var(--aj-price-on-accent, rgb(var(--color-background-rgb, 255 255 255)));
   }
 
   .aj-bin__name { font-weight: 600; line-height: 1.25; }

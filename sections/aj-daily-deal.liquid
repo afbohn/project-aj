@@ -315,8 +315,13 @@
     inset-inline-start: var(--padding-sm, 1rem);
     padding: 0.3em 0.7em;
     border-radius: 3px;
-    background: rgb(var(--color-foreground-rgb));
-    color: rgb(var(--color-background-rgb));
+    /* The grab colour, not the theme neutral. This badge is the single loudest
+       claim on the homepage — the saving on today's Yoink — and it sat in plain
+       ink because it predates the palette. Ink on yellow is 11.17:1, so it is
+       both the loudest and the most readable pairing available. Falls back to
+       the old neutral if the brand sheet ever fails to load. */
+    background: var(--aj-price-accent, rgb(var(--color-foreground-rgb)));
+    color: var(--aj-price-on-accent, rgb(var(--color-background-rgb)));
     font-size: 0.8125rem;
     font-weight: 600;
     letter-spacing: 0.03em;
