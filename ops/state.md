@@ -245,7 +245,10 @@ edited by hand.
 - **`theme/scripts/deal.py` still duplicates the pricing logic.** The app path has
   survived a real unattended activation, so it can go; keep the read-only
   commands as a CLI.
-- **No brand.** Logo, colours and fonts are theme settings waiting on Jake.
+- ~~No brand.~~ **Colours are live as of 1 August** — see the section above.
+  What remains is the LOGO (Jake has artwork coming; `Logo-Test-2.png` is a
+  placeholder) and the display FACES, which are blocked on a web-embedding
+  licence rather than on files.
 - **Judge.me is installed** but no review UI is wired into cards or the PDP.
 - **The `meta` heartbeat is red from a run at 16:43 on 30 July**, one minute
   before the agent was paused. It is stale, not ongoing — but `/app/agents`
@@ -836,6 +839,101 @@ built so far.
 Fixed costs are not the constraint. Roughly **30 full-price orders a month covers
 the entire operation.**
 
+## 1 August, night — the brand lands, and the crash was never a crash
+
+### Jake's palette is live
+
+```
+#7a3fa0  purple   act      links, primary buttons
+#ffe000  yellow   grab     the saving, the badges
+#30aac6  teal     surface
+#5cd8f8  cyan     surface
+#282828  ink      read
+```
+
+**Ink for reading, purple for acting, yellow for grabbing.** Text is `#282828`
+rather than pure black — it is Jake's ink and the ground his yellow and cyan were
+chosen against.
+
+Measured, not eyeballed:
+
+| pairing | ratio | |
+|---|---|---|
+| ink on white | 14.74:1 | body |
+| white on purple | 6.89:1 | primary buttons |
+| ink on yellow | **11.17:1** | the saving, the badges |
+| yellow on purple | 5.22:1 | safe, and unusual luck |
+| **yellow on white** | **1.32:1** | never — effectively invisible |
+| **white on teal** | **2.73:1** | never — looks fine on a good monitor |
+
+Yellow only ever appears as a BACKGROUND carrying ink. Teal and cyan carry ink,
+never white. Purple is the only brand colour safe as type on white.
+
+**The `foreground` slot is overloaded and that shapes everything.** In this theme
+it drives body text AND the primary button background AND the sale badge
+background from one token, so it cannot simply be set to purple without turning
+every paragraph purple. It stays ink; buttons and badges are overridden
+individually in `settings_data.json`.
+
+**Sold-out is deliberately not the brand yellow.** Its schema default points at
+`color2`, which is now yellow, so leaving it alone would have painted "gone" in
+the colour that means "grab this". A colour that means both means neither.
+
+`assets/aj-brand.css` holds the variables and is loaded from the layout head,
+because three separate files read `--aj-price-*` through their own
+`stylesheet_tag` — defining them anywhere narrower leaves two of the three on
+neutral fallbacks.
+
+**Setting the palette changed nothing visible at first.** This storefront does
+not render the theme's badge component: `color-custom-badge-sale` appears four
+times in the page source, all inside `<style>`, and ZERO times in the real DOM.
+The badges people see are `aj-deal__badge` ("Save 44%") and `aj-bin__badge`
+("25% off"), drawn by the Yoink and Bargain Bin sections, which build their own
+tiles and take no theme block. Both were hardcoded to `--color-foreground` and
+never looked at the brand at all. They read the brand variables now.
+
+**Fonts are scaffolded and switched off.** Flashy and Ohpixel are not in
+Shopify's `font_picker` library, which only serves Shopify's own set, so they
+need real `.woff2` files in `assets/` plus **a licence covering web embedding** —
+a separate tier from desktop for most display and pixel faces, and the thing to
+confirm before building on them. `--aj-price-font` stays unset so every consumer
+falls back to the theme heading font rather than silently landing on a face
+nobody chose. Type is Inter throughout until then.
+
+The logo path is independent: artwork drops into the `logo` setting that already
+holds `Logo-Test-2.png`, with no font licence involved.
+
+### The crash was three full catalogue scans, and it is fixed
+
+**Nothing ever crashed.** No OOM — a full scan is 11-16 MB against 317 MB free.
+No throttling — 1999/2000 available. No restarts. `/app/new` and `/app/plan` were
+simply taking **15.4s, measured**, and 15-45 seconds of blank screen inside an
+embedded admin frame is indistinguishable from a dead app.
+
+Where it went: **7.6s** paging the catalogue, **~7.7s** topping up the 64 of
+1,655 products whose variant list exceeds `VARIANT_PAGE` — one sequential round
+trip each. Half the page load was latency paid in series.
+
+Then it compounded. Remix re-runs a loader after each of its actions, so
+clearing a batch and scheduling seven paid the full scan **three times**, on a
+shared single vCPU also running `catalog` (54s), `enrich` (84s) and `shipping`
+(37s).
+
+Two fixes: the top-ups run five at a time, and the raw scan is cached for 90s.
+**Measured after: 15,356ms → 8,763ms**, and near-instant on a reload inside the
+window. What is cached is the FETCH, not the ranking — ranking is CPU work over
+an array, so caching raw lets every filter combination and both pages share one
+copy. An empty scan is never cached, so a transient failure cannot show "nothing
+qualifies" for ninety seconds.
+
+**A skipped product no longer fails the enrich run.** The model returned nine of
+ten and the run reported `FAILED 500` after enriching forty products. The
+handling was already right — the product keeps its hash and comes back — but the
+note went into `result.errors`, and `cron.enrich` fails on any error. Counted as
+`modelSkipped` now, escalating to a real error only above 20% of what was
+attempted, which would mean the prompt or the id matching is broken rather than
+the model being lazy.
+
 ## Things that bit us, so they don't again
 
 **From earlier sessions**
@@ -956,6 +1054,26 @@ the entire operation.**
 - **A flat handling fee would have falsified a live storefront claim.** 279
   products advertise free shipping keyed on a measured zero. Any fixed amount
   makes every one of those badges a lie at checkout. A percentage cannot.
+- **Setting a theme token does nothing if the theme never renders that
+  component.** The palette landed on `badge_sale_background_color` and the
+  storefront did not change, because every badge on the homepage is a custom
+  class in a section that draws its own tiles. Check the DOM for the class
+  before assuming a setting reaches it.
+- **Counting markup is not counting DOM — again.** `color-custom-badge-sale`
+  appears four times in the page source and zero times once `<style>` and
+  `<script>` are stripped. This is the second time this exact mistake has been
+  made here; the first was a Judge.me widget that was not rendered.
+- **A cap on units attempted is not a cap on latency either.** 64 sequential
+  top-ups cost 7.7s not because any one was slow, but because they waited for
+  each other. The same shape as the enrichment run that spent its whole budget
+  on ten products.
+- **A note in `result.errors` turns a healthy run red — the enrich edition.**
+  Recorded here already for the catalogue sweep, and it happened again: one
+  product missing from a batch of ten marked a run that enriched forty as
+  FAILED 500. Write it down twice, apparently.
+- **Alpha on a badge is a black-chip habit.** `rgb(... / 0.9)` softened a dark
+  chip against a photograph; the same alpha over yellow washes it out and loses
+  the contrast the ink text depends on.
 - **A returned `Count` can be capped.** The Collective delivery profile reports
   500 variants against a catalogue of ~7,000. Rates demonstrably work, so this is
   near-certainly a display cap — but ask for `precision` before believing a count,
