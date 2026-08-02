@@ -104,16 +104,33 @@
 */
 
 /*
-  Flashy on headings — h1 to h4 ONLY, and the cutoff is measured rather than
-  chosen. The theme sizes them 56 / 48 / 32 / 24px, all comfortably above where
-  Flashy holds; h5 and h6 are 14px and 12px, well below it. Setting a display
-  face on those would be shipping something illegible on purpose.
+  Flashy on HEADINGS WE WRITE AND THE PRICE — never on product titles.
+
+  This was `h1, h2, h3, h4` and that was wrong. It swept up product titles,
+  which are arbitrary-length supplier strings: the first live deal rendered as
+  three lines of "DUNGEONS & DRAGONS: THE ULTIMATE POP-UP BOOK (REINHART POP-UP
+  STUDIO): (D&D BOOKS) (REINHART STUDIOS)" in a display face, which is
+  unreadable and made the loudest thing on the page a piece of catalogue
+  metadata.
+
+  A display face belongs on copy WE control and on the number the page exists
+  for. Everything a supplier wrote belongs to the text face, however long and
+  however many parentheses it carries.
+
+  The price is included deliberately: $47.60 is the point of the page and was
+  rendering quieter than the title above it. Hierarchy follows importance.
 
   Weight is normal because Flashy has one weight. Left at the theme's 700 it
-  renders synthetically emboldened — the browser smearing the outline sideways,
-  which on a face with this much character looks like a rendering fault.
+  renders synthetically emboldened — the browser smearing the outline sideways —
+  which on a face with this much character reads as a rendering fault.
 */
-h1, h2, h3, h4 {
+.aj-bin__heading,
+.aj-cats__heading,
+.aj-cross__heading,
+.aj-past__heading,
+.aj-price-nav__heading,
+.aj-deal__price,
+.aj-price__now {
   font-family: "Flashy", var(--font-heading--family);
   font-weight: 400;
   letter-spacing: 0.01em;
