@@ -245,10 +245,10 @@ edited by hand.
 - **`theme/scripts/deal.py` still duplicates the pricing logic.** The app path has
   survived a real unattended activation, so it can go; keep the read-only
   commands as a CLI.
-- ~~No brand.~~ **Colours are live as of 1 August** — see the section above.
-  What remains is the LOGO (Jake has artwork coming; `Logo-Test-2.png` is a
-  placeholder) and the display FACES, which are blocked on a web-embedding
-  licence rather than on files.
+- ~~No brand.~~ **Done as of 1 August.** Colours, both display faces and Archivo
+  as the text face are all live, and Jake's logo is on the header. What remains
+  is not a gap so much as a brief: Ohpixel is declared and barely used, and
+  where else it belongs is a decision for Jake rather than something to invent.
 - **Judge.me is installed** but no review UI is wired into cards or the PDP.
 - **The `meta` heartbeat is red from a run at 16:43 on 30 July**, one minute
   before the agent was paused. It is stale, not ongoing — but `/app/agents`
@@ -934,6 +934,97 @@ note went into `result.errors`, and `cron.enrich` fails on any error. Counted as
 attempted, which would mean the prompt or the id matching is broken rather than
 the model being lazy.
 
+## 1 August, small hours — the type system, and a lot of getting it wrong
+
+The palette section above records the colours. This is the type and the layout,
+and the honest version is that most of it took three or four passes because the
+mistakes only became visible on screen.
+
+### Three faces, three jobs
+
+Jake supplied **Flashy** (logo main) and **Ohpixel** (sub) as `.woff`. Both are
+live, converted to woff2 with woff fallback, and verified before being switched
+on: Flashy carries all ten digits plus `$ . , % -` across 241 glyphs, Ohpixel
+carries an embedded licence string reading "Personal & Commercial use".
+
+**Neither is a text face, so a third was always needed.** **Archivo** replaced
+Inter, chosen because it is the only candidate that sits WITH a retro display
+face rather than politely ignoring it, and it stays readable at the 14px where
+product copy lives. It is in Shopify's library, so it cost a setting rather than
+a licence.
+
+| face | job | where |
+|---|---|---|
+| Flashy | display | section headings we write, drawer and popup titles |
+| Ohpixel | accent | eyebrows, badges, the countdown, footer column headings |
+| Archivo | text | everything else — roughly 90% of the words |
+
+**The price is NOT in the display face**, and that was learned the hard way.
+Flashy at 1.75rem rendered thin and cramped and was genuinely hard to read as
+numbers. It is Archivo at 3rem/800 — money should look like money, and borrow no
+personality it does not need.
+
+**Flashy is on headings WE write, never on product titles.** It was applied to
+`h1-h4` and the first live deal rendered as three lines of `DUNGEONS & DRAGONS:
+THE ULTIMATE POP-UP BOOK (REINHART POP-UP STUDIO): (D&D BOOKS) (REINHART
+STUDIOS)`. Selectors are listed one by one now, for a verified reason — see the
+`<h3 class="h4">` entry below.
+
+**The countdown reads `02:27:14`.** It said "2 h 27 m 14 s", which is number,
+word, number, word — the shape of a sentence, fighting the LED idiom the pixel
+face borrows. It sits in an ink panel with yellow digits at 11.17:1. Dropping
+the h/m/s letters costs nothing in accessibility: every unit group is
+`aria-hidden` and the component keeps a separate `visually-hidden role="status"`
+region announcing the real remaining time.
+
+### The Yoink of the Day section was a generic product hero
+
+It was a 50/50 centred grid — the same shape as any product block, for the
+section that is supposed to BE the concept. Equal columns gave the photograph
+and the offer identical weight; `align-items: center` left the offer floating in
+mid-air beside a tall image, anchored to nothing.
+
+Now **1.15fr / 0.85fr, both columns starting at the top**, so eyebrow → title →
+price → clock → button reads as one descending stack in the order someone
+actually decides in. The offer sits on a panel tinted 12% from the brand cyan,
+mixed into whatever ground the section's colour scheme uses rather than assuming
+white.
+
+### Recent Yoinks was dead rather than missed
+
+The section's own comment says its job is to make a card land as a LOSS —
+and it was dimmed **three times over**: `grayscale(1)`, `opacity: 0.62`, AND a
+42% ink veil. Any one reads as past; all three read as a graveyard, which is the
+opposite of the intended feeling. There is no regret without desire.
+
+The veil stays, because it is what guarantees the white "81% off" is legible
+over an arbitrary product photo. The other two went. **Half desaturation** keeps
+today's live deal unmistakably the thing to act on while leaving the product
+recognisable as something you wanted — and it matters that the resting state
+works alone, because the hover restore never fires on a phone.
+
+**Every card was also printing its screen-reader labels** — "$136.98 discounted
+price $249.05 regular price". Clipped now. But clipping them removed the meaning
+for sighted readers too: two bare numbers where the struck one is LOWER reads as
+a price rise, since everywhere else a struck price is the higher one. The word
+**"now"** before the current price carries it in three characters.
+
+### Still not right
+
+- **The day labels.** A recent screenshot showed Saturday / Friday / Thursday /
+  Tuesday — Wednesday missing, and "Saturday's Yoink" is ambiguous against a live
+  Saturday deal. A gap makes the sequence look broken, which undercuts the
+  section's PROOF job.
+- **81% off on the sheet set** is measured against a $279 MSRP. Not false, but
+  the same trap this file already records for the Bargain Bin, and the kind of
+  number that invites doubt on a first visit.
+- **Product titles are bad data.** "(Reinhart Pop-Up Studio): (D&D Books)
+  (Reinhart Studios)" is vendor and category jammed into the title by
+  Collective's feed. No typeface fixes that.
+- **The logo is Jake's real artwork now**, but Ohpixel is declared and barely
+  used. Section eyebrows and the countdown are the natural homes; anything more
+  needs direction rather than invention.
+
 ## Things that bit us, so they don't again
 
 **From earlier sessions**
@@ -1074,6 +1165,38 @@ the model being lazy.
 - **Alpha on a badge is a black-chip habit.** `rgb(... / 0.9)` softened a dark
   chip against a photograph; the same alpha over yellow washes it out and loses
   the contrast the ink text depends on.
+- **Shopify re-serialises `config/settings_data.json` and wins the merge race.**
+  A commit changing that file AND an asset had its asset synced within minutes
+  and its settings ignored for half an hour. Nothing was rejected — Shopify
+  normalises the file's key order, commits it back to the repo, and a repo edit
+  that has not been rebased onto that write-back simply loses. Pull, rebase,
+  push again and it lands in seconds. The file is co-owned; Shopify wins ties.
+- **Product card titles are `<h3 class="h4">`.** Verified in the live collection
+  DOM. So ANY tag-level or preset-level heading rule — `h1, h2, h3` or `.h4` —
+  puts a display face straight onto arbitrary supplier strings. Brand faces get
+  listed selector by selector, or the next long title becomes three lines of
+  parentheses in a novelty font.
+- **A pixel font has no tabular figures.** Ohpixel gives "1" an advance of
+  0.400em and every other digit 0.600em, and ships no `tnum` feature, so
+  `font-variant-numeric: tabular-nums` has nothing to switch on. A two-digit
+  group swings 0.400em, meaning a clock shudders every second. Pin the width.
+- **A screen-reader label with no CSS prints on the page.** `.aj-past__gonelabel`
+  and `.aj-past__nowlabel` said "discounted price" and "regular price" in every
+  card because nobody ever wrote the rule that hides them.
+- **...and clipping it can take the meaning with it.** Once hidden, the line was
+  two bare numbers whose struck member was the LOWER one — which reads as a price
+  rise. An accessibility label is sometimes carrying semantics the visual design
+  was silently relying on.
+- **`display: block` overrides the `[hidden]` attribute.** Styling a vote counter
+  made every card announce "0 people want this back". Use `visibility` when the
+  slot needs reserving, and remember the UA rule is only an attribute selector.
+- **Margins on a gap-based layout double the spacing.** `.aj-past__item` already
+  had `gap: 0.3rem`; adding `margin-block-start: 0.4rem` made every space
+  0.7rem. Read what the section already declares before adding to it — the same
+  mistake as putting the pixel face on a class without checking what it holds.
+- **A later rule at equal specificity silently undoes `margin: auto`.** A blanket
+  `> * + *` margin killed the `margin-block-start: auto` that was bottom-aligning
+  every card's button, and nothing anywhere reports it.
 - **A returned `Count` can be capped.** The Collective delivery profile reports
   500 variants against a catalogue of ~7,000. Rates demonstrably work, so this is
   near-certainly a display cap — but ask for `precision` before believing a count,
