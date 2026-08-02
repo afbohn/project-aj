@@ -128,10 +128,30 @@
 .aj-cats__heading,
 .aj-cross__heading,
 .aj-past__heading,
-.aj-price-nav__heading {
+.aj-price-nav__heading,
+/* Headings elsewhere that are also OUR copy: the email popup, drawer titles
+   ("Filter", "Your cart is empty"), search results. Listed one by one rather
+   than caught with `h1, h2, h3`, because on a collection page every product
+   card title is an <h3 class="h4"> — verified in the live DOM — so any blanket
+   heading rule puts a display face straight back onto supplier strings. That
+   is the bug this file already shipped once. */
+.aj-pop__title,
+.theme-drawer__title,
+.predictive-search-results__title {
   font-family: "Flashy", var(--font-heading--family);
   font-weight: 400;
   letter-spacing: 0.01em;
+}
+
+/* Footer column headings — "Footer menu", "Main menu". Short structural
+   labels, which is the pixel face's shape. Uppercased because Ohpixel is
+   drawn for capitals and loses its grid in mixed case. */
+.menu__heading__default,
+.menu__heading__accordion {
+  font-family: "Ohpixel", var(--font-heading--family);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8125rem;
 }
 
 /*
