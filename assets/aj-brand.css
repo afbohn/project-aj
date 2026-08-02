@@ -128,12 +128,43 @@
 .aj-cats__heading,
 .aj-cross__heading,
 .aj-past__heading,
-.aj-price-nav__heading,
-.aj-deal__price,
-.aj-price__now {
+.aj-price-nav__heading {
   font-family: "Flashy", var(--font-heading--family);
   font-weight: 400;
   letter-spacing: 0.01em;
+}
+
+/*
+  THE PRICE IS NOT IN THE DISPLAY FACE, and seeing it live is why.
+
+  Flashy at 1.75rem renders thin and cramped — a display face needs scale to
+  work, and at that size it read as smaller and less important than the product
+  title above it. The number the whole page exists for was the third loudest
+  thing on it.
+
+  The fix is scale and weight in the text face, not a more decorative one.
+  Money should look like money: heavy, tight, unambiguous. Archivo at 3rem/800
+  outweighs everything around it without borrowing any personality it does not
+  need.
+
+  Doubled class for specificity: the section's own {% stylesheet %} block lands
+  in compiled_assets/styles.css, which loads AFTER this file, so a single class
+  would lose the tie on source order.
+*/
+.aj-deal .aj-deal__price,
+.aj-price .aj-price__now {
+  font-family: var(--font-body--family);
+  font-size: clamp(2.25rem, 5vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+/* With the price that large the title should stop competing. It is supplier
+   copy, not the offer. */
+.aj-deal .aj-deal__title {
+  font-size: clamp(1.25rem, 2.2vw, 1.6rem);
+  line-height: 1.25;
 }
 
 /*
@@ -144,7 +175,6 @@
 */
 .aj-deal__eyebrow,
 .aj-tomorrow__eyebrow,
-.aj-tomorrow__label,
 .aj-announce__label,
 .aj-price__label,
 .aj-deal__badge,
@@ -180,4 +210,39 @@
   min-width: 1.4em;
   text-align: center;
   font-variant-numeric: tabular-nums; /* harmless here, correct if the face ever gains tnum */
+}
+
+/*
+  THE CLOCK NEEDS A HOUSING, not just a face.
+
+  Loose pixel digits on a white page read as a rendering glitch — the face is
+  doing all the work and nothing tells you it is a device. Putting it on ink
+  turns it into an object: an LED readout, which is the idiom the pixel face is
+  borrowing from anyway. It also stops the clock competing with the price for
+  the same visual register, since one is now type on paper and the other is a
+  lit panel.
+
+  Yellow on ink is 11.17:1, the strongest pairing in the palette, and the one
+  place on the page where the loudest colour is unambiguously correct: this is
+  the element whose whole job is pressure.
+
+  Units are dimmed rather than resized. "h" and "m" are grammar, not
+  information — the digits are the information.
+*/
+.aj-deal .aj-countdown__display,
+.aj-countdown__display {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 6px;
+  background: var(--aj-brand-ink);
+  color: var(--aj-brand-yellow);
+  /* Digits are a fixed grid; a little tracking keeps them from fusing. */
+  letter-spacing: 0.04em;
+}
+
+.aj-countdown__display .aj-countdown__unit {
+  opacity: 0.65;
+  font-size: 0.8em;
 }
