@@ -43,41 +43,53 @@
   --aj-price-accent: var(--aj-brand-yellow);
   --aj-price-on-accent: var(--aj-brand-ink);
 
-  /* --aj-price-font is deliberately UNSET until the display face is licensed
-     for web embedding. Every consumer falls back to the theme heading font, so
-     leaving it undefined renders correctly rather than silently failing to a
-     face nobody chose. See the @font-face block below. */
+  /* The deal price, in the brand display face.
+     Verified before switching on: Flashy carries all ten digits plus $ . , % -
+     at 241 glyphs, so a price cannot render with holes in it. A display face
+     with a partial glyph set is the obvious way this goes wrong. */
+  --aj-price-font: "Flashy", var(--font-heading--family);
 }
 
 /*
-  DISPLAY TYPE — SCAFFOLDING ONLY, INTENTIONALLY COMMENTED OUT.
+  DISPLAY TYPE — Jake's faces, live.
 
-  Jake's faces are Flashy (logo) and Ohpixel (sub). Neither is in Shopify's
-  font_picker library, which only serves Shopify's own set, so they need real
-  files here plus a licence that covers WEB EMBEDDING — a separate tier from
-  desktop use for most display and pixel faces, and worth confirming before
-  anything is built on them.
+  Flashy is the logo face and Ohpixel the sub. Neither is in Shopify's
+  font_picker library, which only serves Shopify's own set, so they are loaded
+  here as real files rather than chosen in a theme setting.
 
-  To switch on: add the .woff2 files to assets/, uncomment, and set
-  --aj-price-font. Nothing else has to change.
+  woff2 first, woff second. Both are shipped because the conversion is free and
+  the fallback costs nothing — a browser takes the first format it understands
+  and never downloads the other.
 
-  The src is a RELATIVE url on purpose. This is a plain .css asset, so Liquid
-  does not run in it and `{{ 'x.woff2' | asset_url }}` would ship to the browser
-  as literal text. Relative paths resolve against this stylesheet's own CDN
-  directory, which is where assets/ is served from — so it works without
-  renaming this file to .css.liquid.
+  RELATIVE URLS ON PURPOSE. This is a plain .css asset, so Liquid does not run
+  in it and `{{ 'x.woff2' | asset_url }}` would ship to the browser as literal
+  text. Relative paths resolve against this stylesheet's own CDN directory,
+  which is where assets/ is served from.
 
-  @font-face {
-    font-family: "Flashy";
-    src: url("flashy-regular.woff2") format("woff2");
-    font-weight: 400;
-    font-display: swap;
-  }
+  font-display: swap so the price is readable in the fallback face immediately
+  rather than invisible while 7KB downloads. On a deal page the number is the
+  point; a flash of the wrong font beats a flash of nothing.
 
-  @font-face {
-    font-family: "Ohpixel";
-    src: url("ohpixel-regular.woff2") format("woff2");
-    font-weight: 400;
-    font-display: swap;
-  }
+  OHPIXEL IS DECLARED BUT NOTHING USES IT YET. That costs nothing — a browser
+  only downloads a face something actually renders in. Jake specified both for
+  the LOGO, so applying the pixel face to body or headings would be inventing a
+  brief he did not write. It is here and ready the moment there is direction.
 */
+
+@font-face {
+  font-family: "Flashy";
+  src: url("flashy-regular.woff2") format("woff2"),
+       url("flashy-regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Ohpixel";
+  src: url("ohpixel-regular.woff2") format("woff2"),
+       url("ohpixel-regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
