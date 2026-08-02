@@ -431,19 +431,6 @@
     border: 0;
   }
 
-  /* Cards were ragged: content of different lengths left every "Bring back this
-     deal" button at a different height. A column with the button pushed to the
-     end lines them up across the row regardless of how long a title runs. */
-  .aj-past__item {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .aj-past__bringback {
-    margin-block-start: auto;
-    padding-block-start: 0.75rem;
-  }
-
   .aj-past__meta {
     display: flex;
     flex-wrap: wrap;
@@ -483,19 +470,41 @@
     badge or a vote count. One consistent rhythm, and the vote count reserved
     space whether or not it has any, so a row of cards does not step up and down.
   */
-  .aj-past__item > * + * {
-    margin-block-start: 0.4rem;
+  .aj-past__missed {
+    font-size: 0.875rem;
   }
 
-  .aj-past__missed {
-    margin-block-start: 0.5rem;
-    font-size: 0.875rem;
+  /*
+    AFTER the blanket child rule above, deliberately. That rule sets a margin on
+    every child including this one, and at equal specificity the later rule
+    wins — which silently undid the `auto` that pushes the button to the bottom
+    of the card and put every button back at a different height.
+  */
+  .aj-past__bringback {
+    margin-block-start: auto;
+    padding-block-start: 0.75rem;
   }
 
   .aj-past__votes {
     display: block;
     min-height: 1.1rem;
-    margin-block-start: 0.35rem;
+  }
+
+  /*
+    KEEP THE SLOT, DROP THE WORDS.
+
+    The vote count carries `hidden` when nothing has been voted for, and setting
+    `display: block` above overrode the browser's [hidden] rule — so every card
+    started announcing "0 people want this back", which is both noise and a
+    quietly discouraging thing to say about a product.
+
+    visibility rather than display: the line stops rendering but its space is
+    still reserved, so a row of cards does not step up and down depending on
+    which deals happen to have votes. That reservation is the whole reason the
+    min-height above exists.
+  */
+  .aj-past__votes[hidden] {
+    visibility: hidden;
   }
 
   .aj-past__was {
