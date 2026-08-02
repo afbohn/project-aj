@@ -453,8 +453,49 @@
     font-size: 0.875rem;
   }
 
+  /*
+    "now" IS LOAD-BEARING, NOT DECORATION.
+
+    The line renders two bare numbers: a struck $136.98 and a bold $249.05. On
+    every other storefront a struck price is the HIGHER one, so this reads as a
+    price rise — the struck figure here is the deal that ended, and the bold one
+    is what it costs today.
+
+    The markup already carried "discounted price" / "regular price" to say so,
+    but those were screen-reader labels printing on the page, and clipping them
+    took the meaning with them. Three characters put it back for sighted users
+    without the clumsiness, and the clipped labels still do the work for anyone
+    listening.
+  */
+  .aj-past__now::before {
+    content: 'now ';
+    font-weight: 400;
+    opacity: 0.6;
+  }
+
   .aj-past__now {
     font-weight: 600;
+  }
+
+  /*
+    The card bottom was ragged: uneven gaps between title, prices, the missed
+    line and the button, made worse by only some cards carrying a "Ships free"
+    badge or a vote count. One consistent rhythm, and the vote count reserved
+    space whether or not it has any, so a row of cards does not step up and down.
+  */
+  .aj-past__item > * + * {
+    margin-block-start: 0.4rem;
+  }
+
+  .aj-past__missed {
+    margin-block-start: 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .aj-past__votes {
+    display: block;
+    min-height: 1.1rem;
+    margin-block-start: 0.35rem;
   }
 
   .aj-past__was {
