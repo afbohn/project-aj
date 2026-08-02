@@ -395,6 +395,44 @@
     font-size: 0.9375rem;
   }
 
+  /*
+    THESE ARE SCREEN-READER LABELS AND WERE PRINTING ON THE PAGE.
+
+    `.aj-past__gonelabel` and `.aj-past__nowlabel` carry "discounted price" and
+    "regular price" so a screen reader can tell two bare numbers apart. They had
+    no CSS at all, so they rendered as visible text and every card read
+    "$136.98 discounted price $249.05 regular price" — which is not a sentence
+    anyone would write, and buried the one figure the section exists to land.
+
+    Clipped rather than `display: none`, because none removes them from the
+    accessibility tree too and the labels would stop doing their actual job.
+  */
+  .aj-past__gonelabel,
+  .aj-past__nowlabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Cards were ragged: content of different lengths left every "Bring back this
+     deal" button at a different height. A column with the button pushed to the
+     end lines them up across the row regardless of how long a title runs. */
+  .aj-past__item {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .aj-past__bringback {
+    margin-block-start: auto;
+    padding-block-start: 0.75rem;
+  }
+
   .aj-past__meta {
     display: flex;
     flex-wrap: wrap;
