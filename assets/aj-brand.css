@@ -251,17 +251,44 @@
 .aj-deal .aj-countdown__display,
 .aj-countdown__display {
   display: inline-flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  padding: 0.5rem 0.85rem;
-  border-radius: 6px;
+  align-items: stretch;
+  gap: 0.35rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 8px;
   background: var(--aj-brand-ink);
   color: var(--aj-brand-yellow);
-  /* Digits are a fixed grid; a little tracking keeps them from fusing. */
-  letter-spacing: 0.04em;
+}
+
+/*
+  STACKED UNITS, NOT A SENTENCE.
+
+  It read "2 h 27 m 14 s" — number, word, number, word, along a baseline. That
+  is the shape of prose, and it fought the LED idiom the pixel face is
+  borrowing. Clocks are read as columns: the figure large, its unit small
+  underneath, each unit its own cell.
+
+  The digits carry the meaning and the labels are grammar, so the sizes are far
+  apart deliberately — and the labels are dimmed rather than shrunk to
+  illegibility, since at 0.6em an already-blocky pixel face stops resolving.
+*/
+.aj-countdown__display .aj-countdown__group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  min-width: 2.6rem;
+  padding: 0.15rem 0.1rem;
+}
+
+.aj-countdown__display .aj-countdown__value {
+  font-size: 1.6rem;
+  line-height: 1;
+  letter-spacing: 0.02em;
 }
 
 .aj-countdown__display .aj-countdown__unit {
-  opacity: 0.65;
-  font-size: 0.8em;
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.6;
 }
