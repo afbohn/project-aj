@@ -49,7 +49,7 @@
     "card_hover_effect": "none",
     "badge_position": "top-right",
     "badge_corner_radius": 100,
-    "badge_sold_out_background_color": "{{ settings.color_palette.color2 }}",
+    "badge_sold_out_background_color": "#EEF1EA",
     "badge_text_transform": "none",
     "primary_button_border_width": 0,
     "button_border_radius_primary": 14,
@@ -147,11 +147,20 @@
     },
     "color_palette": {
       "background": "#ffffff",
-      "foreground": "#000000",
-      "color1": "#333333",
-      "color2": "#EEF1EA",
-      "color3": "#DFDFDF"
-    }
+      "foreground": "#282828",
+      "color1": "#7a3fa0",
+      "color2": "#ffe000",
+      "color3": "#5cd8f8"
+    },
+    "palette_primary_button_background": "#7a3fa0",
+    "palette_primary_button_text": "#ffffff",
+    "palette_primary_button_border": "#7a3fa0",
+    "palette_secondary_button_background": "#ffffff",
+    "palette_secondary_button_text": "#282828",
+    "palette_secondary_button_border": "#7a3fa0",
+    "badge_sale_background_color": "#ffe000",
+    "badge_sale_text_color": "#282828",
+    "badge_sold_out_text_color": "#282828"
   },
   "presets": {
     "Default": {

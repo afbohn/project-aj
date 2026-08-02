@@ -43,6 +43,15 @@
     {%- render 'theme-styles-variables' -%}
     {%- render 'color-palette' -%}
 
+    {%- comment -%}
+      Brand variables, loaded globally rather than per block. Three files read
+      --aj-price-* (aj-deal-price.css, aj-ships-free.css, aj-brand-shipping),
+      each with its own stylesheet_tag, so defining them anywhere narrower would
+      leave two of the three on their neutral fallbacks. After color-palette, so
+      it can layer over the theme's own tokens rather than under them.
+    {%- endcomment -%}
+    {{ 'aj-brand.css' | asset_url | stylesheet_tag }}
+
     {% if request.design_mode %}
       {%- render 'theme-editor' -%}
     {% endif %}
