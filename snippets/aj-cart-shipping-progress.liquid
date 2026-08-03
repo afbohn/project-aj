@@ -65,6 +65,11 @@
         assign msg = nil
         assign pct = 0
         assign show_link = false
+        # Reset per vendor. Liquid `assign` is function-scoped across the whole
+        # loop, so without this a second supplier with no threshold would render
+        # the previous supplier's gap as its own.
+        assign gap_amount = nil
+        assign gap_vendor = nil
         # `won` is narrower than `pct == 100` on purpose. The 'flat' and 'free'
         # shapes also sit at 100%, but those are standing facts about a supplier,
         # not something the shopper just achieved by filling their basket. Only
@@ -83,8 +88,16 @@
           else
             assign gap = threshold_cents | minus: vendor_cents
             assign gap_money = gap | money
-            assign msg = 'Add ' | append: gap_money | append: ' more from ' | append: vendor | append: ' for free shipping'
+            assign msg = nil
+            assign gap_amount = gap_money
+            assign gap_vendor = vendor
             assign pct = vendor_cents | times: 100 | divided_by: threshold_cents
+            # A bar that starts empty reads as "you have done nothing". Every
+            # cart reaching this line has already spent something, so the fill
+            # never sits below a visible sliver.
+            if pct < 6
+              assign pct = 6
+            endif
             assign show_link = true
           endif
 
@@ -98,24 +111,43 @@
         endif
       -%}
 
-      {%- if msg -%}
-        <li class="aj-ship-progress__row{% if won %} aj-ship-progress__row--won{% endif %}">
-          <p class="aj-ship-progress__msg">
-            {%- if won -%}
-              <span class="aj-ship-progress__tick" aria-hidden="true">&check;</span>
-            {%- endif -%}
-            {{ msg }}
-            {%- if show_link -%}
-              {%- assign vendor_key = 'vendor-' | append: vendor | handleize -%}
-              <a class="aj-ship-progress__link" href="{{ routes.collections_url }}/{{ vendor_key }}">
-                Browse {{ vendor }}
-              </a>
-            {%- endif -%}
-          </p>
-          {%- if pct < 100 -%}
+      {%- if msg or gap_amount -%}
+        <li class="aj-ship-progress__row{% if won %} aj-ship-progress__row--won{% endif %}{% if gap_amount %} aj-ship-progress__row--gap{% endif %}">
+          {%- if gap_amount -%}
+            {%- comment -%}
+              THE NUMBER IS THE ASK, so it is the biggest thing here. This was
+              one sentence of 15px body text carrying "$28.00" in the middle of
+              it, at the same weight as the shipping policy — the one figure
+              that decides whether somebody adds another item was the least
+              visible thing in the block.
+
+              Purple, not the yellow the earned state uses. Yellow is this
+              brand's "you got something" and this is "here is something to
+              do" — reusing the win colour for an unmet target makes the actual
+              win mean less when it lands two seconds later.
+            {%- endcomment -%}
+            <p class="aj-ship-progress__msg">
+              <span class="aj-ship-progress__gap">{{ gap_amount }}</span>
+              <span class="aj-ship-progress__gap-tail">
+                more from {{ gap_vendor }} and shipping is <strong>free</strong>
+              </span>
+            </p>
             <div class="aj-ship-progress__track" role="presentation">
               <div class="aj-ship-progress__fill" style="width: {{ pct }}%"></div>
             </div>
+            {%- if show_link -%}
+              {%- assign vendor_key = 'vendor-' | append: gap_vendor | handleize -%}
+              <a class="aj-ship-progress__link" href="{{ routes.collections_url }}/{{ vendor_key }}">
+                See everything from {{ gap_vendor }} &rarr;
+              </a>
+            {%- endif -%}
+          {%- else -%}
+            <p class="aj-ship-progress__msg">
+              {%- if won -%}
+                <span class="aj-ship-progress__tick" aria-hidden="true">&check;</span>
+              {%- endif -%}
+              {{ msg }}
+            </p>
           {%- endif -%}
         </li>
       {%- endif -%}
@@ -166,5 +198,55 @@
     background: rgb(var(--color-foreground-rgb) / 0.7);
     /* No transition: the cart re-renders on change rather than animating in
        place, so a transition would only ever play on first paint. */
+  }
+
+  /* --- the unmet target ---------------------------------------------------- */
+
+  .aj-ship-progress__row--gap {
+    padding: 0.9rem 1rem;
+    border: 2px solid var(--aj-brand-purple, #7a3fa0);
+    border-radius: 12px;
+    gap: 0.6rem;
+  }
+
+  .aj-ship-progress__row--gap .aj-ship-progress__msg {
+    display: block;
+    font-size: 1rem;
+    line-height: 1.3;
+  }
+
+  /* The figure the whole block exists to communicate. */
+  .aj-ship-progress__gap {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--aj-brand-purple, #7a3fa0);
+    font-variant-numeric: tabular-nums;
+    margin-inline-end: 0.3rem;
+  }
+
+  .aj-ship-progress__gap-tail { font-size: 0.9375rem; }
+
+  .aj-ship-progress__row--gap .aj-ship-progress__track {
+    height: 8px;
+    background: rgb(122 63 160 / 0.15);
+  }
+
+  .aj-ship-progress__row--gap .aj-ship-progress__fill {
+    background: var(--aj-brand-purple, #7a3fa0);
+    transition: width 0.35s ease;
+  }
+
+  .aj-ship-progress__row--gap .aj-ship-progress__link {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--aj-brand-purple, #7a3fa0);
+    text-decoration: none;
+  }
+
+  .aj-ship-progress__row--gap .aj-ship-progress__link:hover { text-decoration: underline; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aj-ship-progress__row--gap .aj-ship-progress__fill { transition: none; }
   }
 {% endstylesheet %}

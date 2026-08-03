@@ -19,6 +19,10 @@
   out rather than wondering why it is missing.
 
   @param {object} item - The product to suggest.
+  @param {boolean} [clears_gap] - True when adding this item alone crosses the
+    supplier's free-shipping threshold. Set by aj-cart-upsell from its tier-2
+    pass, which already selects for exactly this and previously showed no sign
+    of it.
 {% enddoc %}
 
 {%- liquid
@@ -35,7 +39,16 @@
   <script src="{{ 'aj-variant-select.js' | asset_url }}" type="module" fetchpriority="low"></script>
 {%- endunless -%}
 
-<li class="aj-cart-upsell__item" data-aj-upsell-row>
+<li class="aj-cart-upsell__item{% if clears_gap %} aj-cart-upsell__item--clears{% endif %}" data-aj-upsell-row>
+  {%- if clears_gap -%}
+    {%- comment -%}
+      Ink on yellow, 11.17:1 — the same pairing as the saving badge and the
+      earned free-shipping row, because this is the same promise arriving one
+      step earlier. The progress block directly above asks for a number; this
+      names the single item that answers it.
+    {%- endcomment -%}
+    <p class="aj-cart-upsell__clears">Adding this gets you free shipping</p>
+  {%- endif -%}
   <a class="aj-cart-upsell__media" href="{{ item.url }}" tabindex="-1" aria-hidden="true">
     {%- if item.featured_media -%}
       {{

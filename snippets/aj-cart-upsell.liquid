@@ -245,7 +245,16 @@
                 {%- assign seen = seen | append: candidate.id | append: ',' -%}
                 {%- assign shown = shown | plus: 1 -%}
                 {%- assign from_vendor = from_vendor | plus: 1 -%}
-                {% render 'aj-cart-upsell-item', item: candidate %}
+                {%- comment -%}
+                  Tier 2 means this item clears the threshold outright. That was
+                  already true and completely invisible — the row that unlocks
+                  free shipping rendered identically to one that does not, so all
+                  the tiering above did was change the order of three items
+                  nobody could tell apart. Saying so is the entire value of it.
+                {%- endcomment -%}
+                {%- assign clears = false -%}
+                {%- if tier == 2 and gap_cents > 0 -%}{%- assign clears = true -%}{%- endif -%}
+                {% render 'aj-cart-upsell-item', item: candidate, clears_gap: clears %}
               {%- endfor -%}
             {%- endfor -%}
           {%- endfor -%}

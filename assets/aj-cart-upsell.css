@@ -179,3 +179,33 @@
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+/*
+  THE ROW THAT UNLOCKS FREE SHIPPING.
+
+  The upsell already ran a three-tier pass to put this item first, and then
+  rendered it identically to the two below it — so the shopper reading "add
+  $28.00 more" had no way to know which suggestion answered that. Ink on yellow
+  at 11.17:1, matching the saving badge and the earned shipping row, because it
+  is the same promise one step earlier.
+
+  grid-column: 1 / -1 so the badge spans the row instead of being treated as
+  another column beside the thumbnail.
+*/
+.aj-cart-upsell__item--clears {
+  border: 2px solid var(--aj-brand-yellow, #ffe000);
+  border-radius: 12px;
+  padding: 0.6rem;
+}
+
+.aj-cart-upsell__clears {
+  grid-column: 1 / -1;
+  margin: 0 0 0.4rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  justify-self: start;
+  background: var(--aj-brand-yellow, #ffe000);
+  color: var(--aj-brand-ink, #282828);
+  font-size: 0.8125rem;
+  font-weight: 800;
+}
