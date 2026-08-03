@@ -127,13 +127,13 @@
     </li>
     <li>
       <a class="aj-404__way" href="{{ routes.root_url }}#shop-by-price">
-        <span class="aj-404__way-title">Shop by price</span>
+        <span class="aj-404__way-title">Prices</span>
         <span class="aj-404__way-note">Under $10 up to $50 and over</span>
       </a>
     </li>
     <li>
       <a class="aj-404__way" href="{{ routes.root_url }}#shop-by-category">
-        <span class="aj-404__way-title">Shop by category</span>
+        <span class="aj-404__way-title">Categories</span>
         <span class="aj-404__way-note">Apparel, home, toys and more</span>
       </a>
     </li>
@@ -209,7 +209,14 @@
 
   .aj-404__deal {
     display: grid;
-    grid-template-columns: minmax(0, 34%) minmax(0, 1fr);
+    /*
+      A FIXED IMAGE COLUMN, because a percentage upscales the artwork. At 34% of
+      a 1280px card the media box was 418px and Shopify serves this image at 240
+      -- so it rendered blurry AND forced the card to 470px tall against 141px of
+      actual content, which is why it read as half empty. Capped at the width the
+      image is actually served at.
+    */
+    grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
     align-items: center;
     gap: clamp(1rem, 3vw, 2rem);
     padding: clamp(1rem, 3vw, 1.5rem);
@@ -231,6 +238,7 @@
   .aj-404__deal-image {
     display: block;
     width: 100%;
+    max-width: 220px;
     height: auto;
   }
 
