@@ -161,7 +161,11 @@
 
 {% stylesheet %}
   .aj-ship-progress {
-    margin: 0 0 1rem;
+    /* Top margin because this block sits directly beneath the last line item's
+       quantity stepper, and with none the banner collided with it — a filled
+       yellow bar touching a bordered control reads as one broken widget rather
+       than two things. */
+    margin: 1.25rem 0 1rem;
     padding: 0;
     list-style: none;
     display: grid;
