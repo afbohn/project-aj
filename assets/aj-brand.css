@@ -322,3 +322,112 @@
   font-size: 0.8125rem;
   font-weight: 600;
 }
+
+/*
+  SHOP BY PRICE, AS TILES.
+
+  A price dropdown rendered as a vertical list of uppercase words makes the
+  shopper read six lines to compare six numbers. The number IS the choice here,
+  so it should be the thing you see, at a size you can hit.
+
+  SCOPED BY HREF, NOT BY A CLASS. The theme's mega menu has no per-menu hook --
+  every dropdown renders the same .mega-menu__list -- so the band collection
+  handles are the only stable way to say "this dropdown, not Shop by category".
+  If those collections are ever rehandled this quietly stops applying, which is
+  the right failure: the menu keeps working, it just stops being tiles.
+
+  display: contents ON THE WRAPPERS. mega-menu-list.liquid decides how many
+  links share an <li class="mega-menu__column"> based on child counts and column
+  spans, so the number of wrapper elements between the list and each link is not
+  fixed. Flattening them makes every <a> a direct grid item no matter how the
+  theme groups them -- styling .mega-menu__column as the tile would break the
+  moment two links landed in one column.
+
+  Colour: ink on yellow is 11.17:1. Ships Free is purple carrying white at
+  6.89:1 -- deliberately a different colour because it is a different axis. It
+  is not a price band, and giving it the same tile would say it was one.
+*/
+.mega-menu__list:has(a[href$="/collections/under-10"]) {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.6rem;
+  max-width: 56rem;
+}
+
+.mega-menu__list:has(a[href$="/collections/under-10"]) .mega-menu__column,
+.mega-menu__list:has(a[href$="/collections/under-10"]) .mega-menu__column > div {
+  display: contents;
+}
+
+.mega-menu__list:has(a[href$="/collections/under-10"]) .mega-menu__link {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  aspect-ratio: 1;
+  padding: 0.5rem;
+  border-radius: 14px;
+  background: var(--aj-brand-yellow);
+  color: var(--aj-brand-ink);
+  /* Archivo, not Flashy: these are numbers to compare, and the display face
+     renders thin and cramped below about 22px. Same call as the deal price. */
+  font-family: var(--font-body--family);
+  font-weight: 800;
+  font-size: 1.0625rem;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  text-transform: none;
+  text-decoration: none;
+  transition: transform 0.12s ease;
+}
+
+.mega-menu__list:has(a[href$="/collections/under-10"]) .mega-menu__link:hover {
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mega-menu__list:has(a[href$="/collections/under-10"]) .mega-menu__link {
+    transition: none;
+  }
+  .mega-menu__list:has(a[href$="/collections/under-10"]) .mega-menu__link:hover {
+    transform: none;
+  }
+}
+
+.mega-menu__list:has(a[href$="/collections/under-10"]) a[href$="/collections/ships-free"] {
+  background: var(--aj-brand-purple);
+  color: #ffffff;
+}
+
+@media screen and (max-width: 999px) {
+  .mega-menu__list:has(a[href$="/collections/under-10"]) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/*
+  EARNING FREE SHIPPING SHOULD LOOK LIKE WINNING.
+
+  The progress row had this backwards: while you were still short, you got a
+  message AND a progress bar; the moment you crossed the line the bar was
+  suppressed and all that remained was one line of 0.9375rem body text in the
+  default colour. The best news in the cart was its quietest line.
+
+  Yellow ground carrying ink, 11.17:1 -- the same pairing the saving uses, so
+  "you got something" reads consistently across the site.
+*/
+.aj-ship-progress__row--won .aj-ship-progress__msg {
+  background: var(--aj-brand-yellow);
+  color: var(--aj-brand-ink);
+  font-weight: 800;
+  font-size: 1rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  align-items: center;
+}
+
+.aj-ship-progress__tick {
+  font-weight: 700;
+  font-size: 1.15em;
+  line-height: 1;
+}

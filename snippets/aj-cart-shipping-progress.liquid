@@ -65,14 +65,21 @@
         assign msg = nil
         assign pct = 0
         assign show_link = false
+        # `won` is narrower than `pct == 100` on purpose. The 'flat' and 'free'
+        # shapes also sit at 100%, but those are standing facts about a supplier,
+        # not something the shopper just achieved by filling their basket. Only
+        # a threshold they actually crossed earns the loud treatment; using it
+        # everywhere would make the celebration mean nothing.
+        assign won = false
 
         if shape == 'threshold' and vs.reachable.value
           # Rounded before use: free_threshold is a decimal metafield and Liquid
           # arithmetic on those goes float.
           assign threshold_cents = vs.free_threshold.value | times: 100 | round
           if vendor_cents >= threshold_cents
-            assign msg = 'Free shipping on ' | append: vendor | append: ' unlocked.'
+            assign msg = 'Free shipping on ' | append: vendor
             assign pct = 100
+            assign won = true
           else
             assign gap = threshold_cents | minus: vendor_cents
             assign gap_money = gap | money
@@ -92,8 +99,11 @@
       -%}
 
       {%- if msg -%}
-        <li class="aj-ship-progress__row">
+        <li class="aj-ship-progress__row{% if won %} aj-ship-progress__row--won{% endif %}">
           <p class="aj-ship-progress__msg">
+            {%- if won -%}
+              <span class="aj-ship-progress__tick" aria-hidden="true">&check;</span>
+            {%- endif -%}
             {{ msg }}
             {%- if show_link -%}
               {%- assign vendor_key = 'vendor-' | append: vendor | handleize -%}

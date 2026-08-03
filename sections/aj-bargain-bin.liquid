@@ -86,6 +86,17 @@
           </li>
         {%- endfor -%}
       </ul>
+
+      {%- comment -%}
+        The bin shows eight of twenty-six, and "See all 26" up in the corner is
+        the wrong weight for that — it is a caption next to a heading, read
+        before anyone has seen a single product. This sits where the browsing
+        actually stops, which is the moment there is a reason to click.
+      {%- endcomment -%}
+      <a class="aj-bin__cta" href="{{ bin.url }}">
+        Rummage through the bin
+        <span aria-hidden="true">&rarr;</span>
+      </a>
     </div>
   </div>
 {%- elsif request.design_mode -%}
@@ -132,8 +143,43 @@
     list-style: none;
   }
 
-  @media screen and (min-width: 750px) {
-    .aj-bin__grid { grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); }
+  /*
+    FIXED COLUMN COUNTS, NOT auto-fill.
+
+    auto-fill let the column count float with the viewport, so on a wide desktop
+    it made six columns for eight products — one full row and a second holding
+    two tiles beside four empty cells, which reads as a section that failed to
+    load rather than a curated set.
+
+    Two and four both divide the eight products exactly, so every row is full at
+    every width. If products_shown is ever changed, keep it a multiple of four.
+  */
+  @media screen and (min-width: 900px) {
+    .aj-bin__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
+
+  .aj-bin__cta {
+    display: block;
+    width: fit-content;
+    margin: var(--padding-md, 1.5rem) auto 0;
+    padding: 0.85rem 1.6rem;
+    border-radius: 999px;
+    /* Purple carrying white is 6.89:1. The yellow is spoken for by the saving
+       badges already in this grid; a yellow button here would compete with the
+       eight things it is meant to send you past. */
+    background: var(--aj-brand-purple, #7a3fa0);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: transform 0.12s ease;
+  }
+
+  .aj-bin__cta:hover { transform: translateY(-2px); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aj-bin__cta { transition: none; }
+    .aj-bin__cta:hover { transform: none; }
   }
 
   /* Same card treatment as Shop by category, deliberately: supplier photography
