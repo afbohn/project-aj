@@ -155,6 +155,14 @@
           `cap` is 1 on the first pass and the full limit on the second.
         {%- endcomment -%}
         {%- assign seen = ',' -%}
+        {%- comment -%}
+          Which vendors have already had their clearing item marked. A plain
+          boolean was wrong: the vendor loop runs TWICE (the fairness passes
+          above), so a flag reset inside it let the same supplier badge a
+          second item on the second pass. Measured live — two of three rows
+          came back badged. This survives both passes, like `seen`.
+        {%- endcomment -%}
+        {%- assign badged_vendors = ',' -%}
         {%- assign passes = '1,99' | split: ',' -%}
 
         {%- for cap_raw in passes -%}
@@ -166,7 +174,6 @@
             {%- assign vendor_key = 'vendor-' | append: clean -%}
             {%- assign vendor_collection = collections[vendor_key] -%}
             {%- assign from_vendor = 0 -%}
-            {%- assign badged = false -%}
 
             {%- comment -%}
               How far this vendor is from free shipping, in cents.
@@ -262,11 +269,14 @@
                   The list is already ordered cheapest-first within the tier, so
                   the first one marked is also the least someone has to spend.
                 {%- endcomment -%}
+                {%- assign vprobe = ',' | append: clean | append: ',' -%}
                 {%- assign clears = false -%}
-                {%- if tier == 2 and gap_cents > 0 and badged != true -%}
-                  {%- assign clears = true -%}
-                  {%- assign badged = true -%}
-                {%- endif -%}
+                {%- unless badged_vendors contains vprobe -%}
+                  {%- if tier == 2 and gap_cents > 0 -%}
+                    {%- assign clears = true -%}
+                    {%- assign badged_vendors = badged_vendors | append: clean | append: ',' -%}
+                  {%- endif -%}
+                {%- endunless -%}
                 {% render 'aj-cart-upsell-item', item: candidate, clears_gap: clears %}
               {%- endfor -%}
             {%- endfor -%}
