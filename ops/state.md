@@ -1693,6 +1693,74 @@ vendor scorecard.
 titles wrap to two lines. The bin section was fixed with subgrid; the theme's
 own product card has the same problem and was not touched.
 
+## 3 August, afternoon — the preview send, and a supplier walking out
+
+**Aura by Gem deleted us as a Collective connection.** Their products became
+unsellable, Alex deleted them (correctly), and one of them was the live Yoink.
+The metaobject kept its window, price and snapshot and pointed at nothing: the
+deal section and announcement bar both vanished and the homepage opened on
+empty space for about five hours. Traced through Shopify's event log — ten
+destroys at 10:17:11–10:17:16 local, author Alex Bohn — rather than guessed.
+
+The agents behaved correctly: `invariants` errored with "the live deal points at
+no product", `meta` refused to post, `catalog` declined to hide anything on an
+unreadable queue. Nothing was wrong except that nobody was told loudly enough.
+
+**`healOrphanedDeal` now runs at the top of every lifecycle pass.** It
+re-points, it does not re-price — puts an eligible product on the orphaned deal,
+clears the activation fields, and lets `activateDueDeals` price it through the
+identical path. Products already referenced by another `daily_deal` are
+excluded, so healing today cannot empty tomorrow.
+
+**Its selection was wrong first and had to be fixed live.** It took the
+shallowest qualifying candidate — right instinct, wrong implementation, because
+the minimum qualifying candidate has almost no headroom. It chose a planner
+priced $34 against a $34 cost: a Yoink at 0% off with zero margin, which is its
+own kind of broken homepage. Now: shallowest candidate carrying at least 25%,
+falling back to the deepest only if nothing clears that bar.
+
+**THE PREVIEW EMAIL EXISTS NOW.** The deal panel had collected addresses under
+"know what it is before anyone else" since 30 July and tagged them
+`yoink-preview`; nothing read that tag. Two senders: `customers/create` fires
+immediately on signup (silence for eight hours is indistinguishable from a
+broken form), and a nightly job at 19:00–22:00 store time covers everyone who
+subscribed earlier. Real HMAC-guarded one-click unsubscribe plus
+List-Unsubscribe headers — verified end to end, 200 on a valid token, 400 on a
+bad one, consent restored afterwards.
+
+**It must never quote a price the deal has not set.** Caught by Alex asking
+whether tomorrow's product was discounted yet — it is not. A queued deal carries
+`discount_percent` and an EMPTY `deal_price`; the lifecycle computes the real
+figure at activation. The first send said "$30.00, save $30.00" for a deal
+planned at 39% off. Price is null until `deal_price` exists and the mail leads
+with the discount instead.
+
+**Deals drop at MIDNIGHT, not 9am.** `starts_at` is 05:00Z. The announcement
+bar fallback had been telling every visitor "A new Yoink every day at 9am", and
+the same assumption had spread into snippet comments. Only visible because the
+fallback was the only thing in the bar that afternoon.
+
+**The deal image was sized by the supplier's photo.** `height: auto` meant a
+tall spray bottle rendered ~1100px and towered over the content column. Square
+box, `object-fit: contain`, capped at 34rem — every Yoink now occupies the same
+space whatever shape it was shot in.
+
+## API spend — mostly the build, not the agents
+
+$35 over seven days, all Opus. Only two files call the model, and `ads-analysis`
+runs solely when `/app/ads` is opened. The single recurring consumer is `enrich`:
+one run a day, ~40 products in batches of ten, system prompt already cached.
+
+The daily shape tracks build days, not agent runtime — $0 before work started,
+$2.42 on a quiet day with agents running, $8–10 on heavy build days. That points
+to roughly $2/day of agent against $6–8/day of us, and it is inference from the
+pattern rather than a measurement.
+
+**Give the Fly app its own API key** so the two never share a line again. Then
+decide about `enrich` on Opus — it is classification against a controlled
+vocabulary, and only the teaser line is real writing. Not worth optimising until
+it can be seen on its own.
+
 ## Things that bit us, so they don't again
 
 **From earlier sessions**
