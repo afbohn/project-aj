@@ -80,6 +80,10 @@ if (root) {
       )
       .join("");
 
+    // Ask about seals only when a sealed item is actually in the order.
+    const sealedBox = root.querySelector("[data-sealed]");
+    sealedBox.hidden = !data.items.some((it) => it.sealed);
+
     find.hidden = true;
     items.hidden = false;
     items.querySelector("#aj-rf-reason").focus();
@@ -99,12 +103,14 @@ if (root) {
     button.disabled = true;
     button.textContent = "Sending…";
 
+    const openedEl = root.querySelector("[data-opened]");
     const data = await post({
       action: "submit",
       orderNumber: order,
       email,
       items: chosen,
       reason: items.querySelector("#aj-rf-reason").value,
+      opened: Boolean(openedEl && openedEl.checked && !root.querySelector("[data-sealed]").hidden),
     });
 
     button.disabled = false;

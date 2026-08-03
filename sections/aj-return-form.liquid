@@ -50,6 +50,22 @@
         <div data-items></div>
       </fieldset>
 
+      {%- comment -%}
+        Only rendered when a sealed item is in the selection — asking everyone
+        whether they opened a t-shirt is noise, and noise is what gets clicked
+        through without reading.
+      {%- endcomment -%}
+      <div class="aj-rf__sealed" data-sealed hidden>
+        <label class="aj-rf__item">
+          <input type="checkbox" data-opened>
+          <span>I've opened or used it</span>
+        </label>
+        <p class="aj-rf__hint">
+          Food, drink, supplements and cosmetics can only come back unused and unopened.
+          If something's wrong with it, pick the damaged option below instead.
+        </p>
+      </div>
+
       <label class="aj-rf__label" for="aj-rf-reason">Why?</label>
       <select class="aj-rf__input" id="aj-rf-reason" name="reason">
         <option value="UNWANTED">Changed my mind</option>
@@ -183,6 +199,19 @@
   }
 
   .aj-rf__found { margin: 0 0 0.5rem; font-weight: 600; }
+
+  .aj-rf__sealed {
+    margin-block-start: 1rem;
+    padding: 0.9rem 1rem;
+    border-radius: 6px;
+    background: rgb(var(--color-foreground-rgb) / 0.05);
+  }
+
+  .aj-rf__hint {
+    margin: 0.4rem 0 0;
+    font-size: 0.8125rem;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+  }
 
   .aj-rf__choice { margin-block-start: 1.5rem; }
 
