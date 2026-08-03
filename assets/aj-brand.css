@@ -48,6 +48,23 @@
      at 241 glyphs, so a price cannot render with holes in it. A display face
      with a partial glyph set is the obvious way this goes wrong. */
   --aj-price-font: "Flashy", var(--font-heading--family);
+
+  /*
+    SHIPS FREE GETS ITS OWN COLOUR, and cyan was the one accent doing no work.
+
+    It was an 18% tint of the yellow, which read as a pale grey smudge and said
+    nothing — and yellow is already spoken for. On this store yellow means "you
+    are getting a discount"; shipping being free is a different KIND of good
+    news, and giving it the saving's colour at 18% strength made it look like a
+    weaker version of the same thing rather than a separate one.
+
+    Solid, not a tint. The old note argued a solid fill would force the text to
+    ink and lose the body-text contrast — true of yellow, irrelevant here: ink
+    on cyan is 8.87:1, better than most body copy on this site. White on cyan is
+    1.66:1 and must never be used.
+  */
+  --aj-ships-free-bg: var(--aj-brand-cyan);
+  --aj-ships-free-ink: var(--aj-brand-ink);
 }
 
 /*

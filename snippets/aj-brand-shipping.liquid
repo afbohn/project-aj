@@ -210,34 +210,30 @@
     align-self: center;
   }
 
-  /* The pill. A TINT of the brand accent rather than the solid fill the saving
-     pill uses, so the two can sit inches apart and still be ranked. Text stays
-     the page foreground: at this alpha the surface barely moves, so the
-     measured contrast of normal body text carries over — which is not true of
-     the solid accent, where #ffde00 is 1.34:1 against white and the text has to
-     become ink. */
+  /* The pill, in cyan carrying ink at 8.87:1.
+
+     It was an 18% tint of the yellow, which read as a pale smudge. Yellow is
+     spoken for: on this store it means "you are getting a discount". Free
+     shipping is a different kind of good news, and dressing it in a weak
+     version of the saving's colour made it look like a lesser saving rather
+     than a separate benefit. Cyan was the one palette accent doing no work.
+
+     Solid rather than tinted. The previous note argued a solid fill costs the
+     body-text contrast — true of yellow, not of this: ink on cyan beats most
+     copy on the site. White on cyan is 1.66:1 and is never used. */
   .aj-brand-ship--free {
     display: inline-flex;
     width: fit-content;
     margin-top: 0.6rem;
     padding: 0.3rem 0.7rem;
     border-radius: 999px;
-    background: color-mix(
-      in srgb,
-      var(--aj-price-accent, rgb(var(--color-foreground-rgb) / 0.5)) 18%,
-      transparent
-    );
-    font-weight: 600;
+    background: var(--aj-ships-free-bg, #5cd8f8);
+    color: var(--aj-ships-free-ink, #282828);
+    font-weight: 700;
   }
 
-  /* Browsers without color-mix get a neutral tint rather than no pill at all —
-     the shape is doing most of the work and a transparent background would
-     leave the padding looking like a layout bug. */
-  @supports not (background: color-mix(in srgb, red 18%, transparent)) {
-    .aj-brand-ship--free {
-      background: rgb(var(--color-foreground-rgb) / 0.08);
-    }
-  }
+  /* No color-mix fallback: the fill is a flat colour now, so there is nothing
+     to degrade. */
 
   /* Stated, not sold. */
   .aj-brand-ship--plain {

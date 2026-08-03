@@ -32,21 +32,14 @@
   font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.3;
-  background: color-mix(
-    in srgb,
-    var(--aj-price-accent, rgb(var(--color-foreground-rgb) / 0.5)) 18%,
-    transparent
-  );
+  background: var(--aj-ships-free-bg, #5cd8f8);
+  color: var(--aj-ships-free-ink, #282828);
 }
 
 /* Without color-mix the pill keeps its shape on a neutral tint rather than
    losing its background entirely, which would leave the padding reading as a
    layout bug. */
-@supports not (background: color-mix(in srgb, red 18%, transparent)) {
-  .aj-card-free {
-    background: rgb(var(--color-foreground-rgb) / 0.08);
-  }
-}
+/* No color-mix fallback needed any more: the fill is a flat colour. */
 
 /* A drawn tick rather than an emoji: it inherits colour, scales with the text,
    and renders as the same shape on every platform. */
