@@ -127,6 +127,32 @@
       overridden away from Shopify's taxonomy wording — "Food & Beverages"
       rather than the segment name that still ends in Tobacco.
     endcomment
+    comment
+      SUB-CATEGORY FIRST, falling back to the top level.
+
+      "Home & Garden" covers 725 products, which tells a shopper almost nothing
+      and makes the tease feel like a shrug. "Decor" or "Kitchen & Dining" is a
+      real hint. The sub- tags did not exist when this was written; they do now,
+      for the four categories big enough to have been split.
+
+      Still not identifying, which is the constraint this whole panel is built
+      around: the smallest sub-collection carries 16 products, so naming one
+      narrows the field without giving the item away. Anything below that and
+      this would stop being a tease and start being the answer.
+
+      Two passes rather than one loop with a priority test, because Liquid has
+      no way to sort tags — the first pass looks only for sub-, the second only
+      for cat-, and the second is skipped once the first has found something.
+    endcomment
+    for tag in next_product.tags
+      if cat_label == '' and tag contains 'sub-'
+        assign sub_collection = collections[tag]
+        if sub_collection != blank and sub_collection.title != blank
+          assign cat_label = sub_collection.title
+        endif
+      endif
+    endfor
+
     for tag in next_product.tags
       if cat_label == '' and tag contains 'cat-'
         assign cat_collection = collections[tag]
