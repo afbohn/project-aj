@@ -1838,6 +1838,37 @@ without JavaScript, dots rather than thumbnails, arrows on desktop only behind
 `(hover: hover)`. The only way to see a second photo used to be leaving for the
 product page — away from the countdown and the buy button.
 
+## ANSWERED — who bears return postage
+
+**The supplier does. The $6.95 is margin, not recovery.**
+
+Worked out rather than asked, from two facts that only mean something together:
+
+Shopify's documentation gives three Processing modes and states plainly of the
+one this store uses — *"Supplier creates label: The supplier provides and pays
+for the return label."*
+
+And the Default return policy reads **"30 days · No label fee · No restocking
+fee"**. The label fee is what the RETAILER pays the supplier to compensate them
+for creating the label; it is zero here. So the supplier creates it, pays the
+carrier, and invoices us nothing.
+
+**We incur no return postage cost.** Every prior note treating the $6.95 as cost
+recovery was wrong, including the reasoning that justified introducing it.
+
+**THAT MAKES THE COPY THE OPEN QUESTION, NOT THE ECONOMICS.** The storefront
+tells a change-of-mind customer they are paying for return shipping. They are
+not: they are paying a fee we keep, against postage a supplier absorbs. That is
+lawful and ordinary, and it is not what the words say. Worth either renaming it
+(a "return fee") or accepting the framing deliberately rather than by accident.
+
+**CORRECTION — Customer refunds is now "Collective takes no action."** This file
+recorded it as still set to "Automatically refund" on 2 August, flagged as an
+error that sat under every returns decision for three days. Read from the app
+again on 3 August: it has been changed. That is the setting the settlement path
+needs — ours is now the only thing issuing refunds, so there is no double-refund
+risk. Verified in the app, not inferred.
+
 ## Things that bit us, so they don't again
 
 **From earlier sessions**
