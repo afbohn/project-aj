@@ -1,0 +1,387 @@
+{%- doc -%}
+  The 404, which on this store is the one page whose joke is load-bearing.
+
+  "Yoink" IS a verb for snatching something away, so a page that has gone
+  missing has, literally, been yoinked. That is the rare pun that could not be
+  transplanted to another shop — it only works because of what we are called —
+  which is the difference between a brand voice and a sticker.
+
+  THE JOKE IS NOT THE POINT, THE WAY OUT IS. A 404 is a customer who is one
+  click from leaving, and the default theme page hands them a heading and a
+  "Continue shopping" link back to a homepage they did not ask for. So this
+  spends its real estate on the single best thing the store owns: today's live
+  deal, priced, with its saving, ready to buy. The deadest URL on the site
+  becomes the one that shows the offer.
+
+  IT RESOLVES THE DEAL ITSELF, the same way header-announcements does — walking
+  daily_deal for the entry whose window contains now. That means it rotates at
+  9am with nothing to edit here, and it means the page has to survive there
+  being no live deal at all, which happens between runs and would otherwise
+  render an empty card with a $0 price. When there is no deal, the escape
+  routes simply move up and take the space.
+
+  COLOUR IS MEASURED, not chosen. The hero is ink carrying yellow at 11.17:1;
+  yellow is never type on white (1.32:1) so it only ever appears on the dark
+  ground. The tiles are purple carrying white at 6.89:1. Teal and cyan are
+  absent on purpose: white on teal is 2.73:1, and this page is mostly white
+  text on colour.
+{%- enddoc -%}
+
+{%- liquid
+  assign now = 'now' | date: '%s' | plus: 0
+  assign deal = null
+  for entry in shop.metaobjects.daily_deal.values
+    assign starts = entry.starts_at.value | date: '%s' | plus: 0
+    assign ends = entry.ends_at.value | date: '%s' | plus: 0
+    if starts <= now and ends > now
+      assign deal = entry
+      break
+    endif
+  endfor
+  assign deal_product = deal.product.value
+  assign deal_variant = deal_product.selected_or_first_available_variant
+  assign deal_anchor = deal_variant.compare_at_price
+  if deal_anchor == blank or deal_anchor <= deal_variant.price
+    assign deal_anchor = null
+  endif
+  if deal_anchor
+    assign deal_off = deal_anchor | minus: deal_variant.price | times: 100 | divided_by: deal_anchor
+    assign deal_save = deal_anchor | minus: deal_variant.price
+  endif
+
+  assign bin = collections[section.settings.collection_handle]
+-%}
+
+<div class="aj-404 page-width">
+  <div class="aj-404__hero">
+    {%- comment -%}
+      Ohpixel, uppercase, three characters. This is exactly the shape the pixel
+      face is drawn for — a short structural label — and exactly why it is not
+      used on the sentence underneath it.
+    {%- endcomment -%}
+    <p class="aj-404__code">404</p>
+
+    <h1 class="aj-404__title">Someone yoinked this page</h1>
+
+    <p class="aj-404__blurb">
+      In fairness, that is more or less our whole business model. The page is
+      gone, but the good stuff is one click away.
+    </p>
+  </div>
+
+  {%- if deal_product != blank -%}
+    <a class="aj-404__deal" href="{{ deal_product.url }}">
+      <span class="aj-404__deal-media">
+        {%- if deal_product.featured_media -%}
+          {{
+            deal_product.featured_media
+            | image_url: width: 600
+            | image_tag:
+              loading: 'lazy',
+              widths: '240, 360, 480, 600',
+              sizes: '(min-width: 750px) 240px, 40vw',
+              class: 'aj-404__deal-image',
+              alt: deal_product.title
+          }}
+        {%- endif -%}
+      </span>
+
+      <span class="aj-404__deal-body">
+        <span class="aj-404__deal-eyebrow">Today&rsquo;s Yoink</span>
+        <span class="aj-404__deal-title">{{ deal_product.title | escape }}</span>
+
+        <span class="aj-404__deal-prices">
+          <span class="aj-404__deal-price">{{ deal_variant.price | money }}</span>
+          {%- if deal_anchor -%}
+            <s class="aj-404__deal-was">{{ deal_anchor | money }}</s>
+            {%- comment -%}
+              Ink on yellow, the same pairing the saving uses everywhere else on
+              the site, so "you are getting something" reads consistently.
+            {%- endcomment -%}
+            <span class="aj-404__deal-save">Save {{ deal_save | money }}</span>
+          {%- endif -%}
+        </span>
+
+        <span class="aj-404__deal-cta">Yoink it <span aria-hidden="true">&rarr;</span></span>
+      </span>
+    </a>
+  {%- endif -%}
+
+  <p class="aj-404__lead">Things nobody has yoinked yet</p>
+
+  <ul class="aj-404__ways" role="list">
+    <li>
+      <a class="aj-404__way" href="{{ routes.root_url }}">
+        <span class="aj-404__way-title">Today&rsquo;s Yoink</span>
+        <span class="aj-404__way-note">One deal, 24 hours, then it is gone</span>
+      </a>
+    </li>
+    <li>
+      <a class="aj-404__way" href="{{ bin.url | default: routes.collections_url }}">
+        <span class="aj-404__way-title">
+          The Bargain Bin
+          {%- if bin.products_count > 0 %} ({{ bin.products_count }}){% endif -%}
+        </span>
+        <span class="aj-404__way-note">Everything at least 25% off</span>
+      </a>
+    </li>
+    <li>
+      <a class="aj-404__way" href="{{ routes.root_url }}#shop-by-price">
+        <span class="aj-404__way-title">Shop by price</span>
+        <span class="aj-404__way-note">Under $10 up to $50 and over</span>
+      </a>
+    </li>
+    <li>
+      <a class="aj-404__way" href="{{ routes.root_url }}#shop-by-category">
+        <span class="aj-404__way-title">Shop by category</span>
+        <span class="aj-404__way-note">Apparel, home, toys and more</span>
+      </a>
+    </li>
+  </ul>
+
+  {%- comment -%}
+    A mistyped or stale URL is the commonest way anyone arrives here, and in
+    both cases the shopper knows what they wanted and we do not. A search box
+    is the only control on this page that can answer that.
+  {%- endcomment -%}
+  <form class="aj-404__search" action="{{ routes.search_url }}" method="get" role="search">
+    <label class="visually-hidden" for="aj-404-q">Search the store</label>
+    <input
+      id="aj-404-q"
+      class="aj-404__search-input"
+      type="search"
+      name="q"
+      placeholder="Search for something instead"
+      autocomplete="off"
+    >
+    <button class="aj-404__search-go" type="submit">Search</button>
+  </form>
+</div>
+
+{% stylesheet %}
+  .aj-404 {
+    display: grid;
+    gap: 1.75rem;
+    padding-block: 3rem 4rem;
+  }
+
+  .aj-404__hero {
+    background: var(--aj-brand-ink, #282828);
+    color: #ffffff;
+    border-radius: 18px;
+    padding: clamp(2rem, 6vw, 3.5rem);
+    text-align: center;
+  }
+
+  /* The pixel face, on the one string that is the right shape for it. */
+  .aj-404__code {
+    margin: 0 0 0.75rem;
+    font-family: "Ohpixel", var(--font-heading--family);
+    /* Ohpixel has no tabular figures and its "1" is markedly narrower than its
+       other digits, but 404 contains no 1, so the string is even as drawn. */
+    font-size: 1.25rem;
+    letter-spacing: 0.3em;
+    color: var(--aj-brand-yellow, #ffe000);
+  }
+
+  /* Flashy, at a size it can actually carry. Weight stays normal because the
+     face has one weight and the browser fakes the rest by smearing outlines. */
+  .aj-404__title {
+    margin: 0 0 0.85rem;
+    font-family: "Flashy", var(--font-heading--family);
+    font-weight: 400;
+    font-size: clamp(2.25rem, 7vw, 4.25rem);
+    line-height: 1.02;
+    letter-spacing: 0.01em;
+    text-wrap: balance;
+    color: var(--aj-brand-yellow, #ffe000);
+  }
+
+  .aj-404__blurb {
+    margin: 0 auto;
+    max-width: 34rem;
+    font-size: 1.0625rem;
+    line-height: 1.5;
+    opacity: 0.88;
+  }
+
+  /* --- the live deal ----------------------------------------------------- */
+
+  .aj-404__deal {
+    display: grid;
+    grid-template-columns: minmax(0, 34%) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(1rem, 3vw, 2rem);
+    padding: clamp(1rem, 3vw, 1.5rem);
+    border: 2px solid var(--aj-brand-ink, #282828);
+    border-radius: 18px;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.12s ease;
+  }
+
+  .aj-404__deal:hover { transform: translateY(-2px); }
+
+  .aj-404__deal-media {
+    display: block;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .aj-404__deal-image {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .aj-404__deal-body { display: grid; gap: 0.45rem; }
+
+  .aj-404__deal-eyebrow {
+    font-family: "Ohpixel", var(--font-heading--family);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    color: var(--aj-brand-purple, #7a3fa0);
+  }
+
+  /* Supplier copy, so the text face rather than the display one. */
+  .aj-404__deal-title {
+    font-size: clamp(1.05rem, 2.2vw, 1.4rem);
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .aj-404__deal-prices {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+
+  .aj-404__deal-price {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .aj-404__deal-was { opacity: 0.55; font-size: 1rem; }
+
+  .aj-404__deal-save {
+    background: var(--aj-brand-yellow, #ffe000);
+    color: var(--aj-brand-ink, #282828);
+    font-weight: 800;
+    font-size: 0.9375rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+  }
+
+  .aj-404__deal-cta {
+    margin-top: 0.35rem;
+    font-weight: 700;
+    color: var(--aj-brand-purple, #7a3fa0);
+  }
+
+  /* --- the ways out ------------------------------------------------------ */
+
+  .aj-404__lead {
+    margin: 0.5rem 0 0;
+    font-family: "Ohpixel", var(--font-heading--family);
+    text-transform: uppercase;
+    font-size: 0.8125rem;
+    letter-spacing: 0.1em;
+  }
+
+  .aj-404__ways {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .aj-404__way {
+    display: grid;
+    gap: 0.2rem;
+    height: 100%;
+    padding: 1.1rem 1.25rem;
+    border-radius: 14px;
+    /* Purple carrying white, 6.89:1. */
+    background: var(--aj-brand-purple, #7a3fa0);
+    color: #ffffff;
+    text-decoration: none;
+    transition: transform 0.12s ease;
+  }
+
+  .aj-404__way:hover { transform: translateY(-2px); }
+
+  .aj-404__way-title { font-weight: 800; font-size: 1.0625rem; }
+  .aj-404__way-note { font-size: 0.875rem; opacity: 0.85; line-height: 1.35; }
+
+  /* --- search ------------------------------------------------------------ */
+
+  .aj-404__search {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .aj-404__search-input {
+    flex: 1 1 16rem;
+    min-width: 0;
+    padding: 0.85rem 1rem;
+    border: 2px solid var(--aj-brand-ink, #282828);
+    border-radius: 999px;
+    font: inherit;
+  }
+
+  .aj-404__search-go {
+    flex: none;
+    padding: 0.85rem 1.6rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--aj-brand-ink, #282828);
+    color: #ffffff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  @media screen and (max-width: 749px) {
+    .aj-404__deal { grid-template-columns: minmax(0, 1fr); }
+    .aj-404__ways { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aj-404__deal,
+    .aj-404__way {
+      transition: none;
+    }
+    .aj-404__deal:hover,
+    .aj-404__way:hover {
+      transform: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "AJ 404",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "The not-found page. Resolves today's live deal itself, so it rotates with the schedule and needs no editing. When no deal is running the deal card is omitted and the escape routes move up."
+    },
+    {
+      "type": "text",
+      "id": "collection_handle",
+      "label": "Bargain bin collection handle",
+      "default": "bargain-bin"
+    }
+  ],
+  "presets": [{ "name": "AJ 404" }]
+}
+{% endschema %}
