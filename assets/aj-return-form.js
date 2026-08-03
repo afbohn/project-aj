@@ -112,6 +112,46 @@ if (root) {
 
     if (!data.ok) return showError(data.message || "That didn't go through. Try again.");
 
+    // The server offers keep-it rather than deciding it. Show the options and
+    // let them pick; nothing is recorded until they do.
+    if (data.choose) {
+      const box = root.querySelector("[data-choice]");
+      root.querySelector("[data-choice-lead]").textContent = data.keepItReason;
+      root.querySelector("[data-choice-options]").innerHTML = data.options
+        .map(
+          (o) => `<button type="button" class="aj-rf__opt" data-pick="${o.key}">
+                    <strong>${o.label}</strong><small>${o.detail}</small>
+                  </button>`,
+        )
+        .join("");
+      items.hidden = true;
+      box.hidden = false;
+      box.querySelectorAll("[data-pick]").forEach((b) =>
+        b.addEventListener("click", async () => {
+          box.querySelectorAll("[data-pick]").forEach((x) => (x.disabled = true));
+          const picked = await post({
+            action: "choose",
+            orderNumber: order,
+            email,
+            settlement: b.dataset.pick,
+            value: data.value,
+            reason: data.reason,
+            itemsSummary: foundEl.textContent,
+          });
+          if (!picked.ok) {
+            box.querySelectorAll("[data-pick]").forEach((x) => (x.disabled = false));
+            return showError(picked.message || "That didn't go through.");
+          }
+          box.hidden = true;
+          outcomeEl.textContent = picked.outcome;
+          root.querySelector("[data-note]").hidden = true;
+          result.hidden = false;
+          result.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }),
+      );
+      return;
+    }
+
     outcomeEl.textContent = data.outcome;
     // Only say "check your email" when something will actually send one:
     // Shopify emails the label on a created return. A keep-it decision creates

@@ -75,6 +75,16 @@
       for money. The outcome text says what happens; it does not need a second
       sentence contradicting it.
     {%- endcomment -%}
+    {%- comment -%}
+      The keep-it choice. Shown only when the server offers it, because only the
+      server knows the value and the rules — the page must never guess which
+      customers are eligible for what.
+    {%- endcomment -%}
+    <div class="aj-rf__choice" data-choice hidden>
+      <p class="aj-rf__found" data-choice-lead></p>
+      <div data-choice-options></div>
+    </div>
+
     <div class="aj-rf__result" data-result hidden>
       <p class="aj-rf__outcome" data-outcome></p>
       <p class="aj-rf__note" data-note hidden></p>
@@ -173,6 +183,37 @@
   }
 
   .aj-rf__found { margin: 0 0 0.5rem; font-weight: 600; }
+
+  .aj-rf__choice { margin-block-start: 1.5rem; }
+
+  .aj-rf__opt {
+    display: block;
+    width: 100%;
+    margin-block-start: 0.7rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid rgb(var(--color-foreground-rgb) / 0.25);
+    border-radius: 8px;
+    background: rgb(var(--color-background-rgb));
+    color: rgb(var(--color-foreground-rgb));
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+  }
+
+  /* The first option is the one we would rather they took, so it gets the
+     brand. It is still a button beside another button, not a default. */
+  .aj-rf__opt:first-of-type {
+    border-color: var(--aj-brand-purple, currentColor);
+    border-width: 2px;
+  }
+
+  .aj-rf__opt strong { display: block; font-size: 1.0625rem; }
+
+  .aj-rf__opt small {
+    display: block;
+    margin-block-start: 0.2rem;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+  }
 
   /* The outcome is the point of the page, so it gets the brand rather than
      sitting as another paragraph. */
