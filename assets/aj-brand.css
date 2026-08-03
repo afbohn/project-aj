@@ -205,12 +205,18 @@
 }
 
 /*
+  THE DEAL EYEBROW IS THE EXCEPTION, and sits in Flashy instead — see
+  aj-daily-deal.liquid. Every other label here is genuinely small, which is the
+  only size a pixel grid survives; that one is 26px and is the line that names
+  the whole offer, so it gets the logo face.
+*/
+
+/*
   Ohpixel on the labels. Every one of these is a short uppercase string — an
   eyebrow, a badge, a countdown — which is the only shape a pixel face reads
   well in. Deliberately NOT applied to .aj-bin__name or any product title:
   those are real words of arbitrary length and belong to the text face.
 */
-.aj-deal__eyebrow,
 .aj-tomorrow__eyebrow,
 .aj-announce__label,
 .aj-price__label,

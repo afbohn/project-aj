@@ -392,9 +392,24 @@
       Presence here comes from size and tracking, which is what a pixel face
       responds to.
     */
+    /*
+      FLASHY, NOT THE PIXEL FACE. Ohpixel is drawn for small structural labels
+      and this line is 26px announcing the day's offer — the one string on the
+      page with both the size and the importance for the logo face. It is also
+      our own copy, which is the standing rule for where Flashy is allowed.
+
+      Tracking drops from 0.1em to 0.02em. Ohpixel needs air or its pixel grid
+      runs together; Flashy is drawn tight and letter-spacing pulls it apart.
+      The two faces want opposite treatment, so the value has to move with them.
+
+      Weight 400 because Flashy ships one weight, exactly as Ohpixel does —
+      anything heavier is the browser smearing an outline sideways, which on a
+      face with this much character reads as a rendering fault.
+    */
+    font-family: "Flashy", var(--font-heading--family);
     font-size: clamp(1.25rem, 2.4vw, 1.625rem);
     font-weight: 400;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.02em;
     text-transform: uppercase;
     /*
       Purple, measured against this card's own tinted ground rather than
