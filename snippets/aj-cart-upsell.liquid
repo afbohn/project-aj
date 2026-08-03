@@ -166,6 +166,7 @@
             {%- assign vendor_key = 'vendor-' | append: clean -%}
             {%- assign vendor_collection = collections[vendor_key] -%}
             {%- assign from_vendor = 0 -%}
+            {%- assign badged = false -%}
 
             {%- comment -%}
               How far this vendor is from free shipping, in cents.
@@ -252,8 +253,20 @@
                   the tiering above did was change the order of three items
                   nobody could tell apart. Saying so is the entire value of it.
                 {%- endcomment -%}
+                {%- comment -%}
+                  ONE BADGE, NOT THREE. Every tier-2 item clears the threshold,
+                  so the first version marked all three suggestions and the
+                  cart rendered a wall of identical yellow labels. A badge on
+                  everything is a badge on nothing -- it stops reading as "this
+                  one solves your problem" and starts reading as decoration.
+                  The list is already ordered cheapest-first within the tier, so
+                  the first one marked is also the least someone has to spend.
+                {%- endcomment -%}
                 {%- assign clears = false -%}
-                {%- if tier == 2 and gap_cents > 0 -%}{%- assign clears = true -%}{%- endif -%}
+                {%- if tier == 2 and gap_cents > 0 and badged != true -%}
+                  {%- assign clears = true -%}
+                  {%- assign badged = true -%}
+                {%- endif -%}
                 {% render 'aj-cart-upsell-item', item: candidate, clears_gap: clears %}
               {%- endfor -%}
             {%- endfor -%}
