@@ -79,7 +79,31 @@
           {%- if deal_off -%}
             <span class="aj-announce__save">{{ deal_off }}% off</span>
           {%- endif -%}
-          <span class="aj-announce__title">{{ deal_product.title | escape }}</span>
+          {%- comment -%}
+            THE CATEGORY, NOT THE PRODUCT NAME. A supplier's title is long and
+            arrives pre-truncated in a strip this narrow — "Combo Women's
+            Socce…" tells a shopper nothing at all, which is worse than saying
+            nothing. The category is short, always fits, and answers the only
+            question the bar can usefully answer: is this for me?
+
+            Read from the cat- tag's collection title, the same source the sneak
+            peek uses, because that title is the shopper-facing wording — it is
+            what turns Shopify's "Food, Beverages & Tobacco" into "Food &
+            Beverages". Falls back to the product name if a product somehow has
+            no category, which is better than an empty strip.
+          {%- endcomment -%}
+          {%- assign bar_cat = '' -%}
+          {%- for tag in deal_product.tags -%}
+            {%- if bar_cat == '' and tag contains 'cat-' -%}
+              {%- assign bar_col = collections[tag] -%}
+              {%- if bar_col != blank and bar_col.title != blank -%}
+                {%- assign bar_cat = bar_col.title -%}
+              {%- endif -%}
+            {%- endif -%}
+          {%- endfor -%}
+          <span class="aj-announce__title">
+            {{- bar_cat | default: deal_product.title | escape -}}
+          </span>
           <span class="aj-announce__go" aria-hidden="true">&rarr;</span>
         </a>
       {%- else -%}
@@ -127,7 +151,8 @@
   }
 
   .aj-announce__title {
-    /* One line in the bar; the product page carries the full name. */
+    /* A category name fits, so nothing needs truncating. The ellipsis stays as
+       a guard for the fallback case where a product has no category. */
     max-width: 22rem;
     overflow: hidden;
     text-overflow: ellipsis;
