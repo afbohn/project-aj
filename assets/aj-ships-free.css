@@ -39,9 +39,9 @@
 /* Without color-mix the pill keeps its shape on a neutral tint rather than
    losing its background entirely, which would leave the padding reading as a
    layout bug. */
-/* No color-mix fallback needed any more: the fill is a flat colour. */
+/* No color-mix fallback needed any more: the fill is a flat color. */
 
-/* A drawn tick rather than an emoji: it inherits colour, scales with the text,
+/* A drawn tick rather than an emoji: it inherits color, scales with the text,
    and renders as the same shape on every platform. */
 .aj-card-free::before {
   content: "";
@@ -53,7 +53,7 @@
   transform: rotate(-45deg) translateY(-0.05rem);
 }
 
-/* Forced colours discard backgrounds, which would flatten the mark into the
+/* Forced colors discard backgrounds, which would flatten the mark into the
    card and lose the only thing distinguishing it from a line of small print. */
 @media (forced-colors: active) {
   .aj-card-free {

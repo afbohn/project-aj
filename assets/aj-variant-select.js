@@ -16,9 +16,9 @@
  * price, rendered server-side, and the display follows the selection.
  *
  * THE IMAGE follows too, where there is one to follow. On the daily deal the
- * product is often a single form in nine glazes, so the colour someone picks is
+ * product is often a single form in nine glazes, so the color someone picks is
  * the entire decision and a static photo answers the wrong question. But
- * supplier photography is uneven — four of those nine colours have no image of
+ * supplier photography is uneven — four of those nine colors have no image of
  * their own — so an option with no photo falls back to the product image
  * server-side rather than swapping the hero to nothing.
  *

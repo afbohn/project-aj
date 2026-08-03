@@ -60,12 +60,12 @@
 
   comment
     The hero follows the picker, and the picker starts on `variant`. Rendering
-    product.featured_image instead left the page opening on one colour while the
+    product.featured_image instead left the page opening on one color while the
     dropdown named another — on this catalogue the deal product is often a
     single form in nine glazes, so the mismatch is the whole decision.
 
     NOT EVERY VARIANT HAS ITS OWN PHOTO. Suppliers shoot what they shoot: of the
-    nine colours on the current deal, four have no image and two share one. So
+    nine colors on the current deal, four have no image and two share one. So
     every lookup falls back to the product image rather than blanking, here and
     in the script.
   endcomment
@@ -114,7 +114,7 @@
         swaps the hero when a variant changes by querying that marker, so it has
         to stay on slide one and stay first in the DOM. The gallery scrolls back
         to it on a variant change rather than leaving someone looking at the
-        old colour's third photo.
+        old color's third photo.
 
         Everything below degrades without JavaScript: the track is a scroll
         container, so it swipes and scrolls natively and the controls are only
@@ -227,7 +227,7 @@
         <div class="aj-deal__cta" data-aj-upsell-row>
           {%- comment -%}
             Add to cart HERE, options and all. Sending someone to the product
-            page to pick a colour loses most of them, and this is the one item on
+            page to pick a color loses most of them, and this is the one item on
             the site we most want bought — so the same picker the cart upsell
             uses appears inline instead.
 
@@ -382,9 +382,9 @@
   /*
     The offer gets a panel so it reads as a thing rather than as loose text
     beside a picture. Tinted from the brand cyan and mixed into whatever ground
-    the section's colour scheme is using, so it stays a tint rather than
+    the section's color scheme is using, so it stays a tint rather than
     assuming white. Ink on this is comfortably past 4.5:1 — the cyan is at 12%,
-    nowhere near the 1.66:1 the pure colour would give.
+    nowhere near the 1.66:1 the pure color would give.
   */
   .aj-deal__content {
     background: color-mix(in srgb, var(--aj-brand-cyan, #5cd8f8) 12%, rgb(var(--color-background-rgb, 255 255 255)));
@@ -527,7 +527,7 @@
     inset-inline-start: var(--padding-sm, 1rem);
     padding: 0.3em 0.7em;
     border-radius: 3px;
-    /* The grab colour, not the theme neutral. This badge is the single loudest
+    /* The grab color, not the theme neutral. This badge is the single loudest
        claim on the homepage — the saving on today's Yoink — and it sat in plain
        ink because it predates the palette. Ink on yellow is 11.17:1, so it is
        both the loudest and the most readable pairing available. Falls back to
@@ -558,7 +558,7 @@
 
       That is deliberate and does not flatten the hierarchy: the title is
       Archivo at 700 in near-black, this is a pixel face at 400 in purple, and
-      the price is 48px above both. Rank is carried by weight, colour and the
+      the price is 48px above both. Rank is carried by weight, color and the
       price, so the label naming the offer can afford to be seen.
 
       WEIGHT IS 400 BECAUSE 600 DID NOTHING. Ohpixel ships one weight, and
@@ -594,7 +594,7 @@
       almost nothing.)
 
       It is also the semantically right accent. Purple is this brand's "act"
-      colour — links and primary buttons — and yellow is reserved for the
+      color — links and primary buttons — and yellow is reserved for the
       saving. An eyebrow that names the offer belongs to the first group, and
       putting it in yellow would have set it competing with the SAVE 53% badge
       a few inches to its left.

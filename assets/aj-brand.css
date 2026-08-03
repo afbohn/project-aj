@@ -17,7 +17,7 @@
   THE ACCENT IS A BACKGROUND, NEVER TYPE, and that is measured rather than
   stylistic. Against white, yellow is 1.32:1 and cyan is 1.66:1 — both fail
   WCAG 1.4.3 as type at any size, and fail 1.4.11 as a border. Ink on that
-  yellow is 11.17:1. So the saving is dark text on a colour block, the one
+  yellow is 11.17:1. So the saving is dark text on a color block, the one
   arrangement that is both the loudest thing on the page and the most readable.
 
   Purple is the exception at 6.89:1 on white and is safe as type.
@@ -55,7 +55,7 @@
     It was an 18% tint of the yellow, which read as a pale grey smudge and said
     nothing — and yellow is already spoken for. On this store yellow means "you
     are getting a discount"; shipping being free is a different KIND of good
-    news, and giving it the saving's colour at 18% strength made it look like a
+    news, and giving it the saving's color at 18% strength made it look like a
     weaker version of the same thing rather than a separate one.
 
     Solid, not a tint. The old note argued a solid fill would force the text to
@@ -244,7 +244,7 @@
   A jittering countdown reads as broken, which is a bad thing for the element
   whose entire job is to make the deal feel real.
 
-  1.4em holds two 0.600em digits with a little air. Centred, so the odd narrow
+  1.4em holds two 0.600em digits with a little air. Centerd, so the odd narrow
   "1" sits in the middle of its slot rather than dragging the pair sideways.
 */
 .aj-countdown__value {
@@ -265,7 +265,7 @@
   lit panel.
 
   Yellow on ink is 11.17:1, the strongest pairing in the palette, and the one
-  place on the page where the loudest colour is unambiguously correct: this is
+  place on the page where the loudest color is unambiguously correct: this is
   the element whose whole job is pressure.
 
   Units are dimmed rather than resized. "h" and "m" are grammar, not
@@ -326,7 +326,7 @@
 
   The menu was sentence-case body text at 14px sitting on a strong teal — it
   looked like a paragraph that had wandered into the header. Uppercase with
-  tracking is what a nav bar is, and on a coloured ground it is also simply
+  tracking is what a nav bar is, and on a colored ground it is also simply
   easier to pick out: caps have a flatter, more even silhouette than mixed case
   at small sizes.
 
@@ -376,8 +376,8 @@
   theme groups them -- styling .mega-menu__column as the tile would break the
   moment two links landed in one column.
 
-  Colour: ink on yellow is 11.17:1. Ships Free is purple carrying white at
-  6.89:1 -- deliberately a different colour because it is a different axis. It
+  Color: ink on yellow is 11.17:1. Ships Free is purple carrying white at
+  6.89:1 -- deliberately a different color because it is a different axis. It
   is not a price band, and giving it the same tile would say it was one.
 */
 .mega-menu__list:has(a[href$="/collections/under-10"]) {
@@ -429,7 +429,7 @@
 
 /*
   Cyan, not purple. When this shipped, cyan was unused and Ships Free was purple
-  simply to be "not a price band". Cyan has since become the colour that means
+  simply to be "not a price band". Cyan has since become the color that means
   free shipping everywhere else — the product cards, the PDP pill, the cart —
   so leaving this purple would have made the one place a shopper meets the idea
   in navigation the one place it looks different. Ink on cyan is 8.87:1.
@@ -451,7 +451,7 @@
   The progress row had this backwards: while you were still short, you got a
   message AND a progress bar; the moment you crossed the line the bar was
   suppressed and all that remained was one line of 0.9375rem body text in the
-  default colour. The best news in the cart was its quietest line.
+  default color. The best news in the cart was its quietest line.
 
   Yellow ground carrying ink, 11.17:1 -- the same pairing the saving uses, so
   "you got something" reads consistently across the site.

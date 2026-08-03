@@ -111,7 +111,7 @@ class AjDealGallery {
   /*
    * A variant change rewrites the first slide's image in place (see
    * aj-variant-select.js). Someone sitting on slide three would keep looking at
-   * the previous colour's photo, so the gallery returns to the hero — which is
+   * the previous color's photo, so the gallery returns to the hero — which is
    * the image that just changed.
    */
   #wireVariantReset() {

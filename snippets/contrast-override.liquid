@@ -10,7 +10,7 @@
 
   Presets control which token categories of CSS variables are emitted:
   - 'content' (default) — base + text + border + form-disabled + accent
-                          (the original content-rich behaviour used by sections/blocks)
+                          (the original content-rich behavior used by sections/blocks)
   - 'ui'                — base + text + border + form-disabled
                           (lightweight UI surfaces: popover, drawer, badges)
 
@@ -86,7 +86,7 @@
     # --- Effective border color ---
     # When no explicit border_color is provided:
     # - 'ui' preset falls back to the effective text color (preserves legacy
-    #   contrast-override-ui behaviour: border tracks text on UI surfaces).
+    #   contrast-override-ui behavior: border tracks text on UI surfaces).
     # - Other presets fall back to the brightness-based palette extreme.
     if border_color != blank
       assign effective_border_color = border_color

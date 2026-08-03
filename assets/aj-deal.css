@@ -105,8 +105,8 @@
   and de-emphasis at once, which a card cannot do.
 
   The tint is 0.045 of the foreground. Deliberately below the threshold where it
-  reads as a colour — it should register as "a different surface", not as a
-  panel someone has coloured in. Everything inside keeps the contrast it had:
+  reads as a color — it should register as "a different surface", not as a
+  panel someone has colored in. Everything inside keeps the contrast it had:
 measured after tinting, body
   text is 6.9-11.8:1 and the input and button borders are 3.3-5.7:1 across the
   light, slate and dark schemes, so 1.4.3 and 1.4.11 both still hold. The
@@ -139,7 +139,7 @@ measured after tinting, body
 }
 
 /*
-  Forced colours discard the tint, which would return the panel to loose text.
+  Forced colors discard the tint, which would return the panel to loose text.
   A system border is guaranteed to be visible and keeps the region readable as
   a region.
 */

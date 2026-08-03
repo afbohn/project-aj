@@ -194,7 +194,7 @@ export function formatMoney(moneyValue, format, currency) {
         break;
       case 'amount_no_decimals_with_comma_separator':
         // Weirdly, this is correct. It uses amount_with_comma_separator's
-        // behaviour but removes decimals, resulting in an unintuitive
+        // behavior but removes decimals, resulting in an unintuitive
         // output that can't possibly include commas, despite the name.
         thousandsSeparator = '.';
         precision = 0;

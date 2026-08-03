@@ -62,7 +62,7 @@ class AccordionCustom extends HTMLElement {
     const isMobile = isMobileBreakpoint();
     const isDesktop = !isMobile;
 
-    // Stop default behaviour from the browser
+    // Stop default behavior from the browser
     if ((isMobile && this.#disableOnMobile) || (isDesktop && this.#disableOnDesktop)) {
       event.preventDefault();
       return;
