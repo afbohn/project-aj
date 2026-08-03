@@ -1761,6 +1761,83 @@ decide about `enrich` on Opus — it is classification against a controlled
 vocabulary, and only the teaser line is real writing. Not worth optimising until
 it can be seen on its own.
 
+## 3 August, evening — the email programme, and two agents more
+
+**THE SHAPE ALEX CHOSE.** One preview for anyone who asks at the deal panel,
+one welcome then one weekly for everyone else, and the DAILY rhythm pushed to
+social rather than to inboxes. "Send it to me" is a request for the next Yoink,
+singular — reading it as a daily subscription would put words in somebody's
+mouth and burn a domain with no sending reputation.
+
+    yoink-preview  -> one preview, on signup, then done
+    popup / list   -> welcome, then Thursday weekly
+    daily habit    -> Instagram and Facebook
+
+**The footer form had no tag at all.** Horizon's stock block, so everyone who
+used it landed in the customer list indistinguishable from somebody who had
+merely bought something — unmailable, and unrecoverable for anyone who signed
+up before it was fixed. Tagged `list` now.
+
+**`weekly`, agent eleven.** Thursday morning, idempotent on the ISO WEEK rather
+than the day: a day key would let a failed Thursday fire on Friday, and a second
+unrequested email is worse than a skipped one. Selection is a sort, not a
+judgement, so it needs no model — the live deal plus the biggest bin savings.
+Never a "what you missed" roundup, because expired deals have their prices
+restored and every link would go to a full-price product.
+
+**IT PICKED BADLY FIRST, AND THAT IS THE USEFUL PART.** The bin rotates at a
+FLAT 25%, so ranking by percentage ties on everything and collapses to the
+tie-break. Breaking toward cheapest produced two colourways of one ball holder
+and "NUDE MALE BODY FIGURINE #2" — the three least impressive things in a bin of
+38. Now ranked by DOLLAR saving (at a fixed percentage the biggest saving is the
+most expensive item) with colourways deduped by title family, since Collective
+syncs them as separate products.
+
+**Marketing safety is now the email's own job.** 2,500 supplier products, none
+vetted for what belongs in an unsolicited email. A deliberately over-eager word
+filter plus a `no-promo` tag, applied to the hero, the bin picks AND the
+bring-back titles. It will occasionally drop an innocent "nude pink" lipstick —
+the right trade, because the bin holds 38 items and one wrong product in a
+marketing email cannot be recalled. **The filter guards ONLY the emails: that
+figurine can still reach the homepage, social, or the Yoink slot itself.**
+
+**Vote counts order the bring-back list and are never shown.** "1 vote" reads as
+nobody cares and talks somebody out of adding theirs.
+
+**Social icons in every email**, served from the app's own host — Shopify Files
+needs a scope that is Alex's to authorise, and a theme asset URL carries a
+version hash that changes each deploy, which is a broken image in mail nobody
+can re-send. Each sits beside a real text link with alt text, so Outlook's
+default image blocking degrades to "Instagram · Facebook" rather than two empty
+boxes. The Facebook mark is typeset: hand-drawing it produced a crossbar that
+overshot the stem both ways, which is a plus sign, not an f.
+
+**`?sample=` on both cron routes** sends either template to DIGEST_TO. Every one
+of these renders differently in Gmail than in any preview tool, and the
+alternative was creating a fake customer to fire the webhook — which is how two
+sets of test orders and metaobjects got deleted by hand today.
+
+## Shipping throughput doubled
+
+754 products had no measurement. **The 45-second budget was never the
+constraint** — the probe loop was strictly serial and each probe is a live
+`draftOrderCalculate` round trip at ~4s, so 30 seconds bought nine products
+while the wall clock sat idle. Concurrency 4 gave 32 a run and then threw
+`Throttled`, losing the whole phase; two gives 18 and leaves headroom for the
+agents that change things rather than merely learn things. A throttle is now a
+SKIP, not an error — this is the only agent that spends calls to learn, so it is
+the right thing to stop when the bucket is dry, and a red heartbeat for an
+ordinary pause is how a monitor teaches you to ignore it.
+
+## The deal card
+
+Image was sized by whatever the supplier photographed — a tall bottle rendered
+~1100px and towered over the content column. Square box, `object-fit: contain`,
+capped at 34rem. And it has a gallery now: CSS scroll-snap so it swipes natively
+without JavaScript, dots rather than thumbnails, arrows on desktop only behind
+`(hover: hover)`. The only way to see a second photo used to be leaving for the
+product page — away from the countdown and the buy button.
+
 ## Things that bit us, so they don't again
 
 **From earlier sessions**
