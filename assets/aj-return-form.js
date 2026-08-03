@@ -113,6 +113,16 @@ if (root) {
     if (!data.ok) return showError(data.message || "That didn't go through. Try again.");
 
     outcomeEl.textContent = data.outcome;
+    // Only say "check your email" when something will actually send one:
+    // Shopify emails the label on a created return. A keep-it decision creates
+    // no return, so there is nothing to watch the inbox for.
+    const note = root.querySelector("[data-note]");
+    if (data.action === "refund_cash") {
+      note.textContent = "Watch your email for the label.";
+      note.hidden = false;
+    } else {
+      note.hidden = true;
+    }
     items.hidden = true;
     result.hidden = false;
     result.scrollIntoView({ behavior: "smooth", block: "nearest" });

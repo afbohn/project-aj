@@ -16,7 +16,15 @@
   cannot be driven from anywhere but this storefront.
 {%- endcomment -%}
 
-<div class="aj-rf color-{{ section.settings.color_scheme }} section spacing-style"
+{%- comment -%}
+  NO COLOUR-SCHEME SETTING. This theme defines no schemes — settings_schema.json
+  has no color_scheme_group and settings_data carries no `color_schemes` — so a
+  `color_scheme` setting renders "Unable to display color schemes" in the editor
+  and picks nothing. The other aj-* sections all carry that dead setting; this
+  one does not. Colour comes from the page palette and the brand variables in
+  aj-brand.css, which is where it actually lives.
+{%- endcomment -%}
+<div class="aj-rf section spacing-style"
      style="{% render 'spacing-style', settings: section.settings %}">
   <div class="page-width aj-rf__wrap">
     <h1 class="aj-rf__heading">{{ section.settings.heading | escape }}</h1>
@@ -59,9 +67,17 @@
       <button class="aj-rf__back" type="button" data-back>Start again</button>
     </form>
 
+    {%- comment -%}
+      NO BLANKET "CHECK YOUR EMAIL". Nothing here sends one. Shopify emails a
+      label when a return is actually created, and a keep-it decision creates no
+      return and therefore no email at all — so promising a confirmation would
+      have been false for exactly the customers told to keep the item and wait
+      for money. The outcome text says what happens; it does not need a second
+      sentence contradicting it.
+    {%- endcomment -%}
     <div class="aj-rf__result" data-result hidden>
       <p class="aj-rf__outcome" data-outcome></p>
-      <p class="aj-rf__note">A confirmation is on its way to your email.</p>
+      <p class="aj-rf__note" data-note hidden></p>
     </div>
 
     <p class="aj-rf__error" data-error hidden role="alert"></p>
@@ -205,8 +221,7 @@
       "type": "text", "id": "policy_note", "label": "Policy note",
       "default": "14 days from delivery to change your mind, 30 days if something's faulty. Nothing here is ever final sale."
     },
-    { "type": "url", "id": "policy_page", "label": "Link to the refund policy" },
-    { "type": "color_scheme", "id": "color_scheme", "label": "Colour scheme", "default": "scheme-1" }
+    { "type": "url", "id": "policy_page", "label": "Link to the refund policy" }
   ],
   "presets": [{ "name": "Return form" }]
 }
