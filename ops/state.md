@@ -1656,6 +1656,43 @@ guard against a Yoink selling out mid-countdown, which on a store with no
 traffic was priced far too high. **This is the first number to raise again if a
 deal ever does sell out inside its window.**
 
+## 3 August — Ships free gets its own colour, and the coverage gap behind it
+
+The badge was an 18% tint of the yellow on BOTH the PDP pill and the card badge,
+which rendered as a pale grey smudge reading as neither badge nor benefit. The
+deeper problem was the colour: yellow already means "you are getting a discount"
+here, so dressing free shipping in a weak version of the saving's colour made it
+look like a lesser saving rather than a different KIND of good news.
+
+**Cyan was the one accent in Jake's palette doing no work.** Ink on cyan is
+8.87:1 — better than most body copy on the site — so the fill is solid rather
+than tinted. The old note argued a solid fill costs contrast; true of yellow at
+1.34:1 on white, irrelevant to cyan. White on cyan is 1.66:1 and is never used.
+One token in `aj-brand.css` drives both surfaces.
+
+**THE BADGE WAS NEVER BROKEN — THE DATA IS MISSING.** A 48-card Home & Garden
+page rendered zero badges, and the cause was not the badge: all 60 sampled
+products had NO `ship.cost` measurement at all.
+
+    active products                     2,591
+      with a shipping measurement       1,837   (70%)
+      of those, ship free                 410
+      NEVER MEASURED                      754   (29%)
+
+    unmeasured, by vendor:  Sweet Water Decor 447, Noble Otter 48,
+                            Spongelle 48, Texas Salt Co 40, Sweet Bamboo 29
+
+Sweet Water Decor alone accounts for 447 of the 754, which is why Home & Garden
+looks badge-free. Measurement dates cluster on 31 July (1,385) with a long tail
+since, so the shipping agent is working through it — but at ~250 a day the tail
+is weeks, not days, and every unmeasured product is one that cannot show the
+badge, cannot enter the Ships Free collection, and is scored on a guess by the
+vendor scorecard.
+
+**Worth a look next:** collection-page cards still stagger their prices when
+titles wrap to two lines. The bin section was fixed with subgrid; the theme's
+own product card has the same problem and was not touched.
+
 ## Things that bit us, so they don't again
 
 **From earlier sessions**
