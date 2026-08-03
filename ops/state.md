@@ -1402,6 +1402,60 @@ beside the PRICE, not in the badge corner — that slot holds the discount, and
 "Ships free" loses to "40% off" every time. It reads a real `draftOrderCalculate`
 quote per product, not the vendor's usual behaviour. 329 of 2,048 products (16%).
 
+## 3 August — the $40 that would have gone missing
+
+**Closed test return #1011-R1 to prove the webhook, and found a defect instead.**
+
+The good half first: the declarative `returns/close` subscription IS registered
+and delivering. That had been unconfirmed all along — `webhookSubscriptions`
+returns 0 for declarative webhooks and `shopify app versions list` came back
+empty because the CLI is not linked to the real app, so neither check could
+answer it. Closing a return did. The handler ran in 768ms and decided correctly.
+
+**Then it refused to pay, and nothing said so.** The pure decision function is
+stateless, so on close it re-derived `needs_approval` for a $40 return a human
+had approved in the queue days earlier. Goods back, $40 owed, `return_decision`
+written at `pending` — and `app.returns` read only `return_request`, filtering
+on `status === "needs_approval"` while this record said `open`. The only trace
+was a metaobject nobody opens. A real customer would still be waiting.
+
+**Fixed as ONE approval, at the moment it means something.** Asking again at
+close asks the wrong question: on Collective the goods go back to the SUPPLIER,
+so a second approval judges something we never see. The queue now writes
+`approved_at`, and settlement re-runs the pure function with the approval
+ceiling lifted rather than hand-picking an action — so keep-it and
+who-pays-postage keep working instead of being second-guessed at the last step.
+
+`humanApprovedAt` returns null on ANY failure, deliberately. An unreadable
+record means the return waits for a human; the opposite default would let a read
+error authorise a refund. It matches on the Shopify return id, not order name —
+one order can carry several returns, and approving the first must not silently
+authorise the second.
+
+**An automatic refund has to announce itself.** `sendSettlementNotice` mails when
+money moves. The approval email says "decide", this one says "done", and sending
+both is the point — an automatic settlement nobody is told about is a silent
+success, and those are only discovered at reconciliation.
+
+**The money is visible now.** `loadReturnsOverview` joins request to decision,
+because neither describes a return alone and reading one in isolation is exactly
+how this went missing. Both the dashboard and `/app/returns` render it. **"Owed,
+unpaid" is the number that matters and it must stay at $0.00** — it means goods
+came back and the customer was not paid. It renders critical whenever it is not
+zero. Decisions with no request are kept: a return raised in the Shopify admin
+never passes through our form, and dropping those would hide real money.
+
+**Test data cleared**: order #1011 deleted, both metaobjects gone, no orders
+tagged `internal-test` remain. The `TEST — Returns Harness` product and the
+customer record were left alone — the first is the harness for future tests, the
+second is Alex's own address, not test data.
+
+**THE LESSON, because it is the third time.** The bug was not in any of the code
+that was reviewed and tested; it was in the SEAM between two correct halves. The
+queue was right, settlement was right, and nothing joined them. Same shape as
+the 13 orphaned category collections the day before: created correctly, surfaced
+by nobody. Whenever two records describe one thing, something has to read both.
+
 ## Things that bit us, so they don't again
 
 **From earlier sessions**
@@ -1724,6 +1778,27 @@ quote per product, not the vendor's usual behaviour. 329 of 2,048 products (16%)
   would have re-run the model on 639 products to recover them.
 
 ## Next
+
+**PICK UP HERE (4 August).**
+
+1. **Verify the returns fix end to end.** It is deployed (`017a683`) but has NOT
+   been exercised since. Make a test order, request a return above $25 through
+   the storefront form, approve it in `/app/returns`, then close the return and
+   confirm three things: the refund is created, the settlement email arrives, and
+   the dashboard's "Owed, unpaid" returns to $0.00. This is the same test that
+   found the defect, so it is the one that proves the fix.
+2. **The nav overflows on desktop.** The bar reads `BARGAIN BIN · SHOP BY PRICE ·
+   MORE` — "Shop by category" is collapsed behind "More" because the centred
+   logo leaves no room. 14 categories and 13 sub-categories now hang off an item
+   nobody can see. Likely the logo placement, not the menu.
+3. **Look at yesterday's visual work on a real screen** — the price tiles, the
+   earned-free-shipping state in the cart, and the new 404. All shipped, none
+   seen rendered. The 404 has a branch worth checking both ways: it hides the
+   deal card when no deal is running.
+4. **Ask Collective who bears return postage.** Still unanswered, and it decides
+   whether the $6.95 is cost recovery or margin.
+
+Then the standing backlog below.
 
 - **Cull the shipping-absurd products** — Blessed Bayou Candles ($13.17 to ship
   a $5.62 candle), prodigalpottery, and the rest of the >40% band. Deferred, not
