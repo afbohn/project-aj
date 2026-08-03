@@ -381,6 +381,19 @@
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
+    /*
+      Purple, measured against this card's own tinted ground rather than
+      against white: 6.47:1, which clears AA for body text and is nowhere near
+      the 3:1 large-text floor. (On plain white it is 6.89:1 — the tint costs
+      almost nothing.)
+
+      It is also the semantically right accent. Purple is this brand's "act"
+      colour — links and primary buttons — and yellow is reserved for the
+      saving. An eyebrow that names the offer belongs to the first group, and
+      putting it in yellow would have set it competing with the SAVE 53% badge
+      a few inches to its left.
+    */
+    color: var(--aj-brand-purple, #7a3fa0);
   }
 
   .aj-deal__title {
