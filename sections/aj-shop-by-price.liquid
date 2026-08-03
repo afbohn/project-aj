@@ -44,8 +44,17 @@
           {%- if collection.all_products_count == 0 -%}
             {%- continue -%}
           {%- endif -%}
+          {%- comment -%}
+            Ships Free is not a price band, so it does not get the band colour.
+            It is the same distinction the cart and the product cards already
+            make in cyan, and keeping it here means one idea has one colour
+            across the whole site rather than three.
+          {%- endcomment -%}
           <li class="aj-price-nav__item">
-            <a class="aj-price-nav__tile" href="{{ collection.url }}">
+            <a
+              class="aj-price-nav__tile{% if collection.handle == 'ships-free' %} aj-price-nav__tile--free{% endif %}"
+              href="{{ collection.url }}"
+            >
               <span class="aj-price-nav__label">{{ collection.title | escape }}</span>
               <span class="aj-price-nav__count">
                 {{ collection.all_products_count }}
@@ -94,36 +103,69 @@
     }
   }
 
+  /*
+    THE SAME TILES THE NAV DROPDOWN USES.
+
+    This was five hairline-bordered white rectangles with grey counts — a
+    default component on a store whose whole personality is loud, sitting
+    directly under a deal card in ink, yellow and purple. It read as something
+    nobody had got to yet.
+
+    Ink on yellow is 11.17:1, and it matches the Shop by price dropdown exactly,
+    so the same idea looks the same whether it is reached from the header or
+    from the page. Yellow is legitimate here rather than a borrowed saving
+    colour: this section IS the bargain hunt, which is what yellow means on this
+    store.
+
+    Ships Free is cyan carrying ink at 8.87:1 — the colour that already means
+    "shipping is free" on product cards, in the cart and on the PDP.
+  */
   .aj-price-nav__tile {
     display: flex;
     flex-direction: column;
-    gap: 0.2rem;
+    gap: 0.15rem;
     height: 100%;
-    padding: 1.4rem 1.2rem;
-    border: 1px solid rgb(var(--color-foreground-rgb) / 0.18);
-    border-radius: 3px;
-    color: inherit;
+    padding: 1.3rem 1.2rem;
+    border: 0;
+    border-radius: 14px;
+    background: var(--aj-brand-yellow, #ffe000);
+    color: var(--aj-brand-ink, #282828);
     text-decoration: none;
-    transition: border-color 0.15s ease, background-color 0.15s ease;
+    transition: transform 0.12s ease;
+  }
+
+  .aj-price-nav__tile--free {
+    background: var(--aj-ships-free-bg, #5cd8f8);
+    color: var(--aj-ships-free-ink, #282828);
   }
 
   .aj-price-nav__tile:hover,
   .aj-price-nav__tile:focus-visible {
-    border-color: rgb(var(--color-foreground-rgb) / 0.5);
-    background: rgb(var(--color-foreground-rgb) / 0.04);
+    transform: translateY(-3px);
   }
 
+  /* The number is the whole choice, so it is the size of one. */
   .aj-price-nav__label {
-    font-size: 1.25rem;
-    font-weight: 700;
-    line-height: 1.15;
+    font-size: clamp(1.25rem, 2vw, 1.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
     /* Bands read as "$10 to $20" — tabular figures keep the tiles aligned. */
     font-variant-numeric: tabular-nums;
   }
 
+  /* Ink at 0.65 rather than a grey: on a saturated ground a grey goes muddy,
+     whereas the same ink faded keeps the tile looking like one colour. */
   .aj-price-nav__count {
     font-size: 0.8125rem;
-    opacity: 0.7;
+    font-weight: 600;
+    opacity: 0.65;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aj-price-nav__tile { transition: none; }
+    .aj-price-nav__tile:hover { transform: none; }
   }
 
   .aj-price-nav--empty {

@@ -427,9 +427,16 @@
   }
 }
 
+/*
+  Cyan, not purple. When this shipped, cyan was unused and Ships Free was purple
+  simply to be "not a price band". Cyan has since become the colour that means
+  free shipping everywhere else — the product cards, the PDP pill, the cart —
+  so leaving this purple would have made the one place a shopper meets the idea
+  in navigation the one place it looks different. Ink on cyan is 8.87:1.
+*/
 .mega-menu__list:has(a[href$="/collections/under-10"]) a[href$="/collections/ships-free"] {
-  background: var(--aj-brand-purple);
-  color: #ffffff;
+  background: var(--aj-ships-free-bg, #5cd8f8);
+  color: var(--aj-ships-free-ink, #282828);
 }
 
 @media screen and (max-width: 999px) {

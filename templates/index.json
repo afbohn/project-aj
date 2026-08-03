@@ -30,10 +30,11 @@
           "10-to-20",
           "20-to-30",
           "30-to-50",
-          "50-and-up"
+          "50-and-up",
+          "ships-free"
         ],
         "heading": "Shop by price",
-        "subheading": "New finds added all the time.",
+        "subheading": "Everything sorted by what it costs.",
         "color_scheme": "scheme-1",
         "padding-block-start": 32,
         "padding-block-end": 32
