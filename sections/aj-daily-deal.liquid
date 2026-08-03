@@ -364,13 +364,23 @@
     text-transform: uppercase;
   }
 
+  /*
+    BIGGER, AND LESS FADED. At 13px and 0.75 opacity this was the quietest
+    thing in a card whose entire job is to announce the day's offer — smaller
+    than the body copy underneath it. It is the label that tells you what you
+    are looking at, and it is set in the display face precisely so it can carry
+    some size.
+
+    Opacity to 1: Ohpixel is a pixel grid, and fading it thins already-thin
+    stems rather than reading as soft. The hierarchy is held by size and case
+    instead, which is what the face was drawn for.
+  */
   .aj-deal__eyebrow {
-    margin: 0 0 0.5rem;
-    font-size: 0.8125rem;
+    margin: 0 0 0.6rem;
+    font-size: clamp(1rem, 1.6vw, 1.25rem);
     font-weight: 600;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    opacity: 0.75;
   }
 
   .aj-deal__title {

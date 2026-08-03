@@ -108,8 +108,14 @@
     color: #ffffff;
     text-decoration: none;
     font-size: 0.9375rem;
-    line-height: 1.3;
-    padding-block: 0.55rem;
+    line-height: 1.25;
+    /*
+      0.3rem, not 0.55rem. The bar measured 40px tall: 22px of "53% off" plus
+      17.6px of padding. A sticky bar sits above every page on the site, so its
+      height is subtracted from the first screen of every one of them — 40px for
+      three short words was more than it had earned.
+    */
+    padding-block: 0.3rem;
   }
 
   .aj-announce:hover .aj-announce__save,
