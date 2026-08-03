@@ -1565,6 +1565,47 @@ A new agent defaults to PAUSED — `isAgentEnabled` returns false with no settin
 saved, so the first run answered `dry: true`. The `agent-vendors` metaobject is
 now `enabled: true`.
 
+## 3 August — the free-shipping ask, and hashtags
+
+**The number was the least visible thing in the block.** "Add $28.00 more from
+Aura by Gem for free shipping" was one sentence of 15px body text, with the
+figure that decides whether somebody adds another item set at the same weight as
+the shipping policy beside it. Now 1.5rem purple in a bordered card above a
+thicker bar. Purple, not the yellow the earned row uses: yellow is this brand's
+"you got something", this is "here is something to do", and reusing the win
+colour for an unmet target makes the real win mean less two seconds later. The
+bar floors at 6% — starting empty tells someone who has spent $40 they have done
+nothing.
+
+**The upsell already knew which item closes the gap and never said so.** It runs
+a three-tier pass that puts a threshold-clearing item first (with a dollar of
+headroom, because the threshold is bisected to about a dollar). Then it rendered
+that item identically to the two below it, so all the tiering achieved was
+reordering three rows nobody could tell apart. It now carries "Adding this gets
+you free shipping" in ink on yellow. **Third instance of the same failure this
+week** — orphaned categories, the unpaid $40, and now this: work done correctly,
+surfaced by nobody.
+
+**Two bugs found by looking at the rendered cart, not the code.** First pass
+badged all three suggestions — every tier-2 item clears, so a badge on
+everything is a badge on nothing. Second pass still badged two: the vendor loop
+runs TWICE for supplier fairness, so a boolean reset inside it let one supplier
+badge again on the second pass. Now an accumulator keyed by vendor, like `seen`.
+
+## Hashtags — relevance, not count
+
+Deal captions ended with two static tags. The instinct at low reach is to add
+twenty more and it is the wrong lever: Instagram has said plainly that hashtags
+are no longer a meaningful reach signal, and a wall of thirty reads as spam to
+whoever does see it. On Facebook they do close to nothing.
+
+Five now, two or three derived from the product's own Shopify taxonomy, so a
+skincare deal is tagged #skincare and findable by people who want skincare.
+An explicit map rather than handleizing the segment — "Food, Beverages & Tobacco"
+would become #foodbeveragestobacco, which nobody searches and which puts the word
+tobacco on a post about hot sauce. Unmapped categories contribute nothing rather
+than guessing. Costs one field on a query already running.
+
 ## Things that bit us, so they don't again
 
 **From earlier sessions**
