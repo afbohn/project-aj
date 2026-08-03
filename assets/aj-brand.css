@@ -297,3 +297,28 @@
   font-size: 2rem;
   line-height: 1;
 }
+
+/*
+  NAVIGATION READS AS NAVIGATION.
+
+  The menu was sentence-case body text at 14px sitting on a strong teal — it
+  looked like a paragraph that had wandered into the header. Uppercase with
+  tracking is what a nav bar is, and on a coloured ground it is also simply
+  easier to pick out: caps have a flatter, more even silhouette than mixed case
+  at small sizes.
+
+  NOT the pixel face. These are two- and three-word phrases, which is the shape
+  Ohpixel handles, but a nav sits at 13px and Ohpixel fades at that size against
+  a mid-tone ground — the same measurement that kept it off the teaser
+  headlines. Archivo carries it.
+
+  Ink on Jake's teal is 5.40:1.
+*/
+.header__column .menu-list a,
+.header__row .menu-list a,
+.header .menu-list__link {
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
