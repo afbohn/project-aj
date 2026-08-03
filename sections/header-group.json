@@ -17,7 +17,7 @@
         "announcement_BxgCk9": {
           "type": "_announcement",
           "settings": {
-            "text": "A new Yoink every day at 9am",
+            "text": "A new Yoink every day at midnight",
             "link": "",
             "font": "var(--font-subheading--family)",
             "font_size": "0.75rem",
