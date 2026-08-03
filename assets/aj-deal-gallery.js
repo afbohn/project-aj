@@ -35,9 +35,14 @@ class AjDealGallery {
 
     this.index = 0;
     this.#buildDots();
-    this.#watch();
     this.#wireArrows();
     this.#wireVariantReset();
+    // Set the opening state explicitly. The observer does fire for the visible
+    // slide, but not before the first paint — measured on the live page, `prev`
+    // sat enabled on slide one, which is an arrow that looks clickable and does
+    // nothing. #watch() comes after so the observer only ever corrects this.
+    this.#mark(0);
+    this.#watch();
   }
 
   #buildDots() {
