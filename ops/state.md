@@ -29,7 +29,7 @@ through the app. The teaser campaign has started.
 `theyoink-app` was laptop-only until today. It is now backed up, which matters
 more than it did before, because it is where all nine agents live.
 
-## The nine agents
+## The ten agents
 
 All visible at **`/app/agents`** with health, last-run age, "Run now", and pause
 where pausing is safe.
@@ -45,6 +45,7 @@ where pausing is safe.
 | `enrich` | Daily | Tags and scores the catalogue with a model | Yes — **currently on** |
 | `shipping` | 30 min | Measures what each supplier and product costs to ship | Yes — **currently on** |
 | `digest` | 15 min | Emails agent health to `hello@` once each morning | Yes — **currently on** |
+| `vendors` | Daily | Scores and ranks every supplier. Reads only | Yes — **currently on** |
 
 **The lifecycle and catalogue sweep have no pause button on purpose.** Both fail
 silently and expensively when they stop, and an off switch someone forgets to
@@ -1524,6 +1525,46 @@ blocker is arithmetic, not engineering.
 invariants, enrich, shipping, digest all tend the catalogue; only meta and teaser
 face demand, and meta is paused. More catalogue agents will not fix that.
 
+## 3 August — the supplier scorecard, agent number ten
+
+`vendors`, daily, pausable, at `/app/vendors`. Ranks all 72 suppliers on unit
+economics, stock reliability, shipping shape and catalogue depth, and writes one
+`vendor_score` metaobject each. **READS ONLY** — it changes no product, price or
+collection. Dropping a supplier has contractual consequences, and an agent that
+could unpublish 48 products because a median moved is a hazard, not a report.
+
+**It states what it cannot see.** Zero orders means sell-through and return rate
+are absent, so every score carries `confidence: unit economics only` and the
+sales fields are optional, filling in on their own once orders exist.
+
+**Net keep comes from `margin.ts`**, never a local formula — two definitions of
+profit is precisely how the earlier "22 suppliers are loss-making" error
+happened.
+
+**Shipping shape is scored by its effect on AOV.** `scaling` ranks BELOW an
+unreachable threshold: rising rates actively punish a bigger basket, while an
+unreachable threshold merely fails to help. AOV is the lever the model rests on.
+
+**Both verdict thresholds were tuned against real output, not guessed.**
+"Carry more" first shipped at composite >= 70 and labelled 29 of 72 suppliers —
+40% of the roster, a list rather than a recommendation. Raised to the top ~15%
+with a separate dollar floor, since range only compounds if each extra unit is
+worth selling. First real run:
+
+    12 carry more | 46 keep | 8 drop candidate | 6 watch
+    72 suppliers, 2,591 products, 25.7s
+
+    carry more, top:  S And B Enterprise  $26.23/unit  free    48 products
+                      White Water Life    $36.15/unit  46.3%   48 products
+                      Sweet Bamboo        $15.93/unit  40.8%  331 products
+    drop candidates:  Sticker Fire        $0.83/unit across 48 products
+                      The Fidget Games    50% of range has no shipping rate
+                      Ralphie's Funhouse  $0.41/unit across 48 products
+
+A new agent defaults to PAUSED — `isAgentEnabled` returns false with no setting
+saved, so the first run answered `dry: true`. The `agent-vendors` metaobject is
+now `enabled: true`.
+
 ## Things that bit us, so they don't again
 
 **From earlier sessions**
@@ -1851,10 +1892,9 @@ face demand, and meta is paused. More catalogue agents will not fix that.
 
 1. ~~Verify the returns fix, fix the nav, look at the visuals.~~ **All three done
    3 August.** See the section above.
-2. **Build the vendor scorecard agent.** Discussed and agreed in principle, not
-   started. Score on what exists — net keep per unit, oos rate, no-ship rate,
-   shipping shape, catalogue depth — and leave slots that fill themselves once
-   orders arrive. First call it would make: the 12 vendors under $3 a unit.
+2. ~~Build the vendor scorecard agent.~~ **Built and running 3 August.** See
+   above. Worth acting on its output: 8 drop candidates, and 12 suppliers worth
+   asking Collective for more range from.
 3. **Ask Collective who bears return postage.** Still unanswered, and it decides
    whether the $6.95 is cost recovery or margin.
 4. **Decide the demand-side plan before spending on Meta.** The arithmetic above
