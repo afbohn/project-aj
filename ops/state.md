@@ -380,15 +380,25 @@ were judged not worth doing before there is any traffic.
 In force: supplier creates the return label, 2-day processing, 30-day window, no
 label fee, no restocking fee, declined returns auto-cancel.
 
-**Automatic refunds are OFF as of 31 July.** This was the single setting that
-decided whether a custom refund policy was buildable at all: with it on,
-Collective processes the refund itself the moment a return closes, and no
-keep-it-and-credit logic can ever run because there is nothing left to decide.
-With it off, refunds are ours to issue on the `returns/close` webhook. The cost
-is real — every accepted return now needs someone or something to actually
-refund it, and a return that closes with nothing listening is a customer who
-does not get their money back. **Nothing listens yet.** That handler is the
-next thing to build, and until it exists refunds are a manual step.
+~~Automatic refunds are OFF as of 31 July.~~ **THIS WAS WRONG, AND IT SAT
+UNDER EVERY RETURNS DECISION FOR THREE DAYS.** The Collective app was read on
+2 August and Customer refunds was still set to **"Automatically refund
+customer"**. Either it was never changed or it was changed back; the note above
+recorded an intention as a fact and nothing checked it again.
+
+It matters because the whole returns design assumed the opposite. With Collective
+auto-refunding AND our own `refundCreate` switched on, every cash return would
+have been **paid twice**. The only thing preventing that was our settlement
+switch happening to be off — luck, not design.
+
+**Set to "Collective takes no action" on 2 August**, which is Collective's own
+recommendation when a returns app owns refunds. That makes this system the single
+payer, and the trigger is worth knowing: the dialog reads *"After a supplier
+refunds you"*, so Collective was never acting on close — it was passing the
+supplier's refund along.
+
+**Our settlement switch is ON as of 2 August.** It has to be: with Collective
+taking no action, an unsettled return is a customer who never gets paid.
 
 Three things remain structural:
 
@@ -1219,6 +1229,90 @@ close.** That is real work and worth doing when volume justifies it. Until then
 the manual step is also the only chance to check the $25 line and the 110%
 multiplier against real human reactions before they are automated.
 
+## 2 August — returns became a system a customer can actually use
+
+### A form, not self-serve, and not the mailbox
+
+`theyoink.com/pages/start-a-return`, posting through the signed app proxy at
+`/apps/yoink/return`.
+
+**Self-serve was rejected for sequencing, not caution.** It creates a Shopify
+return the moment a customer asks, Collective generates a label, the item ships —
+and only when that return CLOSES does the keep-it logic decide they should have
+kept it. Postage spent on something already decided not worth recovering. A form
+does not create a return; it captures a request, so **the decision happens first
+and only items worth recovering ever get a label.** Self-serve returns were
+switched off in Shopify on 2 August.
+
+**The mailbox was rejected because nothing reads it.** Free text is poor input
+for something that moves money.
+
+**THE EMAIL IS THE PASSWORD.** Order numbers are sequential and guessable, so
+nothing is returned unless the email matches — and every failure answers with
+identical wording whether the order is missing or the email is wrong, because a
+different message for each turns this into a tool for discovering who bought what.
+
+### Keep-it is an OFFER, and cash means the item comes back
+
+Both corrections came from Alex reading the copy, and both were mine.
+
+**Imposing credit is a refund refused**, however generous the number. The 110%
+multiplier exists to make credit ATTRACTIVE and an incentive needs something to
+choose between. So under $25 the customer picks:
+
+- **Keep it, take $19.80 credit** — nothing to mail back, more than they paid
+- **Send it back for $18.00** — a real return and a real label
+
+**Refunding in full while they keep the goods is not a policy, it is a hole.**
+The first version offered cash without a return, which is free product for anyone
+who notices. Cash now always creates a return.
+
+The offer copy was also written from OUR side — "it costs more to mail than it's
+worth" tells a customer their item is too cheap to bother with. From theirs it is:
+keep the thing, and have more than you paid to spend again.
+
+### The approval line is $24.99, a cent below the keep-it line
+
+Was $75, which meant the form created a real return and dispatched a real label
+on a $40 request with nobody looking. **Now the only thing acting unattended is
+the keep-it case**, which costs postage nothing and is the answer a human would
+have given anyway.
+
+**A cent below `keepItBelow`, not equal to it.** The keep-it test is `value <
+keepItBelow` and the approval test is `value > approvalAbove`; setting both to 25
+leaves exactly $25.00 matching neither and falling through to an unattended
+label. One value is precisely the hole nobody finds until it happens.
+
+### How a Collective return actually works
+
+Read from the Collective app on 2 August rather than inferred:
+
+- **Supplier creates the return label within 2 days.** 30-day window, no label
+  fee, no restocking fee. Cancelations manually reviewed.
+- `returnCreate` makes a reverse fulfillment order but **no label** — the
+  supplier approves and uploads one, Collective syncs it, the customer is emailed.
+  A two-day SLA is why watching for sixty seconds proves nothing.
+- **`reverse_deliveries/attach_deliverable` is now subscribed** (app version
+  `theyoink-app-14`) and writes `label_sent` onto the matching request. Without it
+  we started returns and had no idea whether a label ever reached anyone.
+
+### Everything else that moved
+
+- **The refund policy points at the form**, not `/account`. The old text sent
+  customers to the exact self-serve flow this design avoids.
+- **The footer said "Orders & returns" and linked to `/account`** — the same trap.
+  Now "Start a return" first, with "Your account" kept separately. **Navigation IS
+  editable from here now**; the note saying it needed an admin click is stale.
+- **Customers get an email** for every outcome, through Google Workspace like the
+  digest, each carrying its own next step — credit shows at checkout, refunds take
+  business days, a label arrives separately, an approval means do not mail
+  anything yet. Sending can never fail the request.
+- **The digest shows form requests as well as closed returns**, marked with which
+  is which, because a keep-it request never becomes a Shopify return and was
+  invisible.
+- **The copy is American.** color, defective, business days, ship it back, right
+  away. Markets is US-only and the copy was not.
+
 ## Things that bit us, so they don't again
 
 **From earlier sessions**
@@ -1371,6 +1465,22 @@ multiplier against real human reactions before they are automated.
 - **A pixel face fails at feed scale before it fails anywhere else.** Instagram's
   profile grid renders a 1080 card at roughly 120px. Test type at the size it
   will actually be seen, not at the size it is authored.
+- **A recorded intention is not a verified fact.** This file said automatic
+  refunds were turned off on 31 July. They were still on when the Collective app
+  was actually opened on 2 August, and every returns decision for three days was
+  built on top of that. Had settlement been switched on, every cash return would
+  have paid twice. Write down what you CHECKED, and re-check anything load-bearing.
+- **A two-day SLA does not fail in sixty seconds.** Watching for a Collective
+  return label for a minute and concluding it was broken was a measurement with
+  no chance of succeeding. Read the setting before testing the behaviour.
+- **`returnCreate` makes a reverse fulfillment order, not a label.** The label is
+  the supplier's, uploaded on their schedule and synced by Collective.
+- **Making every failure message identical also makes them undebuggable.** The
+  return form answers the same thing whether the order is missing or the email is
+  wrong, which is right for a customer and meant a genuine `!admin` failure would
+  have looked exactly like a wrong email.
+- **Shopify's order search index lags creation by seconds.** A lookup on a
+  freshly created order legitimately finds nothing.
 - **Shopify re-serialises `config/settings_data.json` and wins the merge race.**
   A commit changing that file AND an asset had its asset synced within minutes
   and its settings ignored for half an hour. Nothing was rejected — Shopify
