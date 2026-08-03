@@ -36,7 +36,7 @@
       "settings": {
         "speed": 5,
         "section_width": "page-width",
-        "background_color": "",
+        "background_color": "#282828",
         "divider_width": 1,
         "divider_color": "{{ settings.color_palette.color3 }}",
         "padding-block-start": 15,

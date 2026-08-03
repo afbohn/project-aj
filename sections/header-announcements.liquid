@@ -71,10 +71,15 @@
       {%- if deal_product != blank -%}
         <a class="aj-announce" href="{{ deal_product.url }}">
           <span class="aj-announce__label">Today's Yoink</span>
-          <span class="aj-announce__title">{{ deal_product.title | escape }}</span>
+          {%- comment -%}
+            The SAVING leads and the product follows. A supplier's product name is
+            the least persuasive thing in this strip and it was the widest; the
+            number is the reason anyone clicks.
+          {%- endcomment -%}
           {%- if deal_off -%}
             <span class="aj-announce__save">{{ deal_off }}% off</span>
           {%- endif -%}
+          <span class="aj-announce__title">{{ deal_product.title | escape }}</span>
           <span class="aj-announce__go" aria-hidden="true">&rarr;</span>
         </a>
       {%- else -%}
@@ -85,17 +90,27 @@
 </aside>
 
 {% stylesheet %}
+  /*
+    A STRIP, NOT A SENTENCE. This was black text on white at 14px — the same
+    weight as a cookie notice, for the one line telling every visitor what the
+    entire store is about.
+
+    Ink ground with yellow rather than a yellow ground: the header below it is
+    already teal, and two loud colours stacked fight each other. Dark reads as a
+    banner and lets the number carry the colour. Yellow on ink is 11.17:1 and
+    white on ink 14.7:1, so both clear AA comfortably.
+  */
   .aj-announce {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.6rem;
     flex-wrap: wrap;
     justify-content: center;
-    color: inherit;
+    color: #ffffff;
     text-decoration: none;
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
     line-height: 1.3;
-    padding-block: 0.35rem;
+    padding-block: 0.55rem;
   }
 
   .aj-announce:hover .aj-announce__title,
@@ -105,9 +120,10 @@
 
   .aj-announce__label {
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     font-size: 0.75rem;
+    color: var(--aj-brand-yellow, #ffe000);
   }
 
   .aj-announce__title {
@@ -118,9 +134,21 @@
     white-space: nowrap;
   }
 
-  .aj-announce__save { font-weight: 700; }
+  /* The loudest thing in the strip, because it is the only thing in it that
+     makes anybody click. */
+  .aj-announce__save {
+    font-weight: 800;
+    font-size: 1.0625rem;
+    letter-spacing: -0.01em;
+    color: var(--aj-brand-yellow, #ffe000);
+  }
 
-  .aj-announce__go { transition: transform 0.15s ease; }
+  .aj-announce__title { opacity: 0.92; }
+
+  .aj-announce__go {
+    color: var(--aj-brand-yellow, #ffe000);
+    transition: transform 0.15s ease;
+  }
   .aj-announce:hover .aj-announce__go { transform: translateX(2px); }
 
   @media screen and (max-width: 749px) {
