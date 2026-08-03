@@ -153,6 +153,9 @@
   .aj-bin__grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* Four tracks per card — media, name, price, badge — so the spans above
+       have rows to align to. */
+    grid-auto-rows: auto;
     gap: var(--padding-md, 1.5rem);
     margin: 0;
     padding: 0;
@@ -251,11 +254,22 @@
   }
 
   /*
-    TWO LINES, ALWAYS. Titles are supplier strings — "Sandbar" next to "PRO
-    Player Pickleball Bag" — so a name block that sizes to its content puts the
-    price at a different height on every card. Clamping to two lines and
-    reserving two lines of height means the price row starts at the same offset
-    across the row no matter what the supplier called the thing.
+    SUBGRID, so the rows align without reserving space that may not be needed.
+
+    The first fix for the stagger reserved two lines of title height on every
+    card. That aligned the prices and introduced a worse problem: four
+    single-line titles meant four cards each carrying a blank line, so the gap
+    between the name and the price read as a spacing bug.
+
+    Subgrid solves the actual problem, which is that these are four independent
+    grids that happen to sit side by side. Spanning the parent's rows makes
+    media / name / price / badge share row tracks ACROSS the row, so each track
+    is exactly as tall as the tallest real content in it — two lines only when
+    something genuinely wraps to two lines, and nothing reserved when nothing
+    needs it.
+
+    The @supports fallback keeps the old min-height for anything without
+    subgrid, where a small dead gap beats a staggered row.
   */
   .aj-bin__name {
     font-weight: 600;
@@ -265,7 +279,25 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    min-height: 2.6em;
+  }
+
+  @supports not (grid-template-rows: subgrid) {
+    .aj-bin__name { min-height: 2.6em; }
+  }
+
+  @supports (grid-template-rows: subgrid) {
+    .aj-bin__item {
+      display: grid;
+      grid-row: span 4;
+      grid-template-rows: subgrid;
+      gap: 0.4rem;
+    }
+
+    .aj-bin__tile {
+      display: grid;
+      grid-row: span 4;
+      grid-template-rows: subgrid;
+    }
   }
 
   /*
@@ -282,7 +314,13 @@
   }
 
   /* The badge's row, kept whether or not there is a badge in it. */
-  .aj-bin__ship { display: block; min-height: 1.25rem; }
+  /* No min-height under subgrid: the row is shared, so it collapses to nothing
+     when no card in the row has a badge, and matches the badge when one does. */
+  .aj-bin__ship { display: block; }
+
+  @supports not (grid-template-rows: subgrid) {
+    .aj-bin__ship { min-height: 1.25rem; }
+  }
 
   /* Money should look like money: heavier and tighter than the name above it,
      with tabular figures so a column of prices lines up on the decimal. */
