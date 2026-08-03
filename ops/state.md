@@ -1456,6 +1456,74 @@ queue was right, settlement was right, and nothing joined them. Same shape as
 the 13 orphaned category collections the day before: created correctly, surfaced
 by nobody. Whenever two records describe one thing, something has to read both.
 
+## 3 August, later — verified on a real screen, and the numbers behind the vendor question
+
+**The returns fix works.** Reproduced yesterday's exact failing case end to end:
+$40 order, return requested through the live storefront form (`needs_approval`,
+correct), approved with `approved_at` written, then closed. Result:
+
+    [RETURNS_CLOSE] rd-57409011814 refund_cash — Approved by a human on
+    2026-08-03, so the close settles it rather than asking again.
+    [RETURNS_CLOSE] PAID $40.00 — refund gid://shopify/Refund/1150877761638
+
+Refund created automatically, decision `paid`, dashboard "Owed, unpaid" back to
+$0.00, no settlement-notice failure in the log. Test data cleared afterwards.
+
+**The nav was over budget the day the tracking was added.** Measured live rather
+than guessed: the menu column is 398px at 1920 and 338px on a laptop, while the
+three labels needed 418px. It only rendered because `overflow-list` tolerates a
+few pixels; below that it folded "Shop by category" into "More", hiding all 27
+category links behind a word that names none of them.
+
+Dropping tracking from 0.07em to 0.02em recovers ~37px and is NOT enough — at
+338px the same labels still need 392px. The labels had to shorten. "Prices" and
+"Categories" bring it to 251px: 87px of headroom instead of a 54px overrun.
+
+**THE CENTRED LOGO IS THE REAL CONSTRAINT.** It fixes the left column at a third
+of the bar regardless of content. If the nav ever needs a fourth item, move the
+logo left rather than shortening labels again.
+
+**Seen rendered, finally**: the 404 (hero, live deal, escape tiles, search), the
+six price tiles, and the cart's earned free-shipping row — yellow `rgb(255,224,0)`
+carrying ink, bar correctly suppressed. One real bug found by looking: the 404
+was upscaling the deal image from its served 240px to a 418px box, blurry, and
+forcing the card to 470px tall against 141px of content. Capped at 220px.
+
+## Vendors — the data exists, the sales data does not
+
+Asked whether an agent should score vendors on sales, stock, shipping and
+returns. **0 orders and 2 customers**, so sales and returns are empty and stay
+empty until traffic. The rest is rich: 71 vendors, unit cost on all 71, shipping
+measured on 67, plus oos and no-ship tags.
+
+**A first pass got this badly wrong and the correction is the point.** Subtracting
+full shipping from margin reported 22 vendors and 508 products as loss-making.
+Shipping is PASS-THROUGH — `margin.ts` is explicit that the customer pays the
+carrier rate and we hand the same number to the supplier, so only the 2.9% fee on
+the shipping line touches us. Corrected with the code's own `netKeep`:
+
+    vendors whose median unit loses money      0
+    products that lose money at list price     7 of 2,143
+    catalogue median net keep per unit         $9.79
+    vendors keeping under $3 per unit         12  (272 products)
+
+The catalogue is healthy. The real finding is the thin tail — Ralphie's Funhouse
+keeps $0.41 a unit across 48 products, Sticker Fire $0.83, Bear Dice $1.26 —
+against White Water Life at $36.15 and Decorotika at $56.53. Thin vendors cannot
+absorb one return, let alone a CAC.
+
+**AND THIS IS THE META ANSWER.** $9.79 median contribution against cold paid CAC
+of $25–60 means the first order loses money and needs repeat to recover, with 2
+customers and no list to retarget and a pixel needing ~1,000 events to optimise.
+The pixel itself is live and correct (`facebook_pixel`, id 1405178831488903,
+`share_all_events`, `dataSharingState: optimized`), and the deal picker already
+refuses to schedule below a margin floor that includes shipping and fees. The
+blocker is arithmetic, not engineering.
+
+**Seven of nine agents are supply-side.** lifecycle, catalog, bargain-bin,
+invariants, enrich, shipping, digest all tend the catalogue; only meta and teaser
+face demand, and meta is paused. More catalogue agents will not fix that.
+
 ## Things that bit us, so they don't again
 
 **From earlier sessions**
@@ -1779,24 +1847,21 @@ by nobody. Whenever two records describe one thing, something has to read both.
 
 ## Next
 
-**PICK UP HERE (4 August).**
+**PICK UP HERE.**
 
-1. **Verify the returns fix end to end.** It is deployed (`017a683`) but has NOT
-   been exercised since. Make a test order, request a return above $25 through
-   the storefront form, approve it in `/app/returns`, then close the return and
-   confirm three things: the refund is created, the settlement email arrives, and
-   the dashboard's "Owed, unpaid" returns to $0.00. This is the same test that
-   found the defect, so it is the one that proves the fix.
-2. **The nav overflows on desktop.** The bar reads `BARGAIN BIN · SHOP BY PRICE ·
-   MORE` — "Shop by category" is collapsed behind "More" because the centred
-   logo leaves no room. 14 categories and 13 sub-categories now hang off an item
-   nobody can see. Likely the logo placement, not the menu.
-3. **Look at yesterday's visual work on a real screen** — the price tiles, the
-   earned-free-shipping state in the cart, and the new 404. All shipped, none
-   seen rendered. The 404 has a branch worth checking both ways: it hides the
-   deal card when no deal is running.
-4. **Ask Collective who bears return postage.** Still unanswered, and it decides
+1. ~~Verify the returns fix, fix the nav, look at the visuals.~~ **All three done
+   3 August.** See the section above.
+2. **Build the vendor scorecard agent.** Discussed and agreed in principle, not
+   started. Score on what exists — net keep per unit, oos rate, no-ship rate,
+   shipping shape, catalogue depth — and leave slots that fill themselves once
+   orders arrive. First call it would make: the 12 vendors under $3 a unit.
+3. **Ask Collective who bears return postage.** Still unanswered, and it decides
    whether the $6.95 is cost recovery or margin.
+4. **Decide the demand-side plan before spending on Meta.** The arithmetic above
+   says cold paid buys expensive data, not customers, until AOV rises or there is
+   a list. The two levers are already half-built: the cart knows each vendor's
+   gap to free shipping and does not upsell into it, and the email popup captures
+   to nothing.
 
 Then the standing backlog below.
 
