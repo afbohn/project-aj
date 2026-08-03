@@ -10,6 +10,7 @@
 {
   "current": {
     "logo": "shopify://shop_images/Yoink-LOGO-Main-Color.png",
+    "logo_inverse": "shopify://shop_images/Yoink-LOGO-Main-Alt.png",
     "logo_height": 52,
     "logo_height_mobile": 35,
     "favicon": "shopify://shop_images/Favicon-Yoink_1780bd48-0317-4063-84bc-0717dca6d9ac.png",
