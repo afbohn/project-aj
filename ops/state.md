@@ -1869,6 +1869,80 @@ again on 3 August: it has been changed. That is the setting the settlement path
 needs — ours is now the only thing issuing refunds, so there is no double-refund
 risk. Verified in the app, not inferred.
 
+## 3 August, late — eight suppliers dropped, and two silent email faults
+
+**THE EMAIL SIGNUP FLOW WAS DEAD, AND LOOKED FINE.** Asking "are we ready end to
+end" found two faults, either of which alone meant every popup and footer signup
+got silence:
+
+1. `customers/create` was declared in `shopify.app.toml` and **never
+   registered**. Declarative webhooks take effect on `shopify app deploy`, which
+   was never run for it and CANNOT be from here — the CLI is not linked to the
+   real app, which is also why `shopify app versions list` returns empty. The
+   returns webhooks work only because they were added on 1–2 August when the app
+   was last deployed. **Registered through `webhookSubscriptionCreate` instead.**
+2. With the webhook arriving, the handler still exited in 23ms. **The
+   `customers/create` payload carries NO tags** for a customer whose tags are set
+   in the same call that creates them — exactly what the storefront forms do. So
+   it saw a plain new customer and correctly ignored it. Tags are now re-read
+   from the API when the payload has none.
+
+Neither was visible in code: the route existed, the handler was right, the tag
+branch was right, and nothing happened. Verified by creating a real customer and
+watching it come back tagged `welcomed`. **If a webhook is ever added to the toml
+again, it needs `shopify app deploy` or an API registration — the git push and
+the Fly deploy do NOT register it.**
+
+**Eight suppliers dropped**, 200 products set to DRAFT — reversible, off every
+channel at once, and it keeps the `vendor_score` history that justified it.
+Ralphie's Funhouse ($0.41/unit, 48), Sticker Fire ($0.83, 48), The Fidget Games
+(50% unshippable, 44), Elijah's Xtreme ($1.64, 29), Books by splitShops ($1.47,
+16), Bear Dice ($1.26, 10), Bards & Cards ($1.63, 4), Gotta Go Gotta Throw
+($1.68, 1). Active catalogue 2,581 → 2,392.
+
+**They are still connected in Collective**, so a sync could flip them back to
+active. Disconnecting is a relationship action and is Alex's to do in the
+Collective app.
+
+The one apparent conflict was a false alarm: Gotta Go Gotta Throw's product is
+attached to `daily-deal-azioo00y`, whose `ends_at` (28 July) is BEFORE its
+`starts_at` (29 July) — the inverted-window record already on the Next list. It
+could never have fired.
+
+## The return fee, settled
+
+**The supplier bears return postage; the $6.95 is margin.** Worked out from
+Shopify's docs plus the Collective policy screen, not asked: Processing is
+"Supplier creates label", which Shopify states means the supplier provides AND
+pays for it, and Window and fees reads "No label fee" — what we would owe them.
+Zero. Every earlier note calling it cost recovery was wrong, including the
+arithmetic that introduced it.
+
+Renamed throughout: `RETURN_SHIPPING_FEE` → `RETURN_FEE`, `returnShipping` →
+`returnFee`, `wePayReturnShipping` → `weCoverReturn`. The
+`we_pay_return_shipping` metaobject KEY is deliberately unchanged — renaming it
+would orphan every `return_decision` already written.
+
+**Free returns narrowed to DEFECTIVE and WRONG_ITEM.** `NOT_AS_DESCRIBED` now
+pays the fee: it is a judgement only the customer can make, sitting in the
+dropdown directly above "Changed my mind", and leaving it free made the fee
+optional for anyone who read the list. A genuine case over $24.99 still lands in
+the approval queue with the reason on it, so a human can waive it.
+
+**Refund policy republished** to match: heading "Return fee", the free case names
+exactly the two reasons that are free, and "we cover it — postage and all" is
+gone because we do not pay postage.
+
+## Purchasing — configured, never exercised
+
+Store public, USD, Collective Carrier Service profile live, domestic rates,
+Shop Pay/PayPal/Google Pay present. **But no real order has ever been placed** —
+every order this store has seen was a draft order created by API and deleted.
+Untested: a real checkout, tax at checkout, and above all **whether a paid order
+syncs to Collective and gets fulfilled**. That last one involves somebody else's
+system and is the biggest remaining unknown. One cheap self-purchase would
+exercise all of it.
+
 ## Things that bit us, so they don't again
 
 **From earlier sessions**
