@@ -330,19 +330,36 @@
 
   /* The image should fill its taller column rather than leaving a gap under a
      panel that is now shorter than it. */
+  /*
+    A FIXED BOX, because the product decides the shape otherwise.
+
+    `height: auto` let the image take whatever aspect ratio the supplier shot
+    at. A square-ish product looked fine; the first tall one — a spray bottle —
+    rendered about 1100px high, towered over the whole content column and left
+    a screen of dead white beside it. The deal card is the most important thing
+    on the site and its height was being set by whatever the supplier
+    photographed.
+
+    Square, with `object-fit: contain`, so every Yoink occupies the same space
+    whatever its shape: a tall bottle letterboxes left and right, a wide product
+    letterboxes top and bottom, and the layout never moves. capped so it cannot
+    outgrow the content beside it on a large screen.
+  */
   .aj-deal__media {
+    position: relative;
     border-radius: 10px;
     overflow: hidden;
   }
 
-  .aj-deal__media {
-    position: relative;
-  }
-
   .aj-deal__image {
-    width: 100%;
-    height: auto;
     display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    max-height: 34rem;
+    /* contain, not cover: cover would crop a tall bottle to a square and cut
+       the trigger off the top. Nothing on a product photo is safe to crop. */
+    object-fit: contain;
+    object-position: center;
   }
 
   .aj-deal__badge {
