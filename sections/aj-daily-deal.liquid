@@ -377,8 +377,23 @@
   */
   .aj-deal__eyebrow {
     margin: 0 0 0.6rem;
-    font-size: clamp(1rem, 1.6vw, 1.25rem);
-    font-weight: 600;
+    /*
+      26px at desktop, level with the product title rather than under it.
+
+      That is deliberate and does not flatten the hierarchy: the title is
+      Archivo at 700 in near-black, this is a pixel face at 400 in purple, and
+      the price is 48px above both. Rank is carried by weight, colour and the
+      price, so the label naming the offer can afford to be seen.
+
+      WEIGHT IS 400 BECAUSE 600 DID NOTHING. Ohpixel ships one weight, and
+      measured on the live page the rendered width is identical at 400, 600 and
+      700 — the browser is not even synthesising a bold. Declaring 600 described
+      an effect that was not happening, which is worse than declaring nothing.
+      Presence here comes from size and tracking, which is what a pixel face
+      responds to.
+    */
+    font-size: clamp(1.25rem, 2.4vw, 1.625rem);
+    font-weight: 400;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     /*
