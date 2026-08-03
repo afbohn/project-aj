@@ -23,6 +23,20 @@
     </div>
   {% endif %}
   {%- form 'customer', class: 'email-signup__form spacing-style' %}
+    {%- comment -%}
+      TAGGED, because it was not.
+
+      This block is Horizon's stock signup and shipped with no tag at all, so
+      everyone who used the footer form landed in the customer list
+      indistinguishable from somebody who had simply bought something. There
+      was no way to mail them, and no way to work out afterwards which ones had
+      asked to hear from us — that data is unrecoverable for anyone who signed
+      up before this.
+
+      `list` rather than `footer`, because this block can be placed anywhere and
+      the tag should describe the intent, not the position on the page.
+    {%- endcomment -%}
+    <input type="hidden" name="contact[tags]" value="list">
     {% comment %} --- Input group classes --- {% endcomment %}
     {%- liquid
       assign input_group_classes = 'email-signup__input-group'
