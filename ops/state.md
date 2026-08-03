@@ -1606,6 +1606,56 @@ would become #foodbeveragestobacco, which nobody searches and which puts the wor
 tobacco on a post about hot sauce. Unmapped categories contribute nothing rather
 than guessing. Costs one field on a query already running.
 
+## 3 August — bin cards, and the Yoink selector was spending its best deals first
+
+**The card stagger, in two wrong fixes and a right one.** Measured live: names
+aligned at 1484px but prices split 1535 (no Ships free badge) against 1508 (with
+one) — a 27px stagger across a four-up row, exactly one badge height plus the
+gap. Cause was `margin-top: auto` on the price, which bottom-anchored it, so a
+card without a badge let its price drop into the badge's space.
+
+First fix reserved two lines of title height. That aligned the prices and
+created a worse problem: four single-line titles meant four blank lines, and the
+name-to-price gap read as a spacing bug. **Subgrid is the right answer** — these
+are four independent grids sitting side by side, and spanning the parent's rows
+makes media/name/price/badge share tracks ACROSS the row. Each track is as tall
+as the tallest real content, nothing is reserved that is not needed, and the
+badge row collapses entirely when no card in the row ships free. Verified: name
+and price offsets identical on all four, gap down to 6px. `@supports` fallback
+keeps the min-height where subgrid is unavailable.
+
+## The Yoink selector — supply was never the problem
+
+Asked whether there are enough products to be Yoinks. Measured:
+
+    active                                  2,591
+    in the bargain bin                         40
+    oos / no shipping rate                    179
+    no discount clears the margin floor       397
+    stock under 25 units                      336
+    QUALIFY                                 1,638   = 4.5 years of daily deals
+
+**DEPTH IS THE SCARCE RESOURCE, NOT COUNT.** Only 145 of those 1,638 can go 40%
+off and still clear the margin floor; the median has 19% of headroom. Deep
+discounts are 9% of the pool — and the selector sorted by `maxDiscount`
+descending, handing the deepest remaining deal to whoever planned that day,
+every day. That spends the 145 best deals in about five months, after which
+every remaining day is a sub-25% offer and the store's promise quietly degrades.
+
+Nothing warned about it because from any single day's view the shortlist looked
+excellent. Verified before the change: the shortlist was 25 deep candidates out
+of 25. After: 4 deep, 11 mid, 10 shallow.
+
+The shortlist is now stratified roughly 15/45/40, so reaching for a crown jewel
+is a decision rather than the default. Bands fall back to each other, so a pool
+with no deep candidates still returns a full shortlist. The margin floor, the
+ship-ratio penalty and the vendor interleave are untouched.
+
+**`minStock` 25 → 10.** The old bar excluded 336 otherwise-qualifying products to
+guard against a Yoink selling out mid-countdown, which on a store with no
+traffic was priced far too high. **This is the first number to raise again if a
+deal ever does sell out inside its window.**
+
 ## Things that bit us, so they don't again
 
 **From earlier sessions**
