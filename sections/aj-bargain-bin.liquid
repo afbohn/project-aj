@@ -77,11 +77,27 @@
                 Reads the per-product measurement, not the vendor shape. A bin
                 item that also ships free is the strongest card in the grid and
                 the tile had no way to say so.
+
+                THE SLOT IS ALWAYS RENDERED, the badge inside it is not.
+
+                `.aj-bin__prices` used to carry `margin-top: auto`, which bottom-
+                anchored the price — so a card WITHOUT this badge let its price
+                fall into the space the badge would have occupied. Measured on
+                the live grid: prices at 1535px on cards with no badge against
+                1508px on cards with one, a 27px stagger across a four-up row
+                that read as a broken layout.
+
+                A wrapper with a min-height keeps the row whether or not it has
+                content. Not `visibility: hidden` on a duplicate badge, which
+                would reserve the space but put "Ships free" into the accessible
+                tree on products that do not ship free.
               {%- endcomment -%}
               {%- assign bin_ship = product.metafields.ship.cost.value -%}
-              {%- if bin_ship != blank and bin_ship == 0 -%}
-                <span class="aj-card-free">Ships free</span>
-              {%- endif -%}
+              <span class="aj-bin__ship">
+                {%- if bin_ship != blank and bin_ship == 0 -%}
+                  <span class="aj-card-free">Ships free</span>
+                {%- endif -%}
+              </span>
             </a>
           </li>
         {%- endfor -%}
@@ -234,18 +250,55 @@
     color: var(--aj-price-on-accent, rgb(var(--color-background-rgb, 255 255 255)));
   }
 
-  .aj-bin__name { font-weight: 600; line-height: 1.25; }
-
-  .aj-bin__prices {
-    margin-top: auto;
-    display: flex;
-    align-items: baseline;
-    gap: 0.4rem;
+  /*
+    TWO LINES, ALWAYS. Titles are supplier strings — "Sandbar" next to "PRO
+    Player Pickleball Bag" — so a name block that sizes to its content puts the
+    price at a different height on every card. Clamping to two lines and
+    reserving two lines of height means the price row starts at the same offset
+    across the row no matter what the supplier called the thing.
+  */
+  .aj-bin__name {
+    font-weight: 600;
+    line-height: 1.3;
     font-size: 0.9375rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.6em;
   }
 
-  .aj-bin__price { font-weight: 700; }
-  .aj-bin__was { opacity: 0.6; }
+  /*
+    No `margin-top: auto`. Bottom-anchoring only looked right while every card
+    happened to have the same rows below it; the moment one lacked a Ships free
+    badge its price dropped 27px. The rows are fixed now, so the price simply
+    follows the name.
+  */
+  .aj-bin__prices {
+    display: flex;
+    align-items: baseline;
+    gap: 0.45rem;
+    font-size: 1.0625rem;
+  }
+
+  /* The badge's row, kept whether or not there is a badge in it. */
+  .aj-bin__ship { display: block; min-height: 1.25rem; }
+
+  /* Money should look like money: heavier and tighter than the name above it,
+     with tabular figures so a column of prices lines up on the decimal. */
+  .aj-bin__price {
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The anchor price is context, not the offer. It was competing at the same
+     size as the price it is meant to make look good. */
+  .aj-bin__was {
+    opacity: 0.5;
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+  }
 
   .aj-bin--empty { padding-block: var(--padding-xl, 3rem); text-align: center; }
 
