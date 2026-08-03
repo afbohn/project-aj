@@ -79,31 +79,6 @@
           {%- if deal_off -%}
             <span class="aj-announce__save">{{ deal_off }}% off</span>
           {%- endif -%}
-          {%- comment -%}
-            THE CATEGORY, NOT THE PRODUCT NAME. A supplier's title is long and
-            arrives pre-truncated in a strip this narrow — "Combo Women's
-            Socce…" tells a shopper nothing at all, which is worse than saying
-            nothing. The category is short, always fits, and answers the only
-            question the bar can usefully answer: is this for me?
-
-            Read from the cat- tag's collection title, the same source the sneak
-            peek uses, because that title is the shopper-facing wording — it is
-            what turns Shopify's "Food, Beverages & Tobacco" into "Food &
-            Beverages". Falls back to the product name if a product somehow has
-            no category, which is better than an empty strip.
-          {%- endcomment -%}
-          {%- assign bar_cat = '' -%}
-          {%- for tag in deal_product.tags -%}
-            {%- if bar_cat == '' and tag contains 'cat-' -%}
-              {%- assign bar_col = collections[tag] -%}
-              {%- if bar_col != blank and bar_col.title != blank -%}
-                {%- assign bar_cat = bar_col.title -%}
-              {%- endif -%}
-            {%- endif -%}
-          {%- endfor -%}
-          <span class="aj-announce__title">
-            {{- bar_cat | default: deal_product.title | escape -}}
-          </span>
           <span class="aj-announce__go" aria-hidden="true">&rarr;</span>
         </a>
       {%- else -%}
@@ -137,8 +112,8 @@
     padding-block: 0.55rem;
   }
 
-  .aj-announce:hover .aj-announce__title,
-  .aj-announce:focus-visible .aj-announce__title {
+  .aj-announce:hover .aj-announce__save,
+  .aj-announce:focus-visible .aj-announce__save {
     text-decoration: underline;
   }
 
@@ -150,15 +125,6 @@
     color: var(--aj-brand-yellow, #ffe000);
   }
 
-  .aj-announce__title {
-    /* A category name fits, so nothing needs truncating. The ellipsis stays as
-       a guard for the fallback case where a product has no category. */
-    max-width: 22rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
   /* The loudest thing in the strip, because it is the only thing in it that
      makes anybody click. */
   .aj-announce__save {
@@ -167,8 +133,6 @@
     letter-spacing: -0.01em;
     color: var(--aj-brand-yellow, #ffe000);
   }
-
-  .aj-announce__title { opacity: 0.92; }
 
   .aj-announce__go {
     color: var(--aj-brand-yellow, #ffe000);
@@ -179,7 +143,6 @@
   @media screen and (max-width: 749px) {
     /* The title is the least useful part on a narrow bar — the label and the
        saving already say "there is a deal, tap here". */
-    .aj-announce__title { max-width: 11rem; }
   }
 
   @media (prefers-reduced-motion: reduce) {
