@@ -97,27 +97,91 @@
         first paint, and made the deal photo the page's LCP element arriving
         last. Every other image here stays lazy.
       {%- endcomment -%}
-      <div class="aj-deal__media">
-        {%- if hero_image -%}
+      {%- comment -%}
+        A GALLERY, BECAUSE LEAVING THE PAGE COSTS THE COUNTDOWN.
+
+        The Yoink is a one-shot pitch: there is no second visit to evaluate the
+        product, and the only way to see a second photo was to click through to
+        the product page — away from the timer and the buy button, onto a page
+        where the urgency is gone. This keeps the research on the deal.
+
+        DOTS, NOT THUMBNAILS. This card already sits beside a tall content
+        column; a thumbnail strip would eat the vertical space that keeps the
+        two halves balanced. Dots say "there is more" without competing with
+        the price.
+
+        THE FIRST SLIDE KEEPS `data-aj-variant-image`. aj-variant-select.js
+        swaps the hero when a variant changes by querying that marker, so it has
+        to stay on slide one and stay first in the DOM. The gallery scrolls back
+        to it on a variant change rather than leaving someone looking at the
+        old colour's third photo.
+
+        Everything below degrades without JavaScript: the track is a scroll
+        container, so it swipes and scrolls natively and the controls are only
+        an enhancement.
+      {%- endcomment -%}
+      {%- assign gallery = product.media | where: 'media_type', 'image' -%}
+      <div
+        class="aj-deal__media"
+        data-aj-gallery
+        data-count="{{ gallery.size }}"
+      >
+        <div class="aj-deal__track" data-aj-gallery-track>
+          {%- if hero_image -%}
+            {%- comment -%}
+              The marker sits on the anchor, not the img: `image_tag` takes named
+              arguments, and Liquid cannot parse a hyphenated one like
+              `data-aj-variant-image:`.
+            {%- endcomment -%}
+            <a class="aj-deal__slide" href="{{ product.url }}" tabindex="-1" aria-hidden="true" data-aj-variant-image>
+              {{
+                hero_image
+                | image_url: width: 1200
+                | image_tag:
+                  loading: 'eager',
+                  fetchpriority: 'high',
+                  sizes: '(min-width: 750px) 50vw, 100vw',
+                  widths: '400, 600, 800, 1000, 1200',
+                  class: 'aj-deal__image',
+                  alt: hero_image.alt
+              }}
+            </a>
+          {%- endif -%}
+
           {%- comment -%}
-            The marker sits on the anchor, not the img: `image_tag` takes named
-            arguments, and Liquid cannot parse a hyphenated one like
-            `data-aj-variant-image:`.
+            The rest. `hero_image` is skipped by id so a variant image that is
+            also in product.media does not appear twice. These stay lazy — only
+            the hero is the LCP element.
           {%- endcomment -%}
-          <a href="{{ product.url }}" tabindex="-1" aria-hidden="true" data-aj-variant-image>
-            {{
-              hero_image
-              | image_url: width: 1200
-              | image_tag:
-                loading: 'eager',
-                fetchpriority: 'high',
-                sizes: '(min-width: 750px) 50vw, 100vw',
-                widths: '400, 600, 800, 1000, 1200',
-                class: 'aj-deal__image',
-                alt: hero_image.alt
-            }}
-          </a>
-        {%- endif -%}
+          {%- for media in gallery -%}
+            {%- if hero_image and media.id == hero_image.id -%}{%- continue -%}{%- endif -%}
+            <a class="aj-deal__slide" href="{{ product.url }}" tabindex="-1" aria-hidden="true">
+              {{
+                media
+                | image_url: width: 1200
+                | image_tag:
+                  loading: 'lazy',
+                  sizes: '(min-width: 750px) 50vw, 100vw',
+                  widths: '400, 600, 800, 1000, 1200',
+                  class: 'aj-deal__image',
+                  alt: media.alt
+              }}
+            </a>
+          {%- endfor -%}
+        </div>
+
+        {%- comment -%}
+          Rendered always, hidden by CSS when there is nothing to page through —
+          `[data-count="1"]` and `[data-count="0"]`. Building them conditionally
+          in Liquid would mean counting the deduped slides twice.
+        {%- endcomment -%}
+        <button class="aj-deal__nav aj-deal__nav--prev" type="button" data-aj-gallery-prev aria-label="Previous image">
+          <span aria-hidden="true">&#8249;</span>
+        </button>
+        <button class="aj-deal__nav aj-deal__nav--next" type="button" data-aj-gallery-next aria-label="Next image">
+          <span aria-hidden="true">&#8250;</span>
+        </button>
+        <div class="aj-deal__dots" data-aj-gallery-dots role="tablist" aria-label="Product images"></div>
 
         {%- if on_sale -%}
           <span class="aj-deal__badge">Save {{ savings_percent }}%</span>
@@ -286,6 +350,7 @@
   </div>
 {%- endif -%}
 
+<script src="{{ 'aj-deal-gallery.js' | asset_url }}" type="module" fetchpriority="low"></script>
 {% stylesheet %}
   /*
     NOT 50/50, AND NOT CENTRED. Both were wrong for what this section is.
@@ -349,6 +414,100 @@
     position: relative;
     border-radius: 10px;
     overflow: hidden;
+  }
+
+  /* The scroll container. Native swipe on touch, snap so a slide never rests
+     half-shown, and no scrollbar because the dots already say there is more. */
+  .aj-deal__track {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    /* Momentum scrolling on iOS, and it stops a horizontal swipe from being
+       hijacked into page navigation. */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  .aj-deal__track::-webkit-scrollbar { display: none; }
+
+  .aj-deal__slide {
+    flex: 0 0 100%;
+    scroll-snap-align: center;
+    display: block;
+  }
+
+  /* Arrows: desktop only. On touch the swipe is the affordance and the dots
+     confirm it; on a mouse there is no swipe, so without these the extra
+     images are effectively undiscoverable on the device where people do their
+     considered browsing. */
+  .aj-deal__nav {
+    position: absolute;
+    inset-block-start: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    display: none;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 0;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.92);
+    color: var(--aj-brand-ink, #282828);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 1px 6px rgb(0 0 0 / 0.18);
+  }
+
+  .aj-deal__nav--prev { inset-inline-start: 0.6rem; }
+  .aj-deal__nav--next { inset-inline-end: 0.6rem; }
+  .aj-deal__nav[disabled] { opacity: 0.35; cursor: default; }
+
+  @media (hover: hover) and (pointer: fine) {
+    .aj-deal__nav { display: grid; place-items: center; }
+  }
+
+  .aj-deal__dots {
+    position: absolute;
+    inset-block-end: 0.75rem;
+    inset-inline: 0;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    gap: 0.4rem;
+  }
+
+  .aj-deal__dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    /* Ink at low alpha rather than a grey, so it reads on both a white product
+       shot and a dark one. */
+    background: rgb(40 40 40 / 0.28);
+    cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.15s ease;
+  }
+
+  .aj-deal__dot[aria-selected="true"] {
+    background: var(--aj-brand-purple, #7a3fa0);
+    transform: scale(1.25);
+  }
+
+  /* ONE IMAGE IS NOT A GALLERY. A lone dot and two dead arrows read as broken
+     controls, so at zero or one slide the whole apparatus disappears. */
+  .aj-deal__media[data-count="0"] .aj-deal__dots,
+  .aj-deal__media[data-count="1"] .aj-deal__dots,
+  .aj-deal__media[data-count="0"] .aj-deal__nav,
+  .aj-deal__media[data-count="1"] .aj-deal__nav {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aj-deal__track { scroll-behavior: auto; }
+    .aj-deal__dot { transition: none; }
   }
 
   .aj-deal__image {
