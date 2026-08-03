@@ -135,7 +135,10 @@
      makes anybody click. */
   .aj-announce__save {
     font-weight: 800;
-    font-size: 1.0625rem;
+    /* The tallest element in the bar, so it sets the bar's height. 1rem rather
+       than 1.0625rem: still the loudest thing here at weight 800 in yellow,
+       without being what makes the bar thick. */
+    font-size: 1rem;
     letter-spacing: -0.01em;
     color: var(--aj-brand-yellow, #ffe000);
   }
