@@ -1313,6 +1313,95 @@ Read from the Collective app on 2 August rather than inferred:
 - **The copy is American.** color, defective, business days, ship it back, right
   away. Markets is US-only and the copy was not.
 
+## 2 August, evening — navigation got a second level, and the 404 earns its keep
+
+**Eight of twenty-one category collections were linked.** The other thirteen —
+Sporting Goods (53), Furniture (51), Office Supplies (43), Books (41), Vehicles
+& Parts (30), Baby & Toddler (26) and a tail below ten — held roughly 272
+products that nothing on the site pointed at. The catalogue agent had been
+creating them correctly since 31 July and then nobody surfaced them. Creating a
+collection and linking a collection were never the same job, and only one of
+them had an owner.
+
+**Depth was the other half.** Keeping only the top taxonomy segment is still
+right for most of the catalogue, but it put 622 products in one Apparel bucket,
+369 in Home & Garden, 215 in Toys & Games. That is a wall, not navigation — and
+95% of products already carried the second level needed to split it.
+
+Now: fourteen top-level entries, thirteen sub-collections, 1,319 products
+tagged and all 1,319 landed (counts reconciled against the collections, not
+assumed from the mutation count).
+
+**The agent does this itself now, on thresholds rather than a list.** A
+hardcoded "split these four" would have been correct the day it shipped and
+wrong the first time a supplier's range grew. `catalog.server.ts` counts
+children from the catalogue it already loads each run: a top-level over
+`SUB_TOP_MIN` (120) gets split, each child over `SUB_MIN` (15) gets its own
+collection, and a child that shrinks back below the line has its tag removed. A
+child named after its parent is skipped, because Shopify's taxonomy repeats
+itself — "Animals & Pet Supplies > Pet Supplies", "Media > Books" — and
+splitting those asks you to click Pet Supplies to reach Pet Supplies.
+
+**Checked the theme renders three levels BEFORE tagging anything.**
+`mega-menu-list.liquid` does recurse `parent_link.links` → `link.links` →
+`childLink`. Had it not, this would have filed 1,319 products into collections
+nobody could reach — which is precisely the bug being fixed, committed twice.
+
+**Shop by price is a dropdown now**, with Ships Free in it. The band collections
+are handled `under-10`, `10-to-20`, `20-to-30`, `30-to-50`, `50-and-up` — NOT
+`band-*`, which is the tag prefix, not the handle. Rendered as tiles: a price
+menu of six uppercase words makes you read six lines to compare six numbers,
+when the number is the whole choice. Scoped by collection href because the theme
+gives every dropdown the same class, and flattened with `display: contents`
+because `mega-menu-list.liquid` varies how many links share a column. Ships Free
+is purple rather than yellow because it is a different axis, not a price band.
+
+**The header teal was never a brand colour.** `background_color_top` was
+`#43afca` and `text_color_top` `#0d2b33` — both sampled off the TEST logo before
+Jake delivered anything. They are `#30aac6` and `#282828` now, 5.40:1. The logo
+was still 75px, sized for the taller header it used to live in; 52px on the
+compact bar.
+
+**"Today's Yoink" came out of the menu.** It pointed at `/`, which is where the
+LOGO goes — so it duplicated the logo a few inches to its right, not the
+announcement bar, which points at the deal PRODUCT page and is the only link
+anywhere to it.
+
+**Earning free shipping now looks like winning.** The cart had it backwards:
+short of the threshold you got a message AND a progress bar; crossing it
+suppressed the bar and left one line of 0.9375rem default-coloured text. The
+best news in the cart was its quietest line. `won` is deliberately narrower than
+`pct == 100` — the `flat` and `free` vendor shapes also sit at 100%, but those
+are standing facts about a supplier, not something the shopper just achieved.
+
+**The Bargain Bin's second row was ragged.** `auto-fill` let the column count
+float with the viewport, so a wide desktop made six columns for eight products:
+one full row, then two tiles beside four empty cells, which reads as a section
+that failed to load. Fixed at two and four columns, both of which divide eight.
+Keep `products_shown` a multiple of four. It also ends somewhere now — "See all
+26" sits in the corner beside the heading, read before anyone has seen a
+product; "Rummage through the bin" goes where browsing actually stops.
+
+**The 404 is ours.** "Yoink" is a verb for snatching something away, so a missing
+page has literally been yoinked — the rare joke that cannot be transplanted to
+another shop. But the joke is not the point: a 404 is a customer one click from
+leaving, so the page hands over today's live deal, priced, with its saving. It
+resolves the deal itself by walking `daily_deal` for the window containing now,
+exactly as `header-announcements` does, so it rotates at 9am with nothing to
+edit and survives there being no live deal — which happens between runs and
+would otherwise render an empty card at $0.
+
+**THE THEME DEPLOYS ON `git push`.** The live theme is `project-aj/main`, which
+is GitHub-connected, so a push to `afbohn/project-aj` IS the deploy. There is no
+`shopify theme push` step and running one would fight the connection. Confirmed
+by pulling the live theme and finding it already matched local.
+
+**Where free shipping is called out**, since it came up: `blocks/aj-card-ships-free.liquid`
+is wired into the collection, search, product, cart and 404 templates. It sits
+beside the PRICE, not in the badge corner — that slot holds the discount, and
+"Ships free" loses to "40% off" every time. It reads a real `draftOrderCalculate`
+quote per product, not the vendor's usual behaviour. 329 of 2,048 products (16%).
+
 ## Things that bit us, so they don't again
 
 **From earlier sessions**
@@ -1681,12 +1770,17 @@ Read from the Collective app on 2 August rather than inferred:
   and multi-line valuation proven live, and `refundCreate` built and tested both
   ways.
 - ~~Store credit.~~ **Built 2 August**, tested, off with everything else.
-- **NOTHING WATCHES `hello@`.** Returns start by email, and no agent reads that
-  mailbox — a return request sits there until a human opens it and creates the
+- ~~NOTHING WATCHES `hello@`.~~ **Largely solved.** Returns now start at the
+  storefront form (`proxy.return.tsx`), land in the approval queue at
+  `/app/returns`, and email a human the moment one needs a decision. The residual
+  risk is only a customer who emails instead of using the form. Original note:
+  no agent reads that mailbox — a return request sits there until a human opens it and creates the
   return in Shopify by hand. The webhook fires on the RETURN, never on the email.
   The morning digest does not mention returns either, so a `return_decision`
   written overnight is invisible until someone goes looking in the metaobject
   browser. Adding pending decisions to the digest is small and worth doing.
-- **Decide whether to switch refunds on.** The switch is `agent-returns-pay` and
-  it is off. Nothing needs it while the store has no orders; the question becomes
-  real with the first genuine return.
+- ~~Decide whether to switch refunds on.~~ **`agent-returns-pay` is ON.**
+  Verified live on 2 August (`enabled: true`), not inferred from code. This entry
+  said "it is off" for a day after it had been turned on, which is the same class
+  of error as the automatic-refunds line that sat wrong under every returns
+  decision for three days. CHECK THE METAOBJECT, NEVER THIS FILE.
