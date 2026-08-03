@@ -2266,7 +2266,21 @@ exercise all of it.
 
 ## Next
 
-**PICK UP HERE.**
+**PICK UP HERE (4 August).**
+
+**The blocker is Jake, not the store.** Final logos and brand assets are
+outstanding, and pushing traffic to a placeholder logo spends attention that
+does not come back. Whatever unblocks him is the critical path; everything below
+is preparation.
+
+0. **Place one real order yourself.** A few dollars exercises checkout, tax, the
+   order-confirmation email, the Collective handoff and fulfillment in one go.
+   No genuine order has ever been placed on this store — every one so far was a
+   draft order created by API and deleted. Whether a paid order actually reaches
+   the supplier is the biggest untested thing here, and it is somebody else's
+   system.
+
+**Then:**
 
 1. ~~Verify the returns fix, fix the nav, look at the visuals.~~ **All three done
    3 August.** See the section above.
