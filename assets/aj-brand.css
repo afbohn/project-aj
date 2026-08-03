@@ -318,7 +318,17 @@
 .header__row .menu-list a,
 .header .menu-list__link {
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  /*
+    0.02em, not the 0.07em this shipped with. Measured on the live header: the
+    menu column is 398px at 1920 and 338px on a 1400-ish laptop, while the three
+    labels needed 418px — so the nav was ALREADY over its budget the day the
+    tracking was added, and only rendered because overflow-list tolerates a few
+    pixels. Below that it silently folded "Shop by category" into a "More"
+    button, hiding all 27 category links behind a word that names none of them.
+    Tracking on 40 characters of caps was costing about 37px of a budget that
+    had none.
+  */
+  letter-spacing: 0.02em;
   font-size: 0.8125rem;
   font-weight: 600;
 }
