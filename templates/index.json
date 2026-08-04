@@ -76,6 +76,15 @@
         "padding-block-start": 32,
         "padding-block-end": 32
       }
+    },
+    "aj_story": {
+      "type": "aj-story",
+      "settings": {
+        "cta_link": "/pages/about-us",
+        "color_scheme": "scheme-1",
+        "padding-block-start": 40,
+        "padding-block-end": 60
+      }
     }
   },
   "order": [
@@ -83,6 +92,7 @@
     "aj_bargain_bin",
     "aj_shop_by_price",
     "aj_shop_by_category",
-    "aj_past_deals"
+    "aj_past_deals",
+    "aj_story"
   ]
 }

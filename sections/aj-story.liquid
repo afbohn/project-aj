@@ -1,0 +1,195 @@
+{%- comment -%}
+  AJ Story — the short version, on the homepage.
+
+  A SCREEN, NOT THE MACHINE. The About page gets the full CRT: beige shell,
+  chin, power lamp, swivel base. This one borrows only the glass — dark panel,
+  scanlines, phosphor eyebrow — and stops there. The monitor is that page's
+  signature and it stays worth the trip; repeating the whole thing here would
+  spend it, and a second beige box on a homepage that already carries the
+  Yoink, the Bin and two nav grids is one object too many.
+
+  IT SITS LAST, after Recent Yoinks. Somebody who has scrolled past the deal,
+  the bin and the categories has already decided the shop is interesting —
+  "who are you people" is the question they have left. Putting it higher costs
+  the Yoink its position, and the Yoink is what the whole site is pointed at.
+
+  THE COPY IS THE SHORT VERSION, deliberately. Alex wrote three lengths; the
+  medium one is on /pages/about-us and this is the homepage cut. They must not
+  be edited into each other — the whole point is that this one is skimmable and
+  ends on a link.
+{%- endcomment -%}
+
+{%- liquid
+  assign s = section.settings
+-%}
+
+<div
+  class="aj-story color-{{ s.color_scheme }}"
+  style="padding-block-start: {{ s.padding-block-start }}px; padding-block-end: {{ s.padding-block-end }}px;"
+  {{ section.shopify_attributes }}
+>
+  <div class="aj-story__inner page-width">
+    <div class="aj-story__screen" style="--aj-story-phosphor: {{ s.phosphor }}; --aj-story-screen: {{ s.screen_color }};">
+      {%- if s.eyebrow != blank -%}
+        <p class="aj-story__eyebrow">{{ s.eyebrow | escape }}</p>
+      {%- endif -%}
+
+      {%- if s.body != blank -%}
+        <div class="aj-story__body rte">{{ s.body }}</div>
+      {%- endif -%}
+
+      {%- if s.cta_text != blank -%}
+        <a class="aj-story__cta" href="{{ s.cta_link | default: '/pages/about-us' }}">
+          {{- s.cta_text | escape -}}
+          <span class="aj-story__caret" aria-hidden="true">&rarr;</span>
+        </a>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .aj-story__screen {
+    /* Same two knobs as the About page's monitor, defaulted the same, so the
+       two surfaces cannot drift into different greens. */
+    --aj-story-phosphor: #5cf08a;
+    --aj-story-screen: #0b100c;
+
+    max-width: 46rem;
+    margin-inline: auto;
+    padding: 2rem 1.75rem;
+    border-radius: 14px;
+    color: #d6f5e0;
+
+    /* Scanlines in the BACKGROUND, never as an overlay — an overlay drags
+       contrast down on every other row of text. */
+    background-color: var(--aj-story-screen);
+    background-image: repeating-linear-gradient(
+      to bottom,
+      rgb(255 255 255 / 0.035) 0 1px,
+      transparent 1px 3px
+    );
+    box-shadow:
+      inset 0 0 70px rgb(0 0 0 / 0.55),
+      0 0 30px color-mix(in srgb, var(--aj-story-phosphor) 16%, transparent);
+  }
+
+  .aj-story__eyebrow {
+    margin: 0 0 1rem;
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--aj-story-phosphor);
+    text-shadow: 0 0 14px color-mix(in srgb, currentColor 45%, transparent);
+  }
+
+  /* Archivo, for the same reason as the About page: Ohpixel loses its grid in
+     sentences, and this is three paragraphs. */
+  .aj-story__body {
+    max-width: 62ch;
+  }
+
+  .aj-story__body p {
+    margin: 0 0 1rem;
+    line-height: 1.7;
+    color: rgb(214 245 224 / 0.72);
+  }
+
+  /* The first paragraph carries the hook, so it is set brighter and larger
+     than the two that follow it. */
+  .aj-story__body p:first-child {
+    font-size: 1.0625rem;
+    color: #d6f5e0;
+  }
+
+  .aj-story__body p:last-child {
+    margin-bottom: 0;
+  }
+
+  .aj-story__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-block-start: 1.5rem;
+    padding: 0.75rem 1.15rem;
+    border: 1px solid color-mix(in srgb, var(--aj-story-phosphor) 55%, transparent);
+    border-radius: var(--aj-tile-radius, 8px);
+    color: var(--aj-story-phosphor);
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.8125rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background-color 0.15s ease;
+  }
+
+  @media (hover: hover) {
+    .aj-story__cta:hover {
+      background: color-mix(in srgb, var(--aj-story-phosphor) 14%, transparent);
+    }
+  }
+
+  /* Nudges on hover rather than sliding on a loop: motion that answers an
+     action, not motion that runs at somebody trying to read. */
+  .aj-story__caret {
+    transition: transform 0.15s ease;
+  }
+
+  @media (hover: hover) {
+    .aj-story__cta:hover .aj-story__caret {
+      transform: translateX(3px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aj-story__caret {
+      transition: none;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .aj-story__screen {
+      padding: 1.5rem 1.15rem;
+    }
+
+    .aj-story__body p:first-child {
+      font-size: 1rem;
+    }
+
+    /* Full width so the tap target is not a small pill on a wide screen. */
+    .aj-story__cta {
+      display: flex;
+      justify-content: center;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "AJ Story",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "The homepage cut of the origin story. The longer version lives on the About page — keep them different lengths rather than editing one into the other."
+    },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Our story" },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Story",
+      "default": "<p>A couple of '90s kids who missed the dot-com boom, grew up through every recession and pandemic on the calendar, and decided to make the most of the hand we've been dealt. Also: two guys that had a lot of fun working together until one of them moved off — so, to keep the bromance alive, we started a store.</p><p>The Yoink is one genuinely cool, slightly random, worth-having find every single day, dropped at a price that feels a little illegal and gone by tomorrow. We're not in it for the yacht (a canoe, tops). We're in it because hunting down great stuff and handing you the deal beats a real job by a mile.</p><p>Raccoons do it with dog food. We do it with better taste. Some days the Yoink is for you, some days it's a penguin thing that isn't — that's the game. Watch the drops and yoink the good stuff before it's gone. ⚡</p>"
+    },
+    { "type": "text", "id": "cta_text", "label": "Button", "default": "Read the whole thing" },
+    { "type": "url", "id": "cta_link", "label": "Button link" },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color", "id": "phosphor", "label": "Phosphor", "default": "#5cf08a" },
+    { "type": "color", "id": "screen_color", "label": "Screen", "default": "#0b100c" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "header", "content": "Padding" },
+    { "type": "range", "id": "padding-block-start", "label": "Top", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 40 },
+    { "type": "range", "id": "padding-block-end", "label": "Bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 60 }
+  ],
+  "presets": [{ "name": "AJ Story" }]
+}
+{% endschema %}
