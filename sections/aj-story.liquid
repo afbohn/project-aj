@@ -127,6 +127,24 @@
     Mobile keeps the stack — two 45%-wide columns on a phone would be a small
     picture next to a narrow ribbon of text — but everything tightens.
   */
+  /*
+    THE SECTION IS A YELLOW BAND, and that is the whole fix.
+
+    On white it was a grey computer on a white page next to black text and a
+    purple button — every element correct and the sum of them sterile. Nothing
+    about it said Yoink. The brand's loudest legal combination is ink on
+    #ffe000: aj-brand.css measured it at 11.17:1, versus 1.32:1 for yellow as
+    TYPE, which is why the accent is always a background and never a letter.
+
+    It also does something the white version could not: the green phosphor
+    screen has nothing to fight on white, and on yellow it is the only cool
+    colour in the frame. The machine reads as switched on.
+  */
+  .aj-story {
+    background: var(--aj-price-grab, #ffe000);
+    color: var(--aj-price-read, #282828);
+  }
+
   .aj-story__inner {
     display: flex;
     flex-direction: column;
@@ -176,7 +194,10 @@
     font-size: 0.8125rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--aj-price-act, #7a3fa0);
+    /* Ink, not the purple — purple on yellow is a muddy 2.6:1 and the whole
+       reason this band works is that ink on yellow is not. */
+    color: var(--aj-price-read, #282828);
+    opacity: 0.7;
   }
 
   /* The container the overlay measures itself against. Without this the cqi
@@ -186,6 +207,14 @@
     container-type: inline-size;
     position: relative;
     margin-inline: auto;
+  }
+
+  /* Two degrees off square. Perfectly level, the render reads as a product
+     photo on a spec sheet; a couple of degrees reads as something somebody put
+     on a desk. The overlay is inside the same container so the screen text
+     tilts with it and stays registered to the glass. */
+  .aj-story__machine {
+    transform: rotate(-2deg);
   }
 
   .aj-story__img {
@@ -258,18 +287,25 @@
     }
   }
 
+  /* Flashy, because this is copy WE wrote and it is the line the section
+     exists to deliver. Weight 400: Flashy has one weight, and the theme's 700
+     renders it synthetically emboldened — the browser smearing the outline
+     sideways, which on a face with this much character reads as a fault. */
   .aj-story__teaser {
-    max-width: 34ch;
+    max-width: 18ch;
     margin: 0 auto;
-    font-size: 1.0625rem;
-    line-height: 1.55;
+    font-family: "Flashy", var(--font-heading--family);
+    font-weight: 400;
+    font-size: 1.75rem;
+    line-height: 1.15;
+    letter-spacing: 0.01em;
     text-wrap: balance;
   }
 
   @media screen and (min-width: 750px) {
     .aj-story__teaser {
       margin-inline: 0;
-      font-size: 1.25rem;
+      font-size: 2.5rem;
     }
   }
 
@@ -280,16 +316,23 @@
     margin-block-start: 1.1rem;
     padding: 0.85rem 1.35rem;
     border-radius: var(--aj-tile-radius, 8px);
-    background: var(--aj-price-act, #7a3fa0);
-    color: #ffffff;
-    font-weight: 700;
+    /* The inverse of the band: ink block, yellow type. A purple button on
+       yellow would be a third colour competing for the same job. */
+    background: var(--aj-price-read, #282828);
+    color: var(--aj-price-grab, #ffe000);
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     text-decoration: none;
-    transition: opacity 0.15s ease;
+    transition: transform 0.12s ease;
   }
 
   @media (hover: hover) {
+    /* Lifts rather than fades. A fade on a solid block just looks like it
+       stopped working; a nudge reads as a physical button. */
     .aj-story__cta:hover {
-      opacity: 0.88;
+      transform: translateY(-2px);
     }
 
     .aj-story__cta:hover .aj-story__caret {

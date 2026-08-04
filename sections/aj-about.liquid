@@ -46,6 +46,28 @@
   style="--aj-crt-phosphor: {{ s.phosphor }}; --aj-crt-screen: {{ s.screen_color }};"
   {{ section.shopify_attributes }}
 >
+  {%- comment -%}
+    STATUS BARS, and they exist because of a measurement. At 1920px the reading
+    column is 513px, which leaves 703px of dead screen on EACH side — 73% of
+    the surface doing nothing. Widening the measure was not the answer: 63
+    characters a line is already correct and stretching it would trade a
+    cosmetic problem for a legibility one.
+
+    So the width gets used instead of filled. Every DOS editor and file manager
+    ever written framed its work area in full-width bars, which is precisely
+    why they read as an APPLICATION rather than as text on a background — and
+    it turns the empty sides into the app's own chrome rather than into void.
+
+    Decorative, so both are hidden from assistive tech.
+  {%- endcomment -%}
+  {%- if s.bar_left != blank or s.bar_right != blank -%}
+    <div class="aj-crt-page__bar aj-crt-page__bar--top" aria-hidden="true">
+      <span>{{ s.bar_left }}</span>
+      <span class="aj-crt-page__bar-mid">{{ s.bar_mid }}</span>
+      <span>{{ s.bar_right }}</span>
+    </div>
+  {%- endif -%}
+
   <div
     class="aj-crt-page__inner"
     style="padding-block-start: {{ s.padding-block-start }}px; padding-block-end: {{ s.padding-block-end }}px;"
@@ -77,6 +99,13 @@
       <div class="aj-crt-page__lead rte">{{ s.lead }}</div>
     {%- endif -%}
 
+    {%- if s.cmd_1 != blank -%}
+      <p class="aj-crt-page__step" aria-hidden="true">
+        <span class="aj-crt-page__prompt">{{ s.prompt | default: 'C:\>' }}</span>
+        {{- s.cmd_1 | escape -}}
+      </p>
+    {%- endif -%}
+
     {%- if s.body_1 != blank -%}
       <div class="aj-crt-page__body rte">{{ s.body_1 }}</div>
     {%- endif -%}
@@ -85,8 +114,22 @@
       <p class="aj-crt-page__pull">{{ s.pull_quote | escape }}</p>
     {%- endif -%}
 
+    {%- if s.cmd_2 != blank -%}
+      <p class="aj-crt-page__step" aria-hidden="true">
+        <span class="aj-crt-page__prompt">{{ s.prompt | default: 'C:\>' }}</span>
+        {{- s.cmd_2 | escape -}}
+      </p>
+    {%- endif -%}
+
     {%- if s.body_2 != blank -%}
       <div class="aj-crt-page__body rte">{{ s.body_2 }}</div>
+    {%- endif -%}
+
+    {%- if s.cmd_3 != blank -%}
+      <p class="aj-crt-page__step" aria-hidden="true">
+        <span class="aj-crt-page__prompt">{{ s.prompt | default: 'C:\>' }}</span>
+        {{- s.cmd_3 | escape -}}
+      </p>
     {%- endif -%}
 
     {%- if s.signoff != blank -%}
@@ -125,6 +168,13 @@
       <span class="aj-crt-page__cursor"></span>
     </p>
   </div>
+
+  {%- if s.bar_footer != blank -%}
+    <div class="aj-crt-page__bar aj-crt-page__bar--bottom" aria-hidden="true">
+      <span>{{ s.bar_footer }}</span>
+      <span>{{ s.bar_footer_right }}</span>
+    </div>
+  {%- endif -%}
 </div>
 
 <script>
@@ -162,7 +212,7 @@
     --aj-crt-phosphor: #5cf08a;
     --aj-crt-screen: #0b100c;
     --aj-crt-text: #d6f5e0;
-    --aj-crt-dim: rgb(214 245 224 / 0.62);
+    --aj-crt-dim: rgb(214 245 224 / 0.74);
 
     position: relative;
     width: 100vw;
@@ -198,6 +248,39 @@
     );
   }
 
+  /* Inverse of the screen: solid phosphor with the screen colour punched out
+     of it, which is exactly how a DOS status line was drawn. */
+  .aj-crt-page__bar {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 1.25rem;
+    background: var(--aj-crt-phosphor);
+    color: var(--aj-crt-screen);
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .aj-crt-page__bar-mid {
+    opacity: 0.75;
+  }
+
+  @media screen and (max-width: 749px) {
+    /* The middle cell is the first thing to go — three cells in 390px is three
+       cramped ones. */
+    .aj-crt-page__bar-mid {
+      display: none;
+    }
+
+    .aj-crt-page__bar {
+      padding-inline: 1rem;
+      font-size: 0.625rem;
+    }
+  }
+
   .aj-crt-page__inner {
     position: relative;
     max-width: 64ch;
@@ -213,6 +296,7 @@
 
   .aj-crt-page__bootline,
   .aj-crt-page__cmd,
+  .aj-crt-page__step,
   .aj-crt-page__pull,
   .aj-crt-page__signoff,
   .aj-crt-page__tagline,
@@ -221,7 +305,16 @@
     font-family: "Ohpixel", var(--font-heading--family);
     text-transform: uppercase;
     color: var(--aj-crt-phosphor);
-    text-shadow: 0 0 14px color-mix(in srgb, currentColor 45%, transparent);
+
+    /* Bloom plus a half-pixel of RGB fringing. A shadow mask never converged
+       perfectly, so phosphor text always carried a faint red edge one side and
+       blue the other — it is the single cheapest thing that separates "green
+       text" from "a CRT". Half a pixel at low alpha, because any more and the
+       pixel face starts to look out of focus rather than analogue. */
+    text-shadow:
+      0 0 14px color-mix(in srgb, currentColor 45%, transparent),
+      -0.5px 0 0 rgb(255 60 90 / 0.28),
+      0.5px 0 0 rgb(70 190 255 / 0.28);
   }
 
   .aj-crt-page__bootline {
@@ -258,18 +351,43 @@
     opacity: 0.7;
   }
 
+  /*
+    The commands between sections. Deliberately QUIETER than the h1 — they are
+    punctuation, not headings, and at the same weight they would compete with
+    the one line on the page that is a real heading.
+
+    aria-hidden, and that is a decision rather than an oversight. "TYPE
+    HOW-IT-STARTED.TXT" is not a section title anybody needs read aloud, and
+    promoting them to real h2s would put four fake headings in the document
+    outline of what is one continuous story.
+  */
+  .aj-crt-page__step {
+    margin: 2.5rem 0 1.25rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    letter-spacing: 0.08em;
+    opacity: 0.85;
+  }
+
   /* Archivo for the story. Ohpixel is a pixel grid and loses it in sentences —
      aj-brand.css says so, and five hundred words would prove it. */
   .aj-crt-page__lead p {
     margin: 0 0 1.75rem;
-    font-size: 1.1875rem;
+    font-size: 1.3125rem;
     line-height: 1.6;
     font-weight: 500;
     color: var(--aj-crt-text);
   }
 
+  /*
+    1.0625rem, not the theme's inherited 14px. On white at full black, 14px is
+    fine; here it is dimmed text on a near-black screen, and the same size that
+    reads as compact on a light page reads as squinting on a dark one. The dim
+    is lifted with it for the same reason.
+  */
   .aj-crt-page__body p {
-    margin: 0 0 1.25rem;
+    margin: 0 0 1.3rem;
+    font-size: 1.0625rem;
     line-height: 1.75;
     color: var(--aj-crt-dim);
   }
@@ -415,6 +533,12 @@
       "type": "paragraph",
       "content": "The whole page is the screen. Founders stay anonymous — 'two coworkers', no names, no photos."
     },
+    { "type": "header", "content": "Status bars" },
+    { "type": "text", "id": "bar_left", "label": "Top bar — left", "default": "The Yoink Co." },
+    { "type": "text", "id": "bar_mid", "label": "Top bar — middle", "default": "our-story.txt" },
+    { "type": "text", "id": "bar_right", "label": "Top bar — right", "default": "Read only" },
+    { "type": "text", "id": "bar_footer", "label": "Bottom bar — left", "default": "Esc = back to the shop" },
+    { "type": "text", "id": "bar_footer_right", "label": "Bottom bar — right", "default": "One deal a day" },
     { "type": "header", "content": "Terminal" },
     { "type": "text", "id": "prompt", "label": "Prompt", "default": "C:\\>" },
     {
@@ -422,7 +546,7 @@
       "id": "boot_lines",
       "label": "Boot sequence",
       "info": "One line each. Prints line by line on load. Uppercased automatically — keep them short.",
-      "default": "The Yoink Co. Terminal v1.0\n> Loading origin.txt ...\n> OK"
+      "default": "The Yoink Co. Terminal v1.0\n> 640K OK\n> Mounting c:\\yoink ...\n> Loading origin.txt ...\n> OK"
     },
     {
       "type": "text",
@@ -433,11 +557,16 @@
     },
     { "type": "header", "content": "Story" },
     {
+      "type": "paragraph",
+      "content": "The commands below print between sections as C:\\> lines. They are atmosphere, not headings — leave one blank to skip it."
+    },
+    {
       "type": "richtext",
       "id": "lead",
       "label": "Opening paragraph",
       "default": "<p>We're a couple of '90s kids. We missed the dot-com boom by about a decade, came of age dodging recessions and pandemics, and have basically spent our whole adult lives being told the timing's bad. So instead of waiting around for a better hand, we decided to have some fun with the one we've got.</p>"
     },
+    { "type": "text", "id": "cmd_1", "label": "Command before section 2", "default": "type how-it-started.txt" },
     {
       "type": "richtext",
       "id": "body_1",
@@ -451,12 +580,14 @@
       "info": "Set in the pixel face and uppercased. Keep it short — it loses its grid in long sentences.",
       "default": "One deal. One day. Blink and it's someone else's."
     },
+    { "type": "text", "id": "cmd_2", "label": "Command before section 3", "default": "type the-bit.txt" },
     {
       "type": "richtext",
       "id": "body_2",
       "label": "Body — after the pull quote",
       "default": "<p>We call it the Yoink of the Day, because yoink is the sound of grabbing something great half a second before the person next to you.</p><p>Nature's already full of professionals at this. Raccoons yoink the dog food. Seagulls yoink the fries. Bears yoink the whole picnic basket and don't even say thank you. We're just doing it with better taste and free-ish shipping — a little retail Robin Hood move where somehow everybody wins: you get the score, the good stuff finds its people, and we get to keep the lights on.</p><p>To be clear, we are not out here trying to buy a yacht. A canoe, maybe. We're just making the most of the hand we've been dealt — and, conveniently, dealing is kind of our whole thing. Mostly we like tracking down cool stuff for cheap and handing you the deal like it's a dare. Some days the Yoink is exactly what you didn't know you needed. Some days it's a penguin-shaped thing that is very much Not For You — no notes, there's a new one tomorrow.</p><p>So stick around. Watch the drops. Rummage the Bargain Bin between yoinks. And when the good one hits — you know what to do.</p>"
     },
+    { "type": "text", "id": "cmd_3", "label": "Command before sign-off", "default": "echo %welcome%" },
     {
       "type": "text",
       "id": "signoff",
