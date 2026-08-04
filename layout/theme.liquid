@@ -52,6 +52,23 @@
     {%- endcomment -%}
     {{ 'aj-brand.css' | asset_url | stylesheet_tag }}
 
+    {%- comment -%}
+      Variant buttons wrap into a grid past four options. Loaded here rather
+      than from the variant picker block because the picker renders through
+      `variant-main-picker`, which is reached from the PDP, quick-add and the
+      sticky add-to-cart — three entry points that would each need their own
+      stylesheet_tag, and the file is 40 lines.
+    {%- endcomment -%}
+    {{ 'aj-variant-grid.css' | asset_url | stylesheet_tag }}
+
+    {%- comment -%}
+      Collection and product-list card treatment: contained images, a two-line
+      title cap and a price that leads. Global for the same reason as the file
+      above — the cards render from three templates, and the alternative was
+      three stylesheet_tags that can drift apart.
+    {%- endcomment -%}
+    {{ 'aj-card.css' | asset_url | stylesheet_tag }}
+
     {% if request.design_mode %}
       {%- render 'theme-editor' -%}
     {% endif %}

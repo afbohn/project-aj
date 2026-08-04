@@ -1,0 +1,143 @@
+/*
+ * PRODUCT CARDS: containment, a two-line title cap, and a price that leads.
+ *
+ * Scoped to `.product-grid__item` and `.resource-list__item` — the collection
+ * grid and the product lists — so this never reaches the Yoink card, the
+ * Bargain Bin or Recent Yoinks. Those three build their own tiles with their
+ * own markup and already carry deliberate styling; a global `.product-card`
+ * rule would have silently restyled the homepage while nobody was looking at it.
+ */
+
+/*
+ * 1. IMAGES ARE CONTAINED, NOT CROPPED.
+ *
+ * `collection.json` asks for a square ratio, and `media_fit` is only ever
+ * assigned when the ratio is `adapt`, so `card-gallery.liquid` falls through to
+ * its `cover` default and every card crops to a square. On a dropship catalogue
+ * that is destructive rather than tidy: a portrait book cover loses its title
+ * off the top edge, which is how "Calming Coloring for Kids" reached the Ships
+ * Free page with its own name sliced off.
+ *
+ * THIS IS THE FIX THE DEAL CARD ALREADY GOT — square box, `object-fit:
+ * contain`, one consistent footprint whatever shape the supplier shot in. The
+ * product cards were simply never given the same treatment, and the supplier
+ * photography here ranges from book covers to tall spray bottles to flat mats.
+ *
+ * `!important` is load-bearing and not laziness: the custom property is set as
+ * an INLINE style by `card-gallery.liquid`, and an inline declaration beats any
+ * stylesheet selector regardless of specificity. This is the one hook that does
+ * not require editing a theme snippet Shopify may replace on update.
+ *
+ * A contained image leaves letterboxing where a cropped one filled the box, so
+ * the media box gets the card's own surface colour rather than transparency —
+ * otherwise a tall product sits in two bands of whatever is behind the grid.
+ */
+:is(.product-grid__item, .resource-list__item) .product-card {
+  --aj-card-surface: var(--color-background);
+  --aj-card-line: color-mix(in srgb, var(--color-foreground) 12%, transparent);
+}
+
+:is(.product-grid__item, .resource-list__item) .product-card [style*='--product-media-fit'] {
+  --product-media-fit: contain !important;
+
+  background: var(--aj-card-surface);
+  border-radius: calc(var(--aj-card-radius, 12px) - 4px);
+  overflow: hidden;
+}
+
+/*
+ * 2. TITLES STOP AT TWO LINES.
+ *
+ * The theme already clamps to three lines, but only under 749px — desktop was
+ * left unbounded, which is where the damage actually is. Supplier titles are
+ * SEO-stuffed and will not improve: "Creative Haven Woodcut Designs Coloring
+ * Book: Diverse Designs on a Dramatic Black Background (Adult Coloring Books:
+ * Art & Design)" runs four lines and pushes the price down the card.
+ *
+ * TWO RATHER THAN THREE, because the point is not to save space but to give
+ * every card the same shape. A grid whose rows are 2, 4 and 1 lines tall reads
+ * as broken alignment rather than as varied products, and the price — the one
+ * number this shop competes on — lands at a different height in every column.
+ *
+ * THE SELECTOR IS NOT `.h4`, AND THAT COST A ROUND OF DEBUGGING. The theme's
+ * own mobile clamp targets `:is(h4, .h4)`, so copying it looked obviously
+ * right. But the `h3.h4` in a product card belongs to
+ * `product-grid-view-zoom-out--details`, which is `display: none` — the VISIBLE
+ * title is a bare `<p>` three levels down, inside the product link:
+ *
+ *   .product-card__content > a.user-select-text > .text-block > p
+ *
+ * Clamping the h4 therefore did nothing at all and looked like it had worked,
+ * because the rule applied cleanly to an element nobody can see. Verified
+ * against the live page by measuring the rendered height (45px, two 22px
+ * lines) rather than by reading the computed style, which reports `flow-root`
+ * here and would have suggested the opposite.
+ */
+:is(.product-grid__item, .resource-list__item)
+  .product-card
+  a.user-select-text
+  .text-block
+  > p {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/*
+ * 3. THE PRICE LEADS.
+ *
+ * It currently renders at the same weight and size as the title, on a store
+ * whose entire proposition is the number. Bumped one step and given real
+ * weight — deliberately NOT coloured, because the discount colour is already
+ * spoken for by the Yoink and the Bargain Bin, and spending it on an
+ * undiscounted $5.99 book would make every card look like a deal.
+ *
+ * The compare-at price keeps its strikethrough and stays quiet, so on the bin
+ * pages the eye still lands on what you pay before what you saved.
+ */
+/*
+ * 1.0625rem rather than an `em` multiplier: the card's inherited size is 13.5px
+ * here, so `1.125em` produced a 15px price against a 14px title — technically
+ * larger and visually identical. Measured on the live page, not assumed.
+ */
+:is(.product-grid__item, .resource-list__item) .product-card .price {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+:is(.product-grid__item, .resource-list__item) .product-card .compare-at-price {
+  font-size: 0.9em;
+  font-weight: 400;
+  opacity: 0.6;
+}
+
+/*
+ * 4. CARDS BECOME OBJECTS.
+ *
+ * Without a container the grid is a wall of images on white with nothing
+ * separating one product from the next, and the letterboxing from `contain`
+ * above makes that worse rather than better — a bordered box reads as
+ * deliberate framing, an unbordered one reads as a small image.
+ *
+ * A hairline and a radius rather than a shadow: the theme already uses hairline
+ * borders for the deal panel and the recessed sneak-peek, and a drop shadow
+ * here would be the only one on the site.
+ */
+:is(.product-grid__item, .resource-list__item) .product-card {
+  --aj-card-radius: 12px;
+
+  padding: var(--padding-sm, 0.75rem);
+  border: 1px solid var(--aj-card-line);
+  border-radius: var(--aj-card-radius);
+  background: var(--aj-card-surface);
+  transition: border-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  :is(.product-grid__item, .resource-list__item) .product-card:hover {
+    border-color: color-mix(in srgb, var(--color-foreground) 28%, transparent);
+  }
+}

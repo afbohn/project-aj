@@ -66,6 +66,39 @@
             endif
           endif
 
+          # PAST THIRTEEN VALUES, BUTTONS BECOME A DROPDOWN.
+          #
+          # `aj-variant-grid.css` wraps five or more buttons into a three-column
+          # grid, which covers the 556 products carrying 5-12 values. It stops
+          # working past that: the pet carrier ships FIFTY-ONE colours and the
+          # Route protection product seventy-six, and no grid turns fifty-one
+          # long labels ("Small black bear 12holes", "Colorful Leaves 12Holes")
+          # into something a person reads. Seventeen rows of buttons is not a
+          # choice, it is a table of contents.
+          #
+          # 63 products across the catalogue cross this line, so the common case
+          # is untouched — this only fires where the grid has already lost.
+          #
+          # SWATCHES ARE EXEMPT. A wall of colour chips stays scannable at any
+          # count because the chip is the label, and the theme has its own
+          # `swatch_dropdown` style for the case where it does not.
+          assign force_dropdown = false
+          if variant_style == 'buttons' and product_option.values.size >= 13
+            assign force_dropdown = true
+          endif
+
+          # Resolved into one flag rather than tested inline at the branch.
+          # Liquid has no parentheses and binds `and`/`or` RIGHT to left, so
+          # `a == false and b or c and d == false` does not group the way it
+          # reads — it becomes `a and (b or (c and d))`, which silently keeps
+          # rendering buttons for the fifty-one-colour case.
+          assign use_buttons = false
+          if force_dropdown == false
+            if variant_style == 'swatch' or block_settings.variant_style == 'buttons'
+              assign use_buttons = true
+            endif
+          endif
+
           if variant_style == 'buttons' and settings.variant_button_width == 'equal-width-buttons'
             assign fieldset_id = section.id | append: '-' | append: product_resource.id | append: '-' | append: product_option.name | handleize
             assign option_id_attribute = 'data-option-id="' | append: fieldset_id | append: '"'
@@ -86,7 +119,7 @@
               {{- product_option.selected_value -}}
             </span>
           </div>
-        {%- elsif variant_style == 'swatch' or block_settings.variant_style == 'buttons' -%}
+        {%- elsif use_buttons -%}
           <fieldset
             class="variant-option variant-option--buttons{% if variant_style == 'swatch' %} variant-option--swatches{% else %} variant-option--{{ settings.variant_button_width }}{% endif %}"
             data-fieldset-index="{{ fieldset_index }}"
@@ -174,7 +207,7 @@
             {% endif %}
           </fieldset>
           {%- assign fieldset_index = fieldset_index | plus: 1 -%}
-        {%- elsif block_settings.variant_style == 'dropdowns' -%}
+        {%- elsif block_settings.variant_style == 'dropdowns' or force_dropdown -%}
           {%
             # There is an opportunity to build a custom select component that will allow us to style the select element further (animation for dropdown, swatches shown in the dropdown options, etc)
             # It's too bad as it mean rebuilding baked in behaviors but I think we've already done that for the locale selectors

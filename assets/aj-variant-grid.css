@@ -1,0 +1,47 @@
+/*
+ * VARIANT BUTTONS WRAP INTO A GRID ONCE THERE ARE ENOUGH OF THEM.
+ *
+ * The theme's "Fill" width mode (`variant_button_width: equal-width-buttons`)
+ * sizes its grid tracks with
+ *
+ *   --variant-min-width: clamp(44px, <longest label> , 100%)
+ *   grid-template-columns: repeat(auto-fit, minmax(var(--variant-min-width), 1fr))
+ *
+ * and that 100% upper bound is the whole problem. A track minimum is allowed to
+ * reach the full width of the column, so a single option can legitimately claim
+ * an entire row. On a product page whose info column is narrower than the
+ * longest label plus its padding, EVERY option claims a row: the pet carrier
+ * with seven colours renders as seven stacked full-width bars, which reads as a
+ * list of products rather than a choice between finishes.
+ *
+ * ONLY 5 OR MORE OPTIONS ARE TOUCHED, which is why this is a `:has()` rather
+ * than a blanket override. Fill is the right look for two or three values — a
+ * size picker reading S / M / L across one row is deliberate, and forcing that
+ * into narrow tracks would be a regression to fix a problem it does not have.
+ * The wall only appears once a supplier ships a full colour range.
+ *
+ * A PERCENTAGE CAP RATHER THAN A PIXEL ONE, so this is independent of both the
+ * viewport and the theme's column split. `minmax(31%, 1fr)` under `auto-fit`
+ * guarantees at least three columns at any container width, while still letting
+ * short labels ("Red", "Blue") pack four or five across because the clamp keeps
+ * returning their natural width whenever that is smaller.
+ */
+.variant-option--equal-width-buttons:has(.variant-option__button-label:nth-of-type(5)) {
+  --variant-min-width: clamp(
+    44px,
+    calc(var(--variant-option-padding-inline) * 2 + var(--variant-ch)),
+    31%
+  );
+}
+
+/*
+ * Long labels are allowed to wrap rather than widen the track. "Brushed black"
+ * in a third-of-a-column track is two lines, and two lines of a colour name is
+ * a better outcome than one line that pushes the grid back to a single column.
+ * The theme already sets `text-wrap: balance` on this element, so the break
+ * lands evenly rather than leaving one orphaned word.
+ */
+.variant-option--equal-width-buttons:has(.variant-option__button-label:nth-of-type(5))
+  .variant-option__button-label__text {
+  overflow-wrap: anywhere;
+}
