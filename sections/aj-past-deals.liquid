@@ -279,13 +279,18 @@
     display: block;
     aspect-ratio: 1;
     overflow: hidden;
-    border-radius: 3px;
+    border-radius: var(--aj-tile-radius, 8px);
+    background: var(--aj-tile-well, rgb(var(--color-foreground-rgb) / 0.04));
   }
 
   .aj-past__image {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    /* Was `cover`, which cropped — the only surface still doing so once the
+       grid cards were fixed. The dimming below is what makes these read as
+       past; the crop was never carrying that meaning, it was just the value
+       this file happened to be written with. */
+    object-fit: var(--aj-tile-fit, contain);
     display: block;
     /* History, not merchandise — but this section's job is to make a card land
        as a LOSS, and that needs the product to still look worth having. There
@@ -400,7 +405,7 @@
 
   .aj-past__title {
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: var(--aj-tile-clamp, 2);
     -webkit-box-orient: vertical;
     overflow: hidden;
     font-size: 0.9375rem;

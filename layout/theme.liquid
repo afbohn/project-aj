@@ -53,6 +53,16 @@
     {{ 'aj-brand.css' | asset_url | stylesheet_tag }}
 
     {%- comment -%}
+      Product tile geometry — image fit, media radius, title clamp. Same shape
+      and the same reason as the brand file above: four separate card
+      implementations read these, and they had already drifted to three
+      different radii and two different crop behaviours. Must load BEFORE
+      aj-card.css, which consumes the tokens. The Yoink of the Day is
+      deliberately not a consumer.
+    {%- endcomment -%}
+    {{ 'aj-tile.css' | asset_url | stylesheet_tag }}
+
+    {%- comment -%}
       Variant buttons wrap into a grid past four options. Loaded here rather
       than from the variant picker block because the picker renders through
       `variant-main-picker`, which is reached from the PDP, quick-add and the

@@ -1,0 +1,72 @@
+/*
+  The Yoink — product tile geometry.
+
+  ONE PLACE, BECAUSE FOUR SURFACES READ THESE. The same product renders through
+  four separate implementations that share no markup:
+
+      aj-card.css              collection pages, search, related, product lists
+      aj-bargain-bin.liquid    the bin's own tiles
+      aj-past-deals.liquid     Recent Yoinks
+      aj-cart-upsell.css       the cart drawer's suggestions
+
+  They drifted, which is what this file exists to stop. Before it, the grid
+  cards and the cart upsell cropped to a square while the bin contained; the
+  media radius ran 8px, 3px and 2px across three surfaces sitting on the same
+  page. Nothing was broken in isolation and every one of them looked deliberate
+  on its own, which is exactly why nobody caught it — the divergence is only
+  visible when you see two of them at once.
+
+  Same shape as --aj-price-* in aj-brand.css: tokens here, neutral fallbacks at
+  every consumer, so each surface still renders correctly if this file is not
+  reached.
+
+  THE YOINK OF THE DAY IS DELIBERATELY NOT A CONSUMER. It lives in
+  `sections/aj-daily-deal.liquid` with its own square box and a 34rem cap, and
+  it is supposed to look like a different class of thing — it is the one product
+  the whole site is pointed at. It already agrees on `contain` for its own
+  reasons; that is convergence, not coupling, and this file must never be
+  extended to reach it.
+
+  ADD A CONSUMER, NOT A VALUE. If a fifth surface starts rendering products, it
+  reads these tokens. If a surface genuinely needs to differ, it overrides the
+  token locally WITH A COMMENT SAYING WHY, so the exception is a decision on the
+  record rather than another silent drift.
+*/
+:root {
+  /*
+    CONTAIN, NEVER COVER. This is a dropship catalogue: supplier photography
+    runs from portrait book covers to tall spray bottles to flat mats, and a
+    square crop takes a bite out of whichever dimension is longer. It reached
+    the storefront as "Calming Coloring for Kids" with its own title sliced off
+    the top edge, on the Ships Free page, in the default sort.
+
+    The deal card learned this in July — square box, contain, one consistent
+    footprint whatever shape the supplier shot in. This is that decision,
+    written down once instead of rediscovered per surface.
+  */
+  --aj-tile-fit: contain;
+
+  /*
+    8px, matching the bin, which was the only surface that already had a
+    considered value. Recent Yoinks at 3px and the cart upsell at 2px were not
+    smaller on purpose; they were written on different days.
+  */
+  --aj-tile-radius: 8px;
+
+  /*
+    Containing an image leaves letterboxing where cropping filled the box, so
+    the media well needs a surface of its own — otherwise a tall product sits
+    in two bands of whatever happens to be behind the grid. Deliberately very
+    faint: this is a well for the image to sit in, not a visible panel.
+  */
+  --aj-tile-well: rgb(var(--color-foreground-rgb) / 0.04);
+
+  /*
+    TWO LINES EVERYWHERE. Supplier titles are SEO-stuffed and will not improve
+    — "Creative Haven Woodcut Designs Coloring Book: Diverse Designs on a
+    Dramatic Black Background (Adult Coloring Books: Art & Design)" is one
+    product. The cap is not about saving space, it is about every tile in a row
+    being the same height so the prices land on one baseline.
+  */
+  --aj-tile-clamp: 2;
+}

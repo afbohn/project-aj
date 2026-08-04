@@ -38,10 +38,10 @@
 }
 
 :is(.product-grid__item, .resource-list__item) .product-card [style*='--product-media-fit'] {
-  --product-media-fit: contain !important;
+  --product-media-fit: var(--aj-tile-fit, contain) !important;
 
-  background: var(--aj-card-surface);
-  border-radius: calc(var(--aj-card-radius, 12px) - 4px);
+  background: var(--aj-tile-well, transparent);
+  border-radius: var(--aj-tile-radius, 8px);
   overflow: hidden;
 }
 
@@ -80,7 +80,7 @@
   > p {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: var(--aj-tile-clamp, 2);
   overflow: hidden;
   text-overflow: ellipsis;
 }
