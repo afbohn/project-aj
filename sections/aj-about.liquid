@@ -287,6 +287,61 @@
       0 2px 0 rgb(255 255 255 / 0.5) inset,
       0 -2px 6px rgb(0 0 0 / 0.12) inset,
       0 20px 44px rgb(0 0 0 / 0.26);
+
+    /* Anchors the halo below. No z-index, so this creates no stacking context
+       and the ::after can still paint behind the shell's own background. */
+    position: relative;
+  }
+
+  /*
+    THE HALO A TUBE THROWS ON THE WALL BEHIND IT.
+
+    A CRT is a light source, and the one thing a flat drawing of one never gets
+    is that it spills. This is that spill: a soft ellipse of the phosphor
+    colour, blurred wide, breathing slowly.
+
+    SUBTLETY IS THE ENTIRE SPEC. It moves between 0.30 and 0.52 opacity over
+    six seconds — wide enough to notice if you look at it, narrow enough that
+    nothing on the page appears to move. A pulse you can consciously watch is
+    a distraction sitting next to five hundred words somebody is trying to
+    read; the effect wanted here is "this thing is on", not "this thing is
+    animating".
+
+    z-index: -1 puts it behind the beige without hiding it behind the PAGE,
+    because .aj-crt is positioned but sets no z-index of its own.
+
+    Derived from --aj-crt-phosphor, so changing the screen colour changes the
+    colour of the light it throws. Green screen, green wall.
+  */
+  .aj-crt::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: -6% -8%;
+    border-radius: 50%;
+    background: radial-gradient(
+      ellipse at center,
+      color-mix(in srgb, var(--aj-crt-phosphor) 34%, transparent) 0%,
+      color-mix(in srgb, var(--aj-crt-phosphor) 10%, transparent) 45%,
+      transparent 72%
+    );
+    filter: blur(38px);
+    opacity: 0.3;
+    pointer-events: none;
+    animation: aj-crt-breathe 6s ease-in-out infinite;
+  }
+
+  @keyframes aj-crt-breathe {
+    0%,
+    100% {
+      opacity: 0.3;
+      transform: scale(1);
+    }
+
+    50% {
+      opacity: 0.52;
+      transform: scale(1.035);
+    }
   }
 
   /* ---- the chin: branding, buttons, power lamp ------------------------- */
@@ -617,6 +672,14 @@
     .aj-crt__cursor.is-blinking {
       animation: none !important;
       opacity: 1 !important;
+    }
+
+    /* The glow STAYS, it just stops breathing. Reduced motion is a request to
+       remove movement, not to remove the design — deleting the halo would
+       serve a different page to the people who asked for fewer animations. */
+    .aj-crt::after {
+      animation: none;
+      opacity: 0.4;
     }
   }
 {% endstylesheet %}
