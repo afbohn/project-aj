@@ -1,195 +1,129 @@
 {%- comment -%}
-  AJ About — the origin story, on a CRT.
+  AJ About — the page IS the monitor.
 
-  EVERY WORD IS A SETTING, NOT MARKUP. This is the page most likely to be
-  reworded on a whim, and copy baked into a section means a git push and a
-  theme deploy to change a comma. The defaults below are Alex's text, verbatim.
+  THE SCREEN IS THE VIEWPORT, not an object drawn inside it. Everything between
+  the header and the footer is one dark, scanlined, phosphor-lit surface, and
+  the story is a terminal session running on it. That reading solves every
+  problem the earlier versions had, by removing the thing causing them:
 
-  THE PIXEL FACE DOES NOT SET THE STORY, and that is the whole design.
-  aj-brand.css is explicit: "Ohpixel is a pixel grid that turns to mush in
-  lowercase or in sentences", and every existing use uppercases it "because
-  Ohpixel is drawn for capitals and loses its grid in mixed case". Five hundred
-  words of origin story in it would be unreadable at any screen size.
+    - A PHOTOGRAPHED monitor has a screen that is a fixed region of a raster.
+      It cannot grow, so long copy either shrank or overflowed the bezel.
+    - A DRAWN monitor grew fine, but a bezel around a page-length story is a
+      picture frame: it forced a tall narrow column and never fit on a screen.
 
-  So the faces split by JOB, the way the brand file already splits them:
+  A full-bleed screen has neither failure mode. There is no bezel to overflow
+  and no shape to preserve, so the copy just reflows, which is what copy does.
 
-      Ohpixel   the terminal chrome — the h1, boot lines, pull quote, tagline.
-                Short, uppercase, structural. Exactly its shape.
-      Flashy    the optional display heading, which is copy we wrote. Blank by
-                default since 4 Aug: it competed with the monitor for the top
-                of the page, and the monitor is the reason anyone scrolls.
-      Archivo   the story. Ninety percent of the words, as everywhere else.
+  MOBILE IS THE SAME IDEA, NOT A REDUCED ONE. No breakpoint hides the effect,
+  because there is no chrome left to hide — and a phone is already a rectangle
+  of glass, so a full-bleed CRT is arguably more convincing there than on a
+  desktop. It only tightens: narrower gutters, larger type against the shorter
+  measure, and a coarser scanline pitch (see the note in the media query — 3px
+  on a 3x display is sub-pixel mush).
 
-  That is what makes the monitor work: it LOOKS like a terminal because the
-  chrome is pixels and phosphor, while the part you actually read is set in the
-  face built for reading.
+  THE EYEBROW IS THE COMMAND LINE NOW. "About us" in purple above a terminal
+  was the last thing on this page still behaving like a normal website. It is
+  the prompt that opens the session instead, and it reads "Our story" because
+  that is what the footer link promises.
 
-  THE SCREEN HAS NO FIXED ASPECT RATIO. A monitor drawn as a fixed shape is
-  exactly what breaks on a phone — the text either shrinks to nothing or
-  overflows the bezel. Here the "monitor" is a treatment (padding, border,
-  glow, scanlines) on a panel that grows with its content, so it is correct at
-  every width by construction rather than by breakpoint.
+  THE h1 IS STILL A REAL HEADING. The prompt characters are decorative and
+  aria-hidden, so the accessible name is "Our story" and not "C colon backslash
+  greater-than OUR STORY". Search and screen readers get an ordinary heading;
+  everyone else sees a command.
 
-  SCANLINES ARE A BACKGROUND, NEVER AN OVERLAY. Striping a translucent layer
-  OVER the text is the obvious implementation and it drags contrast down on
-  every other row. They are painted on the screen's own background instead, so
-  the copy sits cleanly above them at full strength.
-
-  MOTION IS THE BOOT SEQUENCE AND NOTHING ELSE. The lines print one at a time,
-  once, and then the page is static — re-reading should never mean re-watching.
-  The cursor blinks only while the boot is running and goes solid after. All of
-  it is skipped under prefers-reduced-motion, and because the lines are in the
-  DOM already, a browser with JS off shows the whole thing immediately rather
-  than an empty screen.
+  NOTHING HERE USES THE BRAND YELLOW. The palette on a lit screen is phosphor
+  and the soft white it throws. Dropping #ffe000 in would read as a web page
+  wearing a terminal costume — and the yellow is doing its job everywhere else
+  on the site, which is what makes it mean something there.
 {%- endcomment -%}
 
 {%- liquid
   assign s = section.settings
-  assign fallback = 'https://cdn.shopify.com/s/files/1/0731/4512/2918/files/retro_pc.H01.png?v=1785860292'
 -%}
 
 <div
-  class="aj-about color-{{ s.color_scheme }}"
-  style="padding-block-start: {{ s.padding-block-start }}px; padding-block-end: {{ s.padding-block-end }}px;"
+  class="aj-crt-page"
+  style="--aj-crt-phosphor: {{ s.phosphor }}; --aj-crt-screen: {{ s.screen_color }};"
   {{ section.shopify_attributes }}
 >
-  <div class="aj-about__inner">
-    {%- comment -%}
-      The eyebrow carries the <h1>, not the display heading below it.
-
-      With the big heading removed the page would otherwise have no h1 at all —
-      bad for search and worse for anyone navigating by headings. "About us" is
-      a perfectly good page heading; it just does not need to be 56px to do the
-      job. The optional heading is an h2 so adding one back later cannot
-      produce two h1s.
-    {%- endcomment -%}
-    {%- if s.eyebrow != blank -%}
-      <h1 class="aj-about__eyebrow">{{ s.eyebrow | escape }}</h1>
+  <div
+    class="aj-crt-page__inner"
+    style="padding-block-start: {{ s.padding-block-start }}px; padding-block-end: {{ s.padding-block-end }}px;"
+  >
+    {%- if s.boot_lines != blank -%}
+      {%- comment -%}
+        aria-hidden: atmosphere, not content. A screen reader announcing
+        "greater-than LOADING ORIGIN dot TXT" ahead of the story is noise.
+      {%- endcomment -%}
+      <div class="aj-crt-page__boot" data-aj-boot aria-hidden="true">
+        {%- assign lines = s.boot_lines | newline_to_br | split: '<br />' -%}
+        {%- for line in lines -%}
+          {%- assign trimmed = line | strip -%}
+          {%- if trimmed != blank -%}
+            <p class="aj-crt-page__bootline">{{ trimmed | escape }}</p>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
     {%- endif -%}
 
     {%- if s.heading != blank -%}
-      <h2 class="aj-about__heading">{{ s.heading | escape }}</h2>
+      <h1 class="aj-crt-page__cmd">
+        <span class="aj-crt-page__prompt" aria-hidden="true">{{ s.prompt | default: 'C:\>' }}</span>
+        {{- s.heading | escape -}}
+      </h1>
     {%- endif -%}
 
-    {%- comment -%}
-      The phosphor colour is set INLINE rather than in the stylesheet block
-      below, because Shopify does not run Liquid inside {% stylesheet %} — a
-      `{{ }}` in there ships to the browser as literal text. Same reason the
-      padding is on the wrapper.
-    {%- endcomment -%}
-    {%- comment -%}
-      THE MACHINE IS NOW THE SAME PHOTOGRAPH THE HOMEPAGE USES, and the story
-      sits BELOW it rather than inside it.
+    {%- if s.lead != blank -%}
+      <div class="aj-crt-page__lead rte">{{ s.lead }}</div>
+    {%- endif -%}
 
-      That split is the whole trick. A screen that is a fixed region of a
-      raster cannot grow, so five hundred words inside the glass would either
-      shrink to nothing or overflow the bezel — the exact failure that made the
-      drawn monitor necessary in the first place. Putting three short lines on
-      the real screen and the story on a panel underneath gets the look of the
-      homepage teaser with none of that: the image carries the atmosphere, the
-      panel carries the words, and both are the same glass.
-    {%- endcomment -%}
-    <div class="aj-about__machine" style="--aj-crt-phosphor: {{ s.phosphor }};">
-      {%- if s.image != blank -%}
-        {{
-          s.image
-          | image_url: width: 1400
-          | image_tag:
-            widths: '400, 600, 800, 1100, 1400',
-            sizes: '(min-width: 750px) 34rem, 88vw',
-            alt: s.image_alt,
-            class: 'aj-about__img',
-            loading: 'eager'
-        }}
-      {%- else -%}
-        <img
-          class="aj-about__img"
-          src="{{ fallback }}&width=1400"
-          srcset="{{ fallback }}&width=600 600w, {{ fallback }}&width=900 900w, {{ fallback }}&width=1400 1400w"
-          sizes="(min-width: 750px) 34rem, 88vw"
-          alt="{{ s.image_alt | escape }}"
-          width="2048"
-          height="2048"
-        >
-      {%- endif -%}
+    {%- if s.body_1 != blank -%}
+      <div class="aj-crt-page__body rte">{{ s.body_1 }}</div>
+    {%- endif -%}
 
-      {%- if s.screen_lines != blank -%}
-        <div class="aj-about__glass" aria-hidden="true">
-          {%- assign mlines = s.screen_lines | newline_to_br | split: '<br />' -%}
-          {%- for line in mlines -%}
-            {%- assign mtrim = line | strip -%}
-            {%- if mtrim != blank -%}
-              <p class="aj-about__gline">{{ mtrim | escape }}</p>
-            {%- endif -%}
-          {%- endfor -%}
-          <p class="aj-about__gline"><span class="aj-about__gcursor"></span></p>
-        </div>
-      {%- endif -%}
-    </div>
+    {%- if s.pull_quote != blank -%}
+      <p class="aj-crt-page__pull">{{ s.pull_quote | escape }}</p>
+    {%- endif -%}
 
-    <div class="aj-crt" style="--aj-crt-phosphor: {{ s.phosphor }}; --aj-crt-screen: {{ s.screen_color }};">
-      <div class="aj-crt__screen">
-        {%- if s.boot_lines != blank -%}
-          {%- comment -%}
-            aria-hidden: this is decorative chrome, and a screen reader
-            announcing "greater-than LOADING ORIGIN dot TXT" before the story
-            is noise rather than atmosphere.
-          {%- endcomment -%}
-          <div class="aj-crt__boot" data-aj-boot aria-hidden="true">
-            {%- assign lines = s.boot_lines | newline_to_br | split: '<br />' -%}
-            {%- for line in lines -%}
-              {%- assign trimmed = line | strip -%}
-              {%- if trimmed != blank -%}
-                <p class="aj-crt__bootline">{{ trimmed | escape }}</p>
-              {%- endif -%}
-            {%- endfor -%}
-          </div>
-        {%- endif -%}
+    {%- if s.body_2 != blank -%}
+      <div class="aj-crt-page__body rte">{{ s.body_2 }}</div>
+    {%- endif -%}
 
-        {%- if s.lead != blank -%}
-          <div class="aj-crt__lead rte">{{ s.lead }}</div>
-        {%- endif -%}
-
-        {%- if s.body_1 != blank -%}
-          <div class="aj-crt__body rte">{{ s.body_1 }}</div>
-        {%- endif -%}
-
-        {%- if s.pull_quote != blank -%}
-          <p class="aj-crt__pull">{{ s.pull_quote | escape }}</p>
-        {%- endif -%}
-
-        {%- if s.body_2 != blank -%}
-          <div class="aj-crt__body rte">{{ s.body_2 }}</div>
-        {%- endif -%}
-
-        {%- if s.signoff != blank -%}
-          <p class="aj-crt__signoff">
-            {{- s.signoff | escape -}}
-            <span class="aj-crt__cursor" aria-hidden="true"></span>
-          </p>
-        {%- endif -%}
-      </div>
-
-    </div>
+    {%- if s.signoff != blank -%}
+      <p class="aj-crt-page__signoff">{{ s.signoff | escape }}</p>
+    {%- endif -%}
 
     {%- if s.tagline != blank -%}
-      <p class="aj-about__tagline">{{ s.tagline | escape }}</p>
+      {%- comment -%}
+        Ruled, not filled. A solid colour block is the one thing that looks
+        pasted onto a lit screen; a box drawn in rules is what a terminal
+        actually does to make you look at something.
+      {%- endcomment -%}
+      <p class="aj-crt-page__tagline">{{ s.tagline | escape }}</p>
     {%- endif -%}
 
     {%- if s.primary_text != blank or s.secondary_text != blank -%}
-      <div class="aj-about__actions">
+      <div class="aj-crt-page__actions">
         {%- if s.primary_text != blank -%}
-          <a class="aj-about__btn aj-about__btn--primary" href="{{ s.primary_link | default: '/' }}">
+          <a class="aj-crt-page__btn" href="{{ s.primary_link | default: '/' }}">
+            <span class="aj-crt-page__prompt" aria-hidden="true">&gt;</span>
             {{- s.primary_text | escape -}}
           </a>
         {%- endif -%}
         {%- if s.secondary_text != blank -%}
-          <a class="aj-about__btn aj-about__btn--ghost" href="{{ s.secondary_link | default: '/' }}">
+          <a class="aj-crt-page__btn" href="{{ s.secondary_link | default: '/' }}">
+            <span class="aj-crt-page__prompt" aria-hidden="true">&gt;</span>
             {{- s.secondary_text | escape -}}
           </a>
         {%- endif -%}
       </div>
     {%- endif -%}
+
+    {%- comment -%} The session is still open. {%- endcomment -%}
+    <p class="aj-crt-page__caret" aria-hidden="true">
+      <span class="aj-crt-page__prompt">{{ s.prompt | default: 'C:\>' }}</span>
+      <span class="aj-crt-page__cursor"></span>
+    </p>
   </div>
 </div>
 
@@ -201,151 +135,41 @@
     var boot = root && root.querySelector('[data-aj-boot]');
     if (!boot) return;
 
-    /* Reduced motion gets the finished state, not a slower animation. The
-       lines are already in the DOM and already visible; this only opts IN to
-       the sequence, so doing nothing here is the correct fallback for
+    /* Reduced motion gets the finished state, not a slower one. The lines are
+       already in the DOM and already visible; this only opts IN to the
+       sequence, so doing nothing here is the correct fallback for
        reduced-motion AND for JS being unavailable. */
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
     if (reduce && reduce.matches) return;
 
-    var lines = boot.querySelectorAll('.aj-crt__bootline');
+    var lines = boot.querySelectorAll('.aj-crt-page__bootline');
     for (var i = 0; i < lines.length; i++) {
-      lines[i].style.animationDelay = i * 0.42 + 's';
+      lines[i].style.animationDelay = i * 0.4 + 's';
     }
     boot.setAttribute('data-aj-boot', 'running');
-
-    /* The cursor stops blinking once the log has finished printing. Idle
-       motion that never resolves is the thing people ask you to turn off. */
-    var done = lines.length * 0.42 + 0.6;
-    var cursor = root.querySelector('.aj-crt__cursor');
-    if (cursor) {
-      cursor.classList.add('is-blinking');
-      window.setTimeout(function () {
-        cursor.classList.remove('is-blinking');
-      }, done * 1000);
-    }
   })();
 </script>
 
 {% stylesheet %}
-  .aj-about {
-    padding-inline: 1.25rem;
-  }
-
-  /* WIDE ENOUGH TO READ AS A MONITOR, which is a different constraint from
-     the one this started with. At 62ch the shell was a tall narrow column —
-     correct for prose, but nothing shaped like that has ever been a CRT, and
-     it never fit on a screen. 48rem is roughly 1.5x wider, which also cuts the
-     shell's HEIGHT by about a third for the same words, so far more of the
-     machine is visible at once.
-
-     The reading measure moves INSIDE the screen instead (see __lead/__body
-     below). Widening the box and letting the text follow it to 85 characters
-     would have traded one problem for a worse one. */
-  .aj-about__inner {
-    max-width: 48rem;
-    margin-inline: auto;
-  }
-
-  .aj-about__eyebrow {
-    margin: 0 0 0.75rem;
-    font-family: "Ohpixel", var(--font-heading--family);
-    font-size: 0.8125rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--aj-price-act, #7a3fa0);
-  }
-
-  /* Flashy, because this is a heading we wrote — the same rule aj-brand.css
-     applies to every other heading of ours. Weight 400: Flashy has one weight
-     and the theme's 700 renders it synthetically emboldened. */
-  .aj-about__heading {
-    margin: 0 0 2rem;
-    font-family: "Flashy", var(--font-heading--family);
-    font-weight: 400;
-    letter-spacing: 0.01em;
-    line-height: 1.05;
-    text-wrap: balance;
-  }
-
-  /* ---- the monitor ------------------------------------------------------ */
-
   /*
-    THE CASE IS GONE — it is a photograph now, above this panel. What remains
-    is the glass: the story sits on a screen that matches the one in the image,
-    so the page reads as the same machine continued rather than as two designs.
+    FULL BLEED, escaping whatever container the page template wraps this in.
+    `100vw` with a `calc(50% - 50vw)` margin is the reliable way to do that
+    without knowing the container's width. max-width: 100% is the guard: on a
+    desktop with a classic scrollbar, 100vw is WIDER than the document, and
+    without it the page gains a horizontal scroll.
   */
-  .aj-crt {
-    --aj-crt-screen: #0b100c;
+  .aj-crt-page {
     --aj-crt-phosphor: #5cf08a;
+    --aj-crt-screen: #0b100c;
     --aj-crt-text: #d6f5e0;
     --aj-crt-dim: rgb(214 245 224 / 0.62);
 
     position: relative;
-    margin-block-start: 1.5rem;
-  }
-
-  /*
-    THE HALO A TUBE THROWS ON THE WALL BEHIND IT.
-
-    A CRT is a light source, and the one thing a flat drawing of one never gets
-    is that it spills. This is that spill: a soft ellipse of the phosphor
-    colour, blurred wide, breathing slowly.
-
-    SUBTLETY IS THE ENTIRE SPEC. It moves between 0.30 and 0.52 opacity over
-    six seconds — wide enough to notice if you look at it, narrow enough that
-    nothing on the page appears to move. A pulse you can consciously watch is
-    a distraction sitting next to five hundred words somebody is trying to
-    read; the effect wanted here is "this thing is on", not "this thing is
-    animating".
-
-    z-index: -1 puts it behind the beige without hiding it behind the PAGE,
-    because .aj-crt is positioned but sets no z-index of its own.
-
-    Derived from --aj-crt-phosphor, so changing the screen colour changes the
-    colour of the light it throws. Green screen, green wall.
-  */
-  .aj-crt::after {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    inset: -6% -8%;
-    border-radius: 50%;
-    background: radial-gradient(
-      ellipse at center,
-      color-mix(in srgb, var(--aj-crt-phosphor) 34%, transparent) 0%,
-      color-mix(in srgb, var(--aj-crt-phosphor) 10%, transparent) 45%,
-      transparent 72%
-    );
-    filter: blur(38px);
-    opacity: 0.3;
-    pointer-events: none;
-    animation: aj-crt-breathe 6s ease-in-out infinite;
-  }
-
-  @keyframes aj-crt-breathe {
-    0%,
-    100% {
-      opacity: 0.3;
-      transform: scale(1);
-    }
-
-    50% {
-      opacity: 0.52;
-      transform: scale(1.035);
-    }
-  }
-
-  .aj-crt__screen {
-    /* NO aspect-ratio. The panel grows with its content, which is what makes
-       this survive a phone without a single breakpoint. */
-    padding: 1.75rem 1.5rem 2rem;
-
-    border-radius: 14px;
+    width: 100vw;
+    max-width: 100%;
+    margin-inline: calc(50% - 50vw);
     color: var(--aj-crt-text);
 
-    /* Scanlines live in the BACKGROUND, behind the copy — see the note at the
-       top of this file. */
     background-color: var(--aj-crt-screen);
     background-image: repeating-linear-gradient(
       to bottom,
@@ -353,40 +177,63 @@
       transparent 1px 3px
     );
 
-    /* Two shadows doing different jobs. The inset vignette is what sells the
-       glass — darkening toward the corners is how a real tube falls off. The
-       outer one is the bloom the phosphor throws onto the bezel around it,
-       which is the thing that actually reads as "glowing" rather than "dark
-       rectangle". Both are shadows, so neither distorts the text. */
+    /* A tube falls off toward its edges. On a full-bleed surface this is the
+       difference between "a section with a dark background" and glass. */
     box-shadow:
-      inset 0 0 80px rgb(0 0 0 / 0.62),
-      inset 0 0 26px color-mix(in srgb, var(--aj-crt-phosphor) 12%, transparent),
-      0 0 34px color-mix(in srgb, var(--aj-crt-phosphor) 22%, transparent);
+      inset 0 0 240px rgb(0 0 0 / 0.75),
+      inset 0 0 60px rgb(0 0 0 / 0.45);
   }
 
-  /* ---- boot sequence ----------------------------------------------------- */
-
-  .aj-crt__boot {
-    margin: 0 0 1.75rem;
-    padding-block-end: 1.25rem;
-    border-block-end: 1px solid rgb(255 255 255 / 0.12);
+  /* The bloom pooling in the middle of the tube. A pseudo element so it sits
+     above the scanlines and below every word. */
+  .aj-crt-page::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+      ellipse 70% 55% at 50% 45%,
+      color-mix(in srgb, var(--aj-crt-phosphor) 7%, transparent) 0%,
+      transparent 70%
+    );
   }
 
-  .aj-crt__bootline {
-    margin: 0 0 0.4rem;
+  .aj-crt-page__inner {
+    position: relative;
+    max-width: 64ch;
+    margin-inline: auto;
+    padding-inline: 2rem;
+  }
+
+  /* ---- the session ------------------------------------------------------ */
+
+  .aj-crt-page__boot {
+    margin: 0 0 2rem;
+  }
+
+  .aj-crt-page__bootline,
+  .aj-crt-page__cmd,
+  .aj-crt-page__pull,
+  .aj-crt-page__signoff,
+  .aj-crt-page__tagline,
+  .aj-crt-page__btn,
+  .aj-crt-page__caret {
     font-family: "Ohpixel", var(--font-heading--family);
-    font-size: 0.75rem;
-    line-height: 1.5;
-    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--aj-crt-phosphor);
     text-shadow: 0 0 14px color-mix(in srgb, currentColor 45%, transparent);
   }
 
-  /* Default state is VISIBLE. The animation is opted into by script, so no-JS
-     and reduced-motion both land on the finished screen rather than a blank
-     one. */
-  [data-aj-boot='running'] .aj-crt__bootline {
+  .aj-crt-page__bootline {
+    margin: 0 0 0.4rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    letter-spacing: 0.08em;
+  }
+
+  /* Default state is VISIBLE — the animation is opted into by script, so both
+     no-JS and reduced-motion land on a finished screen rather than a blank one. */
+  [data-aj-boot='running'] .aj-crt-page__bootline {
     opacity: 0;
     animation: aj-crt-print 0.01s linear forwards;
   }
@@ -397,77 +244,102 @@
     }
   }
 
-  /* ---- the story --------------------------------------------------------- */
-
-  /* Archivo, deliberately. The opening paragraph is set larger than the body
-     and lighter than the heading — a bridge between the two rather than a
-     third competing size. */
-  /* The measure lives here now, not on the shell. Left-aligned rather than
-     centred: a terminal starts its text at the left margin and lets the rest
-     of the line go dark, and the pull quote's rule below only makes sense
-     against a left edge. */
-  .aj-crt__lead,
-  .aj-crt__body,
-  .aj-crt__pull,
-  .aj-crt__boot {
-    max-width: 64ch;
+  /* The h1, set as the command that opened the session. */
+  .aj-crt-page__cmd {
+    margin: 0 0 2rem;
+    font-size: 1.375rem;
+    font-weight: 400;
+    line-height: 1.4;
+    letter-spacing: 0.06em;
   }
 
-  .aj-crt__lead p {
+  .aj-crt-page__prompt {
+    margin-inline-end: 0.6em;
+    opacity: 0.7;
+  }
+
+  /* Archivo for the story. Ohpixel is a pixel grid and loses it in sentences —
+     aj-brand.css says so, and five hundred words would prove it. */
+  .aj-crt-page__lead p {
     margin: 0 0 1.75rem;
     font-size: 1.1875rem;
     line-height: 1.6;
     font-weight: 500;
+    color: var(--aj-crt-text);
   }
 
-  .aj-crt__body p {
+  .aj-crt-page__body p {
     margin: 0 0 1.25rem;
     line-height: 1.75;
     color: var(--aj-crt-dim);
   }
 
-  .aj-crt__body p:last-child {
+  .aj-crt-page__body p:last-child {
     margin-bottom: 0;
   }
 
-  /* The pull quote is the one place a long-ish line goes into the pixel face,
-     and it is uppercase and short enough to hold its grid. Left-aligned with a
-     rule rather than centred: centring would break the reading column the rest
-     of the screen depends on. */
-  .aj-crt__pull {
-    margin: 2rem 0;
+  .aj-crt-page__pull {
+    margin: 2.25rem 0;
     padding: 0.9rem 0 0.9rem 1.1rem;
     border-inline-start: 3px solid var(--aj-crt-phosphor);
-    font-family: "Ohpixel", var(--font-heading--family);
     font-size: 1.0625rem;
     line-height: 1.65;
     letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--aj-crt-phosphor);
-    text-shadow: 0 0 18px color-mix(in srgb, currentColor 40%, transparent);
   }
 
-  .aj-crt__signoff {
-    margin: 2rem 0 0;
-    font-family: "Ohpixel", var(--font-heading--family);
+  .aj-crt-page__signoff {
+    margin: 2.25rem 0 0;
     font-size: 0.875rem;
     letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--aj-crt-phosphor);
-    text-shadow: 0 0 14px color-mix(in srgb, currentColor 45%, transparent);
   }
 
-  .aj-crt__cursor {
+  .aj-crt-page__tagline {
+    margin: 2rem 0 0;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid color-mix(in srgb, var(--aj-crt-phosphor) 45%, transparent);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    letter-spacing: 0.06em;
+    text-align: center;
+  }
+
+  .aj-crt-page__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-block-start: 1.5rem;
+  }
+
+  .aj-crt-page__btn {
+    flex: 1 1 14rem;
+    padding: 0.85rem 1.15rem;
+    border: 1px solid color-mix(in srgb, var(--aj-crt-phosphor) 55%, transparent);
+    font-size: 0.8125rem;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    transition: background-color 0.15s ease;
+  }
+
+  @media (hover: hover) {
+    .aj-crt-page__btn:hover {
+      background: color-mix(in srgb, var(--aj-crt-phosphor) 14%, transparent);
+    }
+  }
+
+  .aj-crt-page__caret {
+    margin: 2.5rem 0 0;
+    font-size: 0.875rem;
+    letter-spacing: 0.08em;
+  }
+
+  .aj-crt-page__cursor {
     display: inline-block;
-    width: 0.6em;
+    width: 0.55em;
     height: 1em;
-    margin-inline-start: 0.35em;
     background: var(--aj-crt-phosphor);
     vertical-align: -0.12em;
-  }
-
-  .aj-crt__cursor.is-blinking {
-    animation: aj-crt-blink 1s steps(1, end) infinite;
+    box-shadow: 0 0 10px color-mix(in srgb, var(--aj-crt-phosphor) 55%, transparent);
+    animation: aj-crt-blink 1.1s steps(1, end) infinite;
   }
 
   @keyframes aj-crt-blink {
@@ -476,177 +348,61 @@
     }
   }
 
-  /* ---- the machine, same photograph as the homepage --------------------- */
-
-  .aj-about__machine {
-    container-type: inline-size;
-    position: relative;
-    width: 100%;
-    max-width: 34rem;
-    margin-inline: auto;
-  }
-
-  .aj-about__img {
-    display: block;
-    width: 100%;
-    height: auto;
-  }
-
-  /* Measured off the PNG: x 311-1069, y 604-1180 of 2048, aspect 1.32. */
-  .aj-about__glass {
-    position: absolute;
-    left: 15.19%;
-    top: 29.49%;
-    width: 37.01%;
-    height: 28.12%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 0.4cqi;
-    padding: 0 2cqi;
-    overflow: hidden;
-    background:
-      radial-gradient(
-        ellipse at 50% 55%,
-        color-mix(in srgb, var(--aj-crt-phosphor) 12%, transparent) 0%,
-        transparent 70%
-      ),
-      repeating-linear-gradient(
-        to bottom,
-        rgb(255 255 255 / 0.045) 0 1px,
-        transparent 1px 3px
-      );
-  }
-
-  /* cqi so the type tracks the image's width — a px size would spill out of
-     the glass the moment the image narrowed. */
-  .aj-about__gline {
-    margin: 0;
-    font-family: "Ohpixel", var(--font-heading--family);
-    font-size: 2.15cqi;
-    line-height: 1.5;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--aj-crt-phosphor);
-    text-shadow: 0 0 1.4cqi color-mix(in srgb, currentColor 55%, transparent);
-  }
-
-  .aj-about__gcursor {
-    display: inline-block;
-    width: 1.4cqi;
-    height: 2.2cqi;
-    background: var(--aj-crt-phosphor);
-    box-shadow: 0 0 1.4cqi color-mix(in srgb, var(--aj-crt-phosphor) 55%, transparent);
-    animation: aj-about-blink 1.1s steps(1, end) infinite;
-  }
-
-  @keyframes aj-about-blink {
-    50% {
-      opacity: 0;
-    }
-  }
-
-  /* ---- below the monitor -------------------------------------------------- */
-
-  /* Ink on yellow, never yellow type. aj-brand.css measured it: yellow on
-     white is 1.32:1 and fails WCAG 1.4.3 at any size; ink on that yellow is
-     11.17:1. The accent is a background here or it is not used. */
-  .aj-about__tagline {
-    margin: 2.5rem 0 0;
-    padding: 1rem 1.1rem;
-    border-radius: var(--aj-tile-radius, 8px);
-    background: var(--aj-price-grab, #ffe000);
-    color: var(--aj-price-read, #282828);
-    font-family: "Ohpixel", var(--font-heading--family);
-    font-size: 0.9375rem;
-    line-height: 1.6;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    text-align: center;
-  }
-
-  .aj-about__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-block-start: 1.5rem;
-  }
-
-  .aj-about__btn {
-    flex: 1 1 12rem;
-    padding: 0.85rem 1.25rem;
-    border-radius: var(--aj-tile-radius, 8px);
-    font-weight: 700;
-    text-align: center;
-    text-decoration: none;
-    transition: opacity 0.15s ease;
-  }
-
-  .aj-about__btn--primary {
-    background: var(--aj-price-act, #7a3fa0);
-    color: #ffffff;
-  }
-
-  .aj-about__btn--ghost {
-    border: 1px solid rgb(var(--color-foreground-rgb) / 0.25);
-    color: inherit;
-  }
-
-  @media (hover: hover) {
-    .aj-about__btn:hover {
-      opacity: 0.88;
-    }
-  }
+  /* ---- mobile ------------------------------------------------------------ */
 
   @media screen and (max-width: 749px) {
-    /* The bezel thins rather than the screen shrinking — chrome is what gives
-       way on a small screen, never the reading area. */
-    .aj-crt__screen {
-      padding: 1.35rem 1.1rem 1.6rem;
+    .aj-crt-page__inner {
+      padding-inline: 1.25rem;
     }
 
-    .aj-crt__lead p {
+    /*
+      A 3px scanline pitch on a 3x phone display is sub-pixel mush — it reads
+      as grain rather than as lines. Opening it to 4px keeps them legible as
+      scanlines at the density a phone actually renders, and the vignette comes
+      in because 240px of inset shadow on a 390px-wide screen would swallow
+      the middle of the page.
+    */
+    .aj-crt-page {
+      background-image: repeating-linear-gradient(
+        to bottom,
+        rgb(255 255 255 / 0.04) 0 1px,
+        transparent 1px 4px
+      );
+      box-shadow:
+        inset 0 0 120px rgb(0 0 0 / 0.7),
+        inset 0 0 40px rgb(0 0 0 / 0.4);
+    }
+
+    .aj-crt-page__cmd {
+      font-size: 1.125rem;
+    }
+
+    .aj-crt-page__lead p {
       font-size: 1.0625rem;
     }
 
-    /* Ohpixel needs to come down harder than the body face does: a pixel grid
-       that lands between whole pixels is where it starts to look broken. */
-    .aj-crt__pull {
+    /* Ohpixel comes down harder than the body face: a pixel grid landing
+       between whole pixels is where it starts to look broken. */
+    .aj-crt-page__pull {
       font-size: 0.9375rem;
       letter-spacing: 0.04em;
     }
 
-    .aj-crt__bootline {
-      font-size: 0.6875rem;
-    }
-
-    .aj-about__gline {
-      font-size: 2.6cqi;
-    }
-
-    .aj-about__tagline {
+    .aj-crt-page__tagline {
       font-size: 0.8125rem;
     }
 
-    .aj-about__btn {
+    /* Full width — two half-width buttons on a phone are two small buttons. */
+    .aj-crt-page__btn {
       flex-basis: 100%;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .aj-crt__bootline,
-    .aj-about__gcursor,
-    .aj-crt__cursor.is-blinking {
+    .aj-crt-page__bootline,
+    .aj-crt-page__cursor {
       animation: none !important;
       opacity: 1 !important;
-    }
-
-    /* The glow STAYS, it just stops breathing. Reduced motion is a request to
-       remove movement, not to remove the design — deleting the halo would
-       serve a different page to the people who asked for fewer animations. */
-    .aj-crt::after {
-      animation: none;
-      opacity: 0.4;
     }
   }
 {% endstylesheet %}
@@ -657,39 +413,10 @@
   "settings": [
     {
       "type": "paragraph",
-      "content": "The origin story, framed as a CRT terminal. Founders stay anonymous — 'two coworkers', no names, no photos."
+      "content": "The whole page is the screen. Founders stay anonymous — 'two coworkers', no names, no photos."
     },
-    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "About us" },
-    {
-      "type": "text",
-      "id": "heading",
-      "label": "Heading",
-      "info": "Optional. Left blank the page leads straight into the monitor, which is how it is set now."
-    },
-    { "type": "header", "content": "The machine" },
-    {
-      "type": "image_picker",
-      "id": "image",
-      "label": "Computer image",
-      "info": "Must be face-on with the screen square to camera. Falls back to the uploaded retro PC if empty."
-    },
-    { "type": "text", "id": "image_alt", "label": "Image alt text", "default": "A beige 1990s desktop computer" },
-    {
-      "type": "textarea",
-      "id": "screen_lines",
-      "label": "Text on the screen",
-      "info": "One line each, uppercased automatically. Three lines maximum — the glass is small and a cursor is added after them.",
-      "default": "C:\\> ORIGIN.TXT\nTwo guys.\nOne deal a day."
-    },
-    { "type": "header", "content": "Story panel" },
-    {
-      "type": "color",
-      "id": "phosphor",
-      "label": "Phosphor",
-      "info": "The glow colour. Every shadow on the screen derives from this, so changing it recolours the whole monitor.",
-      "default": "#5cf08a"
-    },
-    { "type": "color", "id": "screen_color", "label": "Screen", "default": "#0b100c" },
+    { "type": "header", "content": "Terminal" },
+    { "type": "text", "id": "prompt", "label": "Prompt", "default": "C:\\>" },
     {
       "type": "textarea",
       "id": "boot_lines",
@@ -697,6 +424,14 @@
       "info": "One line each. Prints line by line on load. Uppercased automatically — keep them short.",
       "default": "The Yoink Co. Terminal v1.0\n> Loading origin.txt ...\n> OK"
     },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Command / page heading",
+      "info": "Renders after the prompt as the h1. This is the page's real heading, so keep it meaningful.",
+      "default": "Our story"
+    },
+    { "type": "header", "content": "Story" },
     {
       "type": "richtext",
       "id": "lead",
@@ -726,25 +461,25 @@
       "type": "text",
       "id": "signoff",
       "label": "Sign-off",
-      "info": "Set in the pixel face. The ⚡ falls back to the system emoji font — that is intentional, it is the one spot of colour on the screen.",
-      "default": "Welcome to The Yoink. Yoink accordingly. ⚡"
+      "default": "Welcome to The Yoink. Yoink accordingly."
     },
-    { "type": "header", "content": "Below the monitor" },
+    { "type": "header", "content": "Close" },
     {
       "type": "text",
       "id": "tagline",
-      "label": "Tagline band",
+      "label": "Tagline box",
       "default": "One deal a day. Yoink it before it's gone."
     },
-    { "type": "text", "id": "primary_text", "label": "Primary button", "default": "See today's Yoink" },
-    { "type": "url", "id": "primary_link", "label": "Primary link" },
-    { "type": "text", "id": "secondary_text", "label": "Secondary button", "default": "Dig through the Bargain Bin" },
-    { "type": "url", "id": "secondary_link", "label": "Secondary link" },
+    { "type": "text", "id": "primary_text", "label": "First link", "default": "See today's Yoink" },
+    { "type": "url", "id": "primary_link", "label": "First link URL" },
+    { "type": "text", "id": "secondary_text", "label": "Second link", "default": "Dig through the Bargain Bin" },
+    { "type": "url", "id": "secondary_link", "label": "Second link URL" },
     { "type": "header", "content": "Appearance" },
-    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "color", "id": "phosphor", "label": "Phosphor", "default": "#5cf08a" },
+    { "type": "color", "id": "screen_color", "label": "Screen", "default": "#0b100c" },
     { "type": "header", "content": "Padding" },
-    { "type": "range", "id": "padding-block-start", "label": "Top", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 60 },
-    { "type": "range", "id": "padding-block-end", "label": "Bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 60 }
+    { "type": "range", "id": "padding-block-start", "label": "Top", "min": 0, "max": 160, "step": 4, "unit": "px", "default": 72 },
+    { "type": "range", "id": "padding-block-end", "label": "Bottom", "min": 0, "max": 160, "step": 4, "unit": "px", "default": 88 }
   ],
   "presets": [{ "name": "AJ About" }]
 }
