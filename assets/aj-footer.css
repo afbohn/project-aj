@@ -1,0 +1,31 @@
+/*
+ * TWO COLUMNS OF FOOTER MENU ON A PHONE.
+ *
+ * Horizon carries `--grid-columns: 3` inline for desktop and then collapses
+ * `.footer-content` to a single `1fr` under 750px. That is right for the email
+ * signup, which needs the width, and wrong for the two menu blocks: four short
+ * links each, stacked, left two thirds of the screen empty and pushed the
+ * copyright a long way down a scroll nobody wanted.
+ *
+ * The signup keeps the full width by spanning both tracks; only the menus pair
+ * up.
+ *
+ * THE DOUBLED CLASS IS LOAD-BEARING. Horizon's own rule is `.footer-content`,
+ * the same specificity as ours, and its `{% stylesheet %}` block compiles into
+ * compiled_assets/styles.css which loads AFTER anything linked from the head —
+ * so on a tie it wins on source order. `.footer-content.footer-content` is
+ * (0,2,0) and settles it regardless of order. aj-brand.css already documents
+ * this exact trap for the deal price.
+ */
+@media screen and (max-width: 749px) {
+  .footer-content.footer-content {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 1.25rem;
+    row-gap: 2rem;
+  }
+
+  /* The email capture is the reason the footer exists. It spans. */
+  .footer-content.footer-content > .group-block {
+    grid-column: 1 / -1;
+  }
+}

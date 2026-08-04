@@ -79,6 +79,13 @@
     {%- endcomment -%}
     {{ 'aj-card.css' | asset_url | stylesheet_tag }}
 
+    {%- comment -%}
+      Footer menus pair up on a phone. Global because the footer is, and it has
+      to beat Horizon's own `.footer-content` rule on specificity rather than
+      on source order — see the file.
+    {%- endcomment -%}
+    {{ 'aj-footer.css' | asset_url | stylesheet_tag }}
+
     {% if request.design_mode %}
       {%- render 'theme-editor' -%}
     {% endif %}

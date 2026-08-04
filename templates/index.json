@@ -85,10 +85,19 @@
         "padding-block-start": 40,
         "padding-block-end": 60
       }
+    },
+    "aj_how": {
+      "type": "aj-how",
+      "settings": {
+        "color_scheme": "scheme-1",
+        "padding-block-start": 40,
+        "padding-block-end": 40
+      }
     }
   },
   "order": [
     "aj_daily_deal",
+    "aj_how",
     "aj_bargain_bin",
     "aj_shop_by_price",
     "aj_shop_by_category",

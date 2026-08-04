@@ -357,8 +357,17 @@
       padding-inline: 1rem;
     }
 
+    /*
+      STALE RULE, FIXED. This said 1rem and 18ch, both written while the teaser
+      was still body copy. Once it became Flashy the two combined into 16px
+      inside a 113px column on a 390px screen — five lines of display face in a
+      third of the available width, which is the opposite of what a display
+      face is for. The cap comes off entirely here: on a phone the viewport is
+      already the measure.
+    */
     .aj-story__teaser {
-      font-size: 1rem;
+      max-width: none;
+      font-size: 1.875rem;
     }
 
     .aj-story__cta {

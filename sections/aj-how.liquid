@@ -1,0 +1,267 @@
+{%- comment -%}
+  AJ How — what this site is, for somebody who just arrived from an ad.
+
+  IT SITS BELOW THE DEAL, NOT ABOVE IT, and that placement is the whole design
+  decision. The mobile fold is already completely spent on the Yoink — image,
+  label, price, saving, countdown, add to cart. Putting an explainer above it
+  pushes the countdown and the buy button off-screen, so paid traffic would be
+  paying for a click and then hiding what it came for. The hero already
+  explains a great deal by SHOWING: a labelled deal, a large saving, a running
+  clock. What it cannot answer is "does this happen again tomorrow", which is
+  the question that turns a one-time buyer into the repeat visitor this
+  business actually runs on.
+
+  THE SECOND STEP DOES NOT SAY THE PRICE GOES BACK UP, and that was deliberate.
+  The fact is true and worth having — most discount stores fake it with a
+  permanently inflated compare-at, and this one genuinely restores, which is a
+  verifiable honesty claim. But as a headline it makes EXPENSIVE the default
+  state, which quietly devalues 2,300 other products and a Bargain Bin that is
+  permanently 25% off. "Then it's gone and tomorrow it's something else" buys
+  the same urgency and spends the line on the return visit instead of the loss.
+  The price-restores fact lives on the About page, where trust is the job.
+
+  THE THIRD STEP EXISTS TO ANSWER "IS THIS WHOLE SITE ONE PRODUCT?" — the other
+  thing a cold visitor genuinely wonders, and the reason they would otherwise
+  leave rather than scroll.
+
+  Copy is lifted from the welcome email rather than written fresh, so the site
+  and the inbox say the same thing in the same voice.
+{%- endcomment -%}
+
+{%- liquid
+  assign s = section.settings
+-%}
+
+<div
+  class="aj-how color-{{ s.color_scheme }}"
+  style="padding-block-start: {{ s.padding-block-start }}px; padding-block-end: {{ s.padding-block-end }}px;"
+  {{ section.shopify_attributes }}
+>
+  <div class="aj-how__inner page-width">
+    {%- if s.definition_term != blank -%}
+      {%- comment -%}
+        The dictionary device, not a paragraph. It is the same line the About
+        page and the social teasers use, so anyone arriving from an ad gets
+        continuity rather than a second explanation of the same word.
+      {%- endcomment -%}
+      {%- comment -%}
+        Real spaces between the spans, not just CSS margins. The margins render
+        the gap correctly for anyone looking, but a screen reader concatenates
+        the text nodes — verified in the live DOM, where it came back as
+        "YOINK(v.)to grab something great" with no breaks at all.
+      {%- endcomment -%}
+      <p class="aj-how__def">
+        <span class="aj-how__term">{{ s.definition_term | escape }}</span>
+        {% if s.definition_pos != blank %}
+          <span class="aj-how__pos">{{ s.definition_pos | escape }}</span>
+        {% endif %}
+        <span class="aj-how__gloss">{{ s.definition_gloss | escape }}</span>
+      </p>
+    {%- endif -%}
+
+    <ol class="aj-how__steps">
+      {%- for i in (1..3) -%}
+        {%- liquid
+          case i
+            when 1
+              assign label = s.label_1
+              assign body = s.body_1
+            when 2
+              assign label = s.label_2
+              assign body = s.body_2
+            when 3
+              assign label = s.label_3
+              assign body = s.body_3
+          endcase
+        -%}
+        {%- if label != blank or body != blank -%}
+          <li class="aj-how__step">
+            {%- comment -%}
+              The numeral is aria-hidden: an ordered list already announces
+              position, and "one. one a day." is the kind of duplication that
+              makes people switch a screen reader off.
+            {%- endcomment -%}
+            <span class="aj-how__num" aria-hidden="true">{{ i }}</span>
+            {%- if label != blank -%}
+              <span class="aj-how__label">{{ label | escape }}</span>
+            {%- endif -%}
+            {%- if body != blank -%}
+              <span class="aj-how__body">{{ body | escape }}</span>
+            {%- endif -%}
+          </li>
+        {%- endif -%}
+      {%- endfor -%}
+    </ol>
+  </div>
+</div>
+
+{% stylesheet %}
+  .aj-how__inner {
+    max-width: 62rem;
+    margin-inline: auto;
+  }
+
+  /* ---- the definition --------------------------------------------------- */
+
+  .aj-how__def {
+    margin: 0 0 2rem;
+    padding-block-end: 1.5rem;
+    border-block-end: 1px solid rgb(var(--color-foreground-rgb) / 0.12);
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  .aj-how__term {
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 1.0625rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--aj-price-act, #7a3fa0);
+  }
+
+  /* Italic, lowercase, quiet — it is a part-of-speech marker, not a word. */
+  .aj-how__pos {
+    margin-inline: 0.4em;
+    font-style: italic;
+    font-size: 0.9375rem;
+    opacity: 0.6;
+  }
+
+  .aj-how__gloss {
+    font-size: 1.0625rem;
+    line-height: 1.5;
+  }
+
+  /* ---- the steps -------------------------------------------------------- */
+
+  /*
+    Three across from 750px. Below that they stack, because three columns on a
+    phone is three columns of two-word wraps — the shape wins and the sentence
+    loses, which is backwards for a section whose entire job is being read.
+  */
+  .aj-how__steps {
+    display: grid;
+    gap: 1.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: none;
+  }
+
+  @media screen and (min-width: 750px) {
+    .aj-how__steps {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2.5rem;
+    }
+  }
+
+  .aj-how__step {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 0.75rem;
+    row-gap: 0.35rem;
+    align-items: start;
+  }
+
+  /*
+    Ohpixel for the numeral: a single digit is exactly the shape a pixel face
+    is drawn for, and it is the one place on this section where the brand's
+    display type costs no legibility at all.
+  */
+  .aj-how__num {
+    grid-row: 1 / 3;
+    display: grid;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 50%;
+    background: var(--aj-price-act, #7a3fa0);
+    color: #ffffff;
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.875rem;
+    line-height: 1;
+  }
+
+  .aj-how__label {
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.8125rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    align-self: center;
+  }
+
+  .aj-how__body {
+    grid-column: 2;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    opacity: 0.78;
+  }
+
+  @media screen and (max-width: 749px) {
+    .aj-how__def {
+      margin-block-end: 1.5rem;
+      padding-block-end: 1.25rem;
+    }
+
+    .aj-how__gloss,
+    .aj-how__term {
+      font-size: 1rem;
+    }
+
+    .aj-how__steps {
+      gap: 1.25rem;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "AJ How it works",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Sits below the Yoink, above the Bargain Bin. Copy matches the welcome email on purpose — the site and the inbox should say the same thing."
+    },
+    { "type": "header", "content": "Definition" },
+    { "type": "text", "id": "definition_term", "label": "Word", "default": "Yoink" },
+    { "type": "text", "id": "definition_pos", "label": "Part of speech", "default": "(v.)" },
+    {
+      "type": "text",
+      "id": "definition_gloss",
+      "label": "Definition",
+      "default": "to grab something great half a second before the person next to you."
+    },
+    { "type": "header", "content": "Step 1" },
+    { "type": "text", "id": "label_1", "label": "Label", "default": "One a day" },
+    {
+      "type": "text",
+      "id": "body_1",
+      "label": "Text",
+      "default": "We dig up one genuinely good thing and drop it at a price that feels like a mistake."
+    },
+    { "type": "header", "content": "Step 2" },
+    { "type": "text", "id": "label_2", "label": "Label", "default": "24 hours" },
+    {
+      "type": "text",
+      "id": "body_2",
+      "label": "Text",
+      "info": "Deliberately does not say the price goes back up — that makes expensive the default. See the note at the top of the section file.",
+      "default": "Then it's gone, and tomorrow it's something else."
+    },
+    { "type": "header", "content": "Step 3" },
+    { "type": "text", "id": "label_3", "label": "Label", "default": "The Bargain Bin" },
+    {
+      "type": "text",
+      "id": "body_3",
+      "label": "Text",
+      "default": "Everything else, permanently 25% off and rotating every week."
+    },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "header", "content": "Padding" },
+    { "type": "range", "id": "padding-block-start", "label": "Top", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 40 },
+    { "type": "range", "id": "padding-block-end", "label": "Bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 40 }
+  ],
+  "presets": [{ "name": "AJ How it works" }]
+}
+{% endschema %}
