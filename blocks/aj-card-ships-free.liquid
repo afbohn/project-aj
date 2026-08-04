@@ -37,12 +37,18 @@
     assign show = true
   endif
 
-  # Redundant inside the collection that is DEFINED by this fact — every card
-  # would carry it, which makes it decoration rather than information. The
-  # collection's own description already says it once, properly.
-  if collection.handle == 'ships-free'
-    assign show = false
-  endif
+  # SUPPRESSION INSIDE `ships-free` WAS REMOVED ON ALEX'S CALL, 4 August.
+  #
+  # The original argument was that a badge on every card in the collection
+  # DEFINED by that fact is decoration rather than information, and that the
+  # collection's own description says it once, properly. The second half turned
+  # out to be false: the description was never written, so the page stated the
+  # fact exactly zero times and the suppression was carrying no weight.
+  #
+  # Keeping it also assumed people arrive via the collection title. They mostly
+  # do not — they land on a card from search, a menu or a link, and the badge is
+  # the only thing on a card that says shipping is free. Repetition inside one
+  # collection is a cheap price for that.
 -%}
 
 {{ 'aj-ships-free.css' | asset_url | stylesheet_tag }}

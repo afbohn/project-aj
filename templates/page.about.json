@@ -1,0 +1,15 @@
+{
+  "sections": {
+    "main": {
+      "type": "aj-about",
+      "settings": {
+        "primary_link": "/",
+        "secondary_link": "/collections/bargain-bin",
+        "color_scheme": "scheme-1",
+        "padding-block-start": 60,
+        "padding-block-end": 60
+      }
+    }
+  },
+  "order": ["main"]
+}
