@@ -8,9 +8,20 @@
   the section disappears rather than advertising an empty shelf.
 
   SHOWS THE SAVING RATHER THAN ASSERTING IT. Every price is computed from the
-  variant's own compare-at, so a product that already carried a supplier MSRP
-  displays its true, larger saving instead of a flat "25% off" that would be
-  wrong for about half the bin. That is also why the heading says "at least".
+  variant's own compare-at rather than hardcoded, so the tile cannot drift from
+  what the app actually wrote.
+
+  THE HEADING NO LONGER SAYS "AT LEAST", and the reason this comment used to
+  give for it is dead. It claimed a product carrying a supplier MSRP would show
+  a larger saving "for about half the bin" — but bargain-bin.server.ts now
+  EXCLUDES any product that already has an MSRP (`if (anyMsrp) continue`),
+  exactly so nothing can ever display more than the flat rate, and it warns if
+  a member deviates. Measured on the live bin: 38 of 38 at exactly 25%, min 25,
+  max 25.
+
+  So "at least" promised a depth the system is built to prevent. Small, but it
+  is the kind of overclaim a shopper can check in one click, and this store's
+  whole credibility rests on the discount being real.
 {%- endcomment -%}
 
 {%- liquid
@@ -364,7 +375,7 @@
       "type": "text",
       "id": "subheading",
       "label": "Subheading",
-      "default": "Everything at least 25% off. New picks every week."
+      "default": "Everything 25% off. New picks every week."
     },
     {
       "type": "text",
