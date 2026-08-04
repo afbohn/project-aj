@@ -59,7 +59,13 @@
       <h1 class="aj-about__heading">{{ s.heading | escape }}</h1>
     {%- endif -%}
 
-    <div class="aj-crt">
+    {%- comment -%}
+      The phosphor colour is set INLINE rather than in the stylesheet block
+      below, because Shopify does not run Liquid inside {% stylesheet %} — a
+      `{{ }}` in there ships to the browser as literal text. Same reason the
+      padding is on the wrapper.
+    {%- endcomment -%}
+    <div class="aj-crt" style="--aj-crt-phosphor: {{ s.phosphor }}; --aj-crt-screen: {{ s.screen_color }};">
       <div class="aj-crt__bar">
         <span class="aj-crt__dots" aria-hidden="true"></span>
         {%- if s.monitor_label != blank -%}
@@ -203,11 +209,22 @@
 
   /* ---- the monitor ------------------------------------------------------ */
 
+  /*
+    PHOSPHOR GREEN, and it is the one place on the site that leaves the brand
+    palette on purpose. The monitor is meant to read as an object sitting IN
+    the page rather than as part of it, and a screen glowing brand-yellow reads
+    as a design system rather than as a machine. Everything outside the bezel —
+    the tagline band, the buttons — stays on palette, so the departure is
+    contained to the thing pretending to be hardware.
+
+    Both colours are overridable from the theme editor, and the values here are
+    the fallback when those settings are blank.
+  */
   .aj-crt {
-    --aj-crt-screen: #0e0e14;
-    --aj-crt-phosphor: var(--aj-price-grab, #ffe000);
-    --aj-crt-text: #e9e7f0;
-    --aj-crt-dim: rgb(233 231 240 / 0.55);
+    --aj-crt-screen: #0b100c;
+    --aj-crt-phosphor: #5cf08a;
+    --aj-crt-text: #d6f5e0;
+    --aj-crt-dim: rgb(214 245 224 / 0.62);
 
     border-radius: 14px;
     background: linear-gradient(180deg, #35323d 0%, #26242c 100%);
@@ -257,9 +274,15 @@
       transparent 1px 3px
     );
 
-    /* The vignette is what sells the glass. Inset only, so nothing distorts
-       the text itself. */
-    box-shadow: inset 0 0 80px rgb(0 0 0 / 0.6);
+    /* Two shadows doing different jobs. The inset vignette is what sells the
+       glass — darkening toward the corners is how a real tube falls off. The
+       outer one is the bloom the phosphor throws onto the bezel around it,
+       which is the thing that actually reads as "glowing" rather than "dark
+       rectangle". Both are shadows, so neither distorts the text. */
+    box-shadow:
+      inset 0 0 80px rgb(0 0 0 / 0.62),
+      inset 0 0 26px color-mix(in srgb, var(--aj-crt-phosphor) 12%, transparent),
+      0 0 34px color-mix(in srgb, var(--aj-crt-phosphor) 22%, transparent);
   }
 
   /* ---- boot sequence ----------------------------------------------------- */
@@ -278,7 +301,7 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--aj-crt-phosphor);
-    text-shadow: 0 0 14px rgb(255 224 0 / 0.35);
+    text-shadow: 0 0 14px color-mix(in srgb, currentColor 45%, transparent);
   }
 
   /* Default state is VISIBLE. The animation is opted into by script, so no-JS
@@ -331,7 +354,7 @@
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--aj-crt-phosphor);
-    text-shadow: 0 0 18px rgb(255 224 0 / 0.3);
+    text-shadow: 0 0 18px color-mix(in srgb, currentColor 40%, transparent);
   }
 
   .aj-crt__signoff {
@@ -341,7 +364,7 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--aj-crt-phosphor);
-    text-shadow: 0 0 14px rgb(255 224 0 / 0.35);
+    text-shadow: 0 0 14px color-mix(in srgb, currentColor 45%, transparent);
   }
 
   .aj-crt__cursor {
@@ -491,6 +514,14 @@
     },
     { "type": "header", "content": "Terminal" },
     { "type": "text", "id": "monitor_label", "label": "Monitor label", "default": "The Yoink Co." },
+    {
+      "type": "color",
+      "id": "phosphor",
+      "label": "Phosphor",
+      "info": "The glow colour. Every shadow on the screen derives from this, so changing it recolours the whole monitor.",
+      "default": "#5cf08a"
+    },
+    { "type": "color", "id": "screen_color", "label": "Screen", "default": "#0b100c" },
     {
       "type": "textarea",
       "id": "boot_lines",
