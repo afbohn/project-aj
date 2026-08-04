@@ -45,10 +45,6 @@
   {{ section.shopify_attributes }}
 >
   <div class="aj-story__inner">
-    {%- if s.eyebrow != blank -%}
-      <p class="aj-story__eyebrow">{{ s.eyebrow | escape }}</p>
-    {%- endif -%}
-
     <div class="aj-story__machine" style="--aj-story-phosphor: {{ s.phosphor }};">
       {%- comment -%}
         Rendered through image_url/image_tag when the image is picked in the
@@ -100,29 +96,82 @@
       {%- endif -%}
     </div>
 
-    {%- if s.teaser != blank -%}
-      <p class="aj-story__teaser">{{ s.teaser | escape }}</p>
-    {%- endif -%}
+    <div class="aj-story__copy">
+      {%- if s.eyebrow != blank -%}
+        <p class="aj-story__eyebrow">{{ s.eyebrow | escape }}</p>
+      {%- endif -%}
 
-    {%- if s.cta_text != blank -%}
-      <a class="aj-story__cta" href="{{ s.cta_link | default: '/pages/about-us' }}">
-        {{- s.cta_text | escape -}}
-        <span class="aj-story__caret" aria-hidden="true">&rarr;</span>
-      </a>
-    {%- endif -%}
+      {%- if s.teaser != blank -%}
+        <p class="aj-story__teaser">{{ s.teaser | escape }}</p>
+      {%- endif -%}
+
+      {%- if s.cta_text != blank -%}
+        <a class="aj-story__cta" href="{{ s.cta_link | default: '/pages/about-us' }}">
+          {{- s.cta_text | escape -}}
+          <span class="aj-story__caret" aria-hidden="true">&rarr;</span>
+        </a>
+      {%- endif -%}
+    </div>
   </div>
 </div>
 
 {% stylesheet %}
+  /*
+    STACKED ON A PHONE, SIDE BY SIDE FROM 750px.
+
+    The machine is a wide object and the copy is three short lines, so stacking
+    them on a desktop left a column of dead space either side and pushed the
+    button most of a screen below the image it belongs to. Horizontal puts the
+    CTA level with the monitor, which is where the eye already is.
+
+    Mobile keeps the stack — two 45%-wide columns on a phone would be a small
+    picture next to a narrow ribbon of text — but everything tightens.
+  */
   .aj-story__inner {
-    max-width: 40rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    max-width: 58rem;
     margin-inline: auto;
     padding-inline: 1.25rem;
     text-align: center;
   }
 
+  @media screen and (min-width: 750px) {
+    .aj-story__inner {
+      flex-direction: row;
+      gap: 3rem;
+      text-align: left;
+    }
+
+    /* min-width: 0 so the image column can actually shrink — a flex item
+       defaults to min-width: auto and would refuse to go below its content
+       width, forcing the copy column into a sliver. */
+    .aj-story__machine {
+      flex: 1 1 54%;
+      min-width: 0;
+    }
+
+    .aj-story__copy {
+      flex: 1 1 46%;
+    }
+  }
+
+  /* Capped on a phone so the machine does not eat the fold on its own. */
+  .aj-story__machine {
+    width: 100%;
+    max-width: 24rem;
+  }
+
+  @media screen and (min-width: 750px) {
+    .aj-story__machine {
+      max-width: none;
+    }
+  }
+
   .aj-story__eyebrow {
-    margin: 0 0 0.5rem;
+    margin: 0 0 0.4rem;
     font-family: "Ohpixel", var(--font-heading--family);
     font-size: 0.8125rem;
     letter-spacing: 0.14em;
@@ -211,17 +260,24 @@
 
   .aj-story__teaser {
     max-width: 34ch;
-    margin: 1.25rem auto 0;
+    margin: 0 auto;
     font-size: 1.0625rem;
-    line-height: 1.6;
+    line-height: 1.55;
     text-wrap: balance;
+  }
+
+  @media screen and (min-width: 750px) {
+    .aj-story__teaser {
+      margin-inline: 0;
+      font-size: 1.25rem;
+    }
   }
 
   .aj-story__cta {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    margin-block-start: 1.25rem;
+    margin-block-start: 1.1rem;
     padding: 0.85rem 1.35rem;
     border-radius: var(--aj-tile-radius, 8px);
     background: var(--aj-price-act, #7a3fa0);
@@ -250,12 +306,23 @@
     /* One notch larger relative to the image, because at phone width the glass
        is only ~120px across and 2.15cqi lands under 8px. */
     .aj-story__line {
-      font-size: 2.5cqi;
+      font-size: 2.6cqi;
+    }
+
+    .aj-story__inner {
+      gap: 0.75rem;
+      padding-inline: 1rem;
+    }
+
+    .aj-story__teaser {
+      font-size: 1rem;
     }
 
     .aj-story__cta {
       display: flex;
       justify-content: center;
+      width: 100%;
+      margin-block-start: 0.9rem;
     }
   }
 
