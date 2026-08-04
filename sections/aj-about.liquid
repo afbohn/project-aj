@@ -13,9 +13,11 @@
 
   So the faces split by JOB, the way the brand file already splits them:
 
-      Ohpixel   the terminal chrome — boot lines, the pull quote, the tagline.
+      Ohpixel   the terminal chrome — the h1, boot lines, pull quote, tagline.
                 Short, uppercase, structural. Exactly its shape.
-      Flashy    the page heading, which is copy we wrote. Brand rule already.
+      Flashy    the optional display heading, which is copy we wrote. Blank by
+                default since 4 Aug: it competed with the monitor for the top
+                of the page, and the monitor is the reason anyone scrolls.
       Archivo   the story. Ninety percent of the words, as everywhere else.
 
   That is what makes the monitor work: it LOOKS like a terminal because the
@@ -51,12 +53,21 @@
   {{ section.shopify_attributes }}
 >
   <div class="aj-about__inner">
+    {%- comment -%}
+      The eyebrow carries the <h1>, not the display heading below it.
+
+      With the big heading removed the page would otherwise have no h1 at all —
+      bad for search and worse for anyone navigating by headings. "About us" is
+      a perfectly good page heading; it just does not need to be 56px to do the
+      job. The optional heading is an h2 so adding one back later cannot
+      produce two h1s.
+    {%- endcomment -%}
     {%- if s.eyebrow != blank -%}
-      <p class="aj-about__eyebrow">{{ s.eyebrow | escape }}</p>
+      <h1 class="aj-about__eyebrow">{{ s.eyebrow | escape }}</h1>
     {%- endif -%}
 
     {%- if s.heading != blank -%}
-      <h1 class="aj-about__heading">{{ s.heading | escape }}</h1>
+      <h2 class="aj-about__heading">{{ s.heading | escape }}</h2>
     {%- endif -%}
 
     {%- comment -%}
@@ -192,11 +203,18 @@
     padding-inline: 1.25rem;
   }
 
-  /* 62ch, not page-width. This is the only long-form reading on the site and
-     the rest of the theme is built for product grids, so the standard
-     container runs these lines past 120 characters on a desktop. */
+  /* WIDE ENOUGH TO READ AS A MONITOR, which is a different constraint from
+     the one this started with. At 62ch the shell was a tall narrow column —
+     correct for prose, but nothing shaped like that has ever been a CRT, and
+     it never fit on a screen. 48rem is roughly 1.5x wider, which also cuts the
+     shell's HEIGHT by about a third for the same words, so far more of the
+     machine is visible at once.
+
+     The reading measure moves INSIDE the screen instead (see __lead/__body
+     below). Widening the box and letting the text follow it to 85 characters
+     would have traded one problem for a worse one. */
   .aj-about__inner {
-    max-width: 62ch;
+    max-width: 48rem;
     margin-inline: auto;
   }
 
@@ -247,8 +265,12 @@
        to charcoal without touching code. */
     --aj-crt-shell: var(--aj-crt-shell-set, #d3cdbc);
 
-    border-radius: 18px 18px 10px 10px;
-    padding: 0.9rem 0.9rem 0;
+    /* A REAL BEZEL IS THICK. The moulding around a tube was never a hairline —
+       it is an inch of plastic on every side, with the chin thicker still
+       because that is where the board and the controls lived. Thin margins
+       read as a CSS card with a dark fill; this reads as a case. */
+    border-radius: 20px 20px 12px 12px;
+    padding: 1.5rem 1.5rem 0;
     background:
       /* vents, top right — a strip of hairlines, the cheapest possible tell
          that this object is supposed to get hot */
@@ -257,7 +279,7 @@
           rgb(0 0 0 / 0.16) 0 1px,
           transparent 1px 4px
         )
-        calc(100% - 1.1rem) 1.1rem / 2.2rem 3.2rem no-repeat,
+        calc(100% - 1.7rem) 1.7rem / 2.4rem 3.4rem no-repeat,
       /* plastic: lit from above, darker at the base, the way a moulded shell
          sits under room light */
       linear-gradient(170deg, color-mix(in srgb, var(--aj-crt-shell) 100%, white 14%) 0%, var(--aj-crt-shell) 42%, color-mix(in srgb, var(--aj-crt-shell) 82%, black) 100%);
@@ -400,6 +422,17 @@
   /* Archivo, deliberately. The opening paragraph is set larger than the body
      and lighter than the heading — a bridge between the two rather than a
      third competing size. */
+  /* The measure lives here now, not on the shell. Left-aligned rather than
+     centred: a terminal starts its text at the left margin and lets the rest
+     of the line go dark, and the pull quote's rule below only makes sense
+     against a left edge. */
+  .aj-crt__lead,
+  .aj-crt__body,
+  .aj-crt__pull,
+  .aj-crt__boot {
+    max-width: 64ch;
+  }
+
   .aj-crt__lead p {
     margin: 0 0 1.75rem;
     font-size: 1.1875rem;
@@ -538,9 +571,12 @@
   @media screen and (max-width: 749px) {
     /* The bezel thins rather than the screen shrinking — chrome is what gives
        way on a small screen, never the reading area. */
+    /* The thick bezel is a desktop luxury. On a phone every millimetre of
+       plastic is a millimetre not spent on words, so the case thins right
+       down — chrome gives way, never the reading area. */
     .aj-crt {
-      padding: 0.3rem;
-      border-radius: 10px;
+      padding: 0.5rem 0.5rem 0;
+      border-radius: 12px;
     }
 
     .aj-crt__screen {
@@ -598,7 +634,8 @@
       "type": "text",
       "id": "heading",
       "label": "Heading",
-      "default": "Two coworkers who refused to stop hanging out"
+      "info": "Optional. Left blank the page leads straight into the monitor, which is how it is set now.",
+      "default": ""
     },
     { "type": "header", "content": "Terminal" },
     { "type": "text", "id": "monitor_label", "label": "Monitor label", "default": "The Yoink Co." },
