@@ -1,28 +1,44 @@
 {%- comment -%}
-  AJ About — the origin story.
+  AJ About — the origin story, on a CRT.
 
   EVERY WORD IS A SETTING, NOT MARKUP. This is the page most likely to be
   reworded on a whim, and copy baked into a section means a git push and a
-  theme deploy to change a comma. All of it is editable in the theme editor;
-  the defaults below are Alex's text, verbatim.
+  theme deploy to change a comma. The defaults below are Alex's text, verbatim.
 
-  THE FOUNDERS STAY ANONYMOUS. "Two coworkers", never names, never photos --
-  that is the brand's choice and the layout must not quietly undermine it by
-  leaving a headshot slot that begs to be filled.
+  THE PIXEL FACE DOES NOT SET THE STORY, and that is the whole design.
+  aj-brand.css is explicit: "Ohpixel is a pixel grid that turns to mush in
+  lowercase or in sentences", and every existing use uppercases it "because
+  Ohpixel is drawn for capitals and loses its grid in mixed case". Five hundred
+  words of origin story in it would be unreadable at any screen size.
 
-  MEASURE IS CAPPED AT 62ch. This is the only long-form reading on the site and
-  the rest of the theme is built for product grids, so the page-width container
-  would run these lines past 120 characters on a desktop -- unreadable in a way
-  that reads as "nobody looked at this".
+  So the faces split by JOB, the way the brand file already splits them:
 
-  THE TAGLINE BAND IS INK ON YELLOW, never yellow type. aj-brand.css measured
-  it: yellow on white is 1.32:1, which fails WCAG 1.4.3 at any size. Ink on that
-  yellow is 11.17:1. The accent is a background here or it is not used.
+      Ohpixel   the terminal chrome — boot lines, the pull quote, the tagline.
+                Short, uppercase, structural. Exactly its shape.
+      Flashy    the page heading, which is copy we wrote. Brand rule already.
+      Archivo   the story. Ninety percent of the words, as everywhere else.
 
-  IT ENDS ON THE PRODUCT. An About page that finishes with feelings and no exit
-  spends attention it just earned -- so the last thing on the page is today's
-  Yoink and the Bin, which is what somebody who just read all this is primed to
-  go and look at.
+  That is what makes the monitor work: it LOOKS like a terminal because the
+  chrome is pixels and phosphor, while the part you actually read is set in the
+  face built for reading.
+
+  THE SCREEN HAS NO FIXED ASPECT RATIO. A monitor drawn as a fixed shape is
+  exactly what breaks on a phone — the text either shrinks to nothing or
+  overflows the bezel. Here the "monitor" is a treatment (padding, border,
+  glow, scanlines) on a panel that grows with its content, so it is correct at
+  every width by construction rather than by breakpoint.
+
+  SCANLINES ARE A BACKGROUND, NEVER AN OVERLAY. Striping a translucent layer
+  OVER the text is the obvious implementation and it drags contrast down on
+  every other row. They are painted on the screen's own background instead, so
+  the copy sits cleanly above them at full strength.
+
+  MOTION IS THE BOOT SEQUENCE AND NOTHING ELSE. The lines print one at a time,
+  once, and then the page is static — re-reading should never mean re-watching.
+  The cursor blinks only while the boot is running and goes solid after. All of
+  it is skipped under prefers-reduced-motion, and because the lines are in the
+  DOM already, a browser with JS off shows the whole thing immediately rather
+  than an empty screen.
 {%- endcomment -%}
 
 {%- liquid
@@ -43,25 +59,58 @@
       <h1 class="aj-about__heading">{{ s.heading | escape }}</h1>
     {%- endif -%}
 
-    {%- if s.lead != blank -%}
-      <p class="aj-about__lead">{{ s.lead }}</p>
-    {%- endif -%}
+    <div class="aj-crt">
+      <div class="aj-crt__bar">
+        <span class="aj-crt__dots" aria-hidden="true"></span>
+        {%- if s.monitor_label != blank -%}
+          <span class="aj-crt__label">{{ s.monitor_label | escape }}</span>
+        {%- endif -%}
+      </div>
 
-    {%- if s.body_1 != blank -%}
-      <div class="aj-about__body rte">{{ s.body_1 }}</div>
-    {%- endif -%}
+      <div class="aj-crt__screen">
+        {%- if s.boot_lines != blank -%}
+          {%- comment -%}
+            aria-hidden: this is decorative chrome, and a screen reader
+            announcing "greater-than LOADING ORIGIN dot TXT" before the story
+            is noise rather than atmosphere.
+          {%- endcomment -%}
+          <div class="aj-crt__boot" data-aj-boot aria-hidden="true">
+            {%- assign lines = s.boot_lines | newline_to_br | split: '<br />' -%}
+            {%- for line in lines -%}
+              {%- assign trimmed = line | strip -%}
+              {%- if trimmed != blank -%}
+                <p class="aj-crt__bootline">{{ trimmed | escape }}</p>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
 
-    {%- if s.pull_quote != blank -%}
-      <p class="aj-about__pull">{{ s.pull_quote | escape }}</p>
-    {%- endif -%}
+        {%- if s.lead != blank -%}
+          <div class="aj-crt__lead rte">{{ s.lead }}</div>
+        {%- endif -%}
 
-    {%- if s.body_2 != blank -%}
-      <div class="aj-about__body rte">{{ s.body_2 }}</div>
-    {%- endif -%}
+        {%- if s.body_1 != blank -%}
+          <div class="aj-crt__body rte">{{ s.body_1 }}</div>
+        {%- endif -%}
 
-    {%- if s.signoff != blank -%}
-      <p class="aj-about__signoff">{{ s.signoff | escape }}</p>
-    {%- endif -%}
+        {%- if s.pull_quote != blank -%}
+          <p class="aj-crt__pull">{{ s.pull_quote | escape }}</p>
+        {%- endif -%}
+
+        {%- if s.body_2 != blank -%}
+          <div class="aj-crt__body rte">{{ s.body_2 }}</div>
+        {%- endif -%}
+
+        {%- if s.signoff != blank -%}
+          <p class="aj-crt__signoff">
+            {{- s.signoff | escape -}}
+            <span class="aj-crt__cursor" aria-hidden="true"></span>
+          </p>
+        {%- endif -%}
+      </div>
+    </div>
+
+    <div class="aj-crt__stand" aria-hidden="true"></div>
 
     {%- if s.tagline != blank -%}
       <p class="aj-about__tagline">{{ s.tagline | escape }}</p>
@@ -84,12 +133,48 @@
   </div>
 </div>
 
+<script>
+  (function () {
+    var script = document.currentScript;
+    if (!script) return;
+    var root = script.parentElement;
+    var boot = root && root.querySelector('[data-aj-boot]');
+    if (!boot) return;
+
+    /* Reduced motion gets the finished state, not a slower animation. The
+       lines are already in the DOM and already visible; this only opts IN to
+       the sequence, so doing nothing here is the correct fallback for
+       reduced-motion AND for JS being unavailable. */
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (reduce && reduce.matches) return;
+
+    var lines = boot.querySelectorAll('.aj-crt__bootline');
+    for (var i = 0; i < lines.length; i++) {
+      lines[i].style.animationDelay = i * 0.42 + 's';
+    }
+    boot.setAttribute('data-aj-boot', 'running');
+
+    /* The cursor stops blinking once the log has finished printing. Idle
+       motion that never resolves is the thing people ask you to turn off. */
+    var done = lines.length * 0.42 + 0.6;
+    var cursor = root.querySelector('.aj-crt__cursor');
+    if (cursor) {
+      cursor.classList.add('is-blinking');
+      window.setTimeout(function () {
+        cursor.classList.remove('is-blinking');
+      }, done * 1000);
+    }
+  })();
+</script>
+
 {% stylesheet %}
   .aj-about {
     padding-inline: 1.25rem;
   }
 
-  /* 62ch, not page-width. See the note at the top of this file. */
+  /* 62ch, not page-width. This is the only long-form reading on the site and
+     the rest of the theme is built for product grids, so the standard
+     container runs these lines past 120 characters on a desktop. */
   .aj-about__inner {
     max-width: 62ch;
     margin-inline: auto;
@@ -97,66 +182,213 @@
 
   .aj-about__eyebrow {
     margin: 0 0 0.75rem;
+    font-family: "Ohpixel", var(--font-heading--family);
     font-size: 0.8125rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--aj-price-act, #7a3fa0);
   }
 
+  /* Flashy, because this is a heading we wrote — the same rule aj-brand.css
+     applies to every other heading of ours. Weight 400: Flashy has one weight
+     and the theme's 700 renders it synthetically emboldened. */
   .aj-about__heading {
-    margin: 0 0 1.5rem;
+    margin: 0 0 2rem;
+    font-family: "Flashy", var(--font-heading--family);
+    font-weight: 400;
+    letter-spacing: 0.01em;
     line-height: 1.05;
     text-wrap: balance;
   }
 
-  /* The opening paragraph carries the hook, so it is set larger than the body
-     and lighter than the heading -- a bridge between the two rather than a
-     third competing size. */
-  .aj-about__lead {
+  /* ---- the monitor ------------------------------------------------------ */
+
+  .aj-crt {
+    --aj-crt-screen: #0e0e14;
+    --aj-crt-phosphor: var(--aj-price-grab, #ffe000);
+    --aj-crt-text: #e9e7f0;
+    --aj-crt-dim: rgb(233 231 240 / 0.55);
+
+    border-radius: 14px;
+    background: linear-gradient(180deg, #35323d 0%, #26242c 100%);
+    padding: 0.55rem;
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.08) inset,
+      0 18px 40px rgb(0 0 0 / 0.28);
+  }
+
+  .aj-crt__bar {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.1rem 0.45rem 0.55rem;
+  }
+
+  .aj-crt__dots {
+    flex: none;
+    width: 2.6rem;
+    height: 0.55rem;
+    background-image: radial-gradient(circle, #6f6b7a 45%, transparent 46%);
+    background-size: 0.9rem 0.55rem;
+    background-repeat: repeat-x;
+  }
+
+  .aj-crt__label {
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #8d8899;
+  }
+
+  .aj-crt__screen {
+    /* NO aspect-ratio. The panel grows with its content, which is what makes
+       this survive a phone without a single breakpoint. */
+    padding: 1.75rem 1.5rem 2rem;
+    border-radius: 8px;
+    color: var(--aj-crt-text);
+
+    /* Scanlines live in the BACKGROUND, behind the copy — see the note at the
+       top of this file. */
+    background-color: var(--aj-crt-screen);
+    background-image: repeating-linear-gradient(
+      to bottom,
+      rgb(255 255 255 / 0.035) 0 1px,
+      transparent 1px 3px
+    );
+
+    /* The vignette is what sells the glass. Inset only, so nothing distorts
+       the text itself. */
+    box-shadow: inset 0 0 80px rgb(0 0 0 / 0.6);
+  }
+
+  /* ---- boot sequence ----------------------------------------------------- */
+
+  .aj-crt__boot {
     margin: 0 0 1.75rem;
-    font-size: 1.25rem;
+    padding-block-end: 1.25rem;
+    border-block-end: 1px solid rgb(255 255 255 / 0.12);
+  }
+
+  .aj-crt__bootline {
+    margin: 0 0 0.4rem;
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.75rem;
     line-height: 1.5;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--aj-crt-phosphor);
+    text-shadow: 0 0 14px rgb(255 224 0 / 0.35);
+  }
+
+  /* Default state is VISIBLE. The animation is opted into by script, so no-JS
+     and reduced-motion both land on the finished screen rather than a blank
+     one. */
+  [data-aj-boot='running'] .aj-crt__bootline {
+    opacity: 0;
+    animation: aj-crt-print 0.01s linear forwards;
+  }
+
+  @keyframes aj-crt-print {
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* ---- the story --------------------------------------------------------- */
+
+  /* Archivo, deliberately. The opening paragraph is set larger than the body
+     and lighter than the heading — a bridge between the two rather than a
+     third competing size. */
+  .aj-crt__lead p {
+    margin: 0 0 1.75rem;
+    font-size: 1.1875rem;
+    line-height: 1.6;
     font-weight: 500;
   }
 
-  .aj-about__body > * + * {
-    margin-block-start: 1.25rem;
+  .aj-crt__body p {
+    margin: 0 0 1.25rem;
+    line-height: 1.75;
+    color: var(--aj-crt-dim);
   }
 
-  .aj-about__body p {
-    margin: 0;
-    line-height: 1.65;
+  .aj-crt__body p:last-child {
+    margin-bottom: 0;
   }
 
-  /* Set as a bordered aside rather than centred italics: this is a punchline in
-     the middle of a story, and centring it would break the reading column that
-     the rest of the page depends on. */
-  .aj-about__pull {
+  /* The pull quote is the one place a long-ish line goes into the pixel face,
+     and it is uppercase and short enough to hold its grid. Left-aligned with a
+     rule rather than centred: centring would break the reading column the rest
+     of the screen depends on. */
+  .aj-crt__pull {
     margin: 2rem 0;
-    padding: 0.25rem 0 0.25rem 1.25rem;
-    border-inline-start: 3px solid var(--aj-price-act, #7a3fa0);
-    font-size: 1.375rem;
-    font-weight: 700;
-    line-height: 1.3;
-    text-wrap: balance;
+    padding: 0.9rem 0 0.9rem 1.1rem;
+    border-inline-start: 3px solid var(--aj-crt-phosphor);
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--aj-crt-phosphor);
+    text-shadow: 0 0 18px rgb(255 224 0 / 0.3);
   }
 
-  .aj-about__signoff {
+  .aj-crt__signoff {
     margin: 2rem 0 0;
-    font-size: 1.125rem;
-    font-weight: 700;
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--aj-crt-phosphor);
+    text-shadow: 0 0 14px rgb(255 224 0 / 0.35);
   }
 
-  /* Ink on yellow. Never yellow type -- 1.32:1 against white. */
+  .aj-crt__cursor {
+    display: inline-block;
+    width: 0.6em;
+    height: 1em;
+    margin-inline-start: 0.35em;
+    background: var(--aj-crt-phosphor);
+    vertical-align: -0.12em;
+  }
+
+  .aj-crt__cursor.is-blinking {
+    animation: aj-crt-blink 1s steps(1, end) infinite;
+  }
+
+  @keyframes aj-crt-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  /* The foot, which is the only part that is purely decorative — so it is the
+     first thing to go on a narrow screen. */
+  .aj-crt__stand {
+    width: 34%;
+    height: 0.6rem;
+    margin: 0 auto;
+    border-radius: 0 0 8px 8px;
+    background: linear-gradient(180deg, #26242c 0%, #1a181f 100%);
+  }
+
+  /* ---- below the monitor -------------------------------------------------- */
+
+  /* Ink on yellow, never yellow type. aj-brand.css measured it: yellow on
+     white is 1.32:1 and fails WCAG 1.4.3 at any size; ink on that yellow is
+     11.17:1. The accent is a background here or it is not used. */
   .aj-about__tagline {
     margin: 2.5rem 0 0;
-    padding: 0.9rem 1.1rem;
+    padding: 1rem 1.1rem;
     border-radius: var(--aj-tile-radius, 8px);
     background: var(--aj-price-grab, #ffe000);
     color: var(--aj-price-read, #282828);
-    font-size: 1.0625rem;
-    font-weight: 800;
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     text-align: center;
   }
 
@@ -194,18 +426,50 @@
   }
 
   @media screen and (max-width: 749px) {
-    .aj-about__lead {
-      font-size: 1.125rem;
+    /* The bezel thins rather than the screen shrinking — chrome is what gives
+       way on a small screen, never the reading area. */
+    .aj-crt {
+      padding: 0.3rem;
+      border-radius: 10px;
     }
 
-    .aj-about__pull {
-      font-size: 1.1875rem;
+    .aj-crt__screen {
+      padding: 1.35rem 1.1rem 1.6rem;
     }
 
-    /* Stacked rather than side by side: two half-width buttons on a phone are
-       two small buttons. */
+    .aj-crt__stand {
+      display: none;
+    }
+
+    .aj-crt__lead p {
+      font-size: 1.0625rem;
+    }
+
+    /* Ohpixel needs to come down harder than the body face does: a pixel grid
+       that lands between whole pixels is where it starts to look broken. */
+    .aj-crt__pull {
+      font-size: 0.9375rem;
+      letter-spacing: 0.04em;
+    }
+
+    .aj-crt__bootline {
+      font-size: 0.6875rem;
+    }
+
+    .aj-about__tagline {
+      font-size: 0.8125rem;
+    }
+
     .aj-about__btn {
       flex-basis: 100%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aj-crt__bootline,
+    .aj-crt__cursor.is-blinking {
+      animation: none !important;
+      opacity: 1 !important;
     }
   }
 {% endstylesheet %}
@@ -216,7 +480,7 @@
   "settings": [
     {
       "type": "paragraph",
-      "content": "The origin story. Founders stay anonymous — 'two coworkers', no names, no photos."
+      "content": "The origin story, framed as a CRT terminal. Founders stay anonymous — 'two coworkers', no names, no photos."
     },
     { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "About us" },
     {
@@ -225,43 +489,54 @@
       "label": "Heading",
       "default": "Two coworkers who refused to stop hanging out"
     },
+    { "type": "header", "content": "Terminal" },
+    { "type": "text", "id": "monitor_label", "label": "Monitor label", "default": "The Yoink Co." },
+    {
+      "type": "textarea",
+      "id": "boot_lines",
+      "label": "Boot sequence",
+      "info": "One line each. Prints line by line on load. Uppercased automatically — keep them short.",
+      "default": "The Yoink Co. Terminal v1.0\n> Loading origin.txt ...\n> OK"
+    },
     {
       "type": "richtext",
       "id": "lead",
       "label": "Opening paragraph",
-      "default": "<p>So, funny thing about a good coworker: you don't realize they're the whole point of the job until one of them packs up and moves away. That's us. Two guys who used to sit near each other, scheme near each other, and get in trouble near each other — until one of us left and the office got real quiet.</p>"
+      "default": "<p>We're a couple of '90s kids. We missed the dot-com boom by about a decade, came of age dodging recessions and pandemics, and have basically spent our whole adult lives being told the timing's bad. So instead of waiting around for a better hand, we decided to have some fun with the one we've got.</p>"
     },
     {
       "type": "richtext",
       "id": "body_1",
       "label": "Body — before the pull quote",
-      "default": "<p>Naturally, we handled it in the most normal way possible. We started an online store.</p><p>The Yoink is our excuse to keep hanging out, keep scheming, and finally have some fun with retail — because the places we came from were about as playful as a tax form. Case in point: one of us stayed up half the night last week, wide awake, brain fully hijacked by what should tomorrow's deal be. That's not a healthy relationship with a website. We're aware. We're not stopping.</p><p>Here's the bit: every single day, we go dig up one genuinely cool, slightly random, actually-worth-owning thing — and drop it at a price that feels a little bit illegal.</p>"
+      "default": "<p>The short version: two guys that had a lot of fun working together, until one of them decided to move off. So, in order to keep the bromance alive, we did the most reasonable thing two grown adults could do.</p><p>We started an online store.</p><p>The Yoink is our excuse to keep hanging out, keep scheming, and finally have some fun with retail — because the places we came from were about as playful as a tax form. Case in point: one of us stayed up half the night last week, wide awake, brain fully hijacked by what should tomorrow's deal be. That's not a healthy relationship with a website. We're aware. We're not stopping.</p><p>Here's the bit: every single day, we go dig up one genuinely cool, slightly random, actually-worth-owning thing — and drop it at a price that feels a little bit illegal.</p>"
     },
     {
       "type": "text",
       "id": "pull_quote",
       "label": "Pull quote",
+      "info": "Set in the pixel face and uppercased. Keep it short — it loses its grid in long sentences.",
       "default": "One deal. One day. Blink and it's someone else's."
     },
     {
       "type": "richtext",
       "id": "body_2",
       "label": "Body — after the pull quote",
-      "default": "<p>We call it the Yoink of the Day, because yoink is the sound of grabbing something great half a second before the person next to you.</p><p>Nature's already full of professionals at this. Raccoons yoink the dog food. Seagulls yoink the fries. Bears yoink the whole picnic basket and don't even say thank you. We're just doing it with better taste and free-ish shipping — a little retail Robin Hood move where somehow everybody wins: you get the score, the good stuff finds its people, and we get to keep the lights on.</p><p>To be clear, we are not out here trying to buy a yacht. A canoe, maybe. Mostly we just like tracking down cool stuff for cheap and handing you the deal like it's a dare. Some days the Yoink is exactly what you didn't know you needed. Some days it's a penguin-shaped thing that is very much Not For You — no notes, there's a new one tomorrow.</p><p>So stick around. Watch the drops. Rummage the Bargain Bin between yoinks. And when the good one hits — you know what to do.</p>"
+      "default": "<p>We call it the Yoink of the Day, because yoink is the sound of grabbing something great half a second before the person next to you.</p><p>Nature's already full of professionals at this. Raccoons yoink the dog food. Seagulls yoink the fries. Bears yoink the whole picnic basket and don't even say thank you. We're just doing it with better taste and free-ish shipping — a little retail Robin Hood move where somehow everybody wins: you get the score, the good stuff finds its people, and we get to keep the lights on.</p><p>To be clear, we are not out here trying to buy a yacht. A canoe, maybe. We're just making the most of the hand we've been dealt — and, conveniently, dealing is kind of our whole thing. Mostly we like tracking down cool stuff for cheap and handing you the deal like it's a dare. Some days the Yoink is exactly what you didn't know you needed. Some days it's a penguin-shaped thing that is very much Not For You — no notes, there's a new one tomorrow.</p><p>So stick around. Watch the drops. Rummage the Bargain Bin between yoinks. And when the good one hits — you know what to do.</p>"
     },
     {
       "type": "text",
       "id": "signoff",
       "label": "Sign-off",
+      "info": "Set in the pixel face. The ⚡ falls back to the system emoji font — that is intentional, it is the one spot of colour on the screen.",
       "default": "Welcome to The Yoink. Yoink accordingly. ⚡"
     },
+    { "type": "header", "content": "Below the monitor" },
     {
       "type": "text",
       "id": "tagline",
       "label": "Tagline band",
       "default": "One deal a day. Yoink it before it's gone."
     },
-    { "type": "header", "content": "Buttons" },
     { "type": "text", "id": "primary_text", "label": "Primary button", "default": "See today's Yoink" },
     { "type": "url", "id": "primary_link", "label": "Primary link" },
     { "type": "text", "id": "secondary_text", "label": "Secondary button", "default": "Dig through the Bargain Bin" },
