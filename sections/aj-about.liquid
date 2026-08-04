@@ -170,9 +170,22 @@
   </div>
 
   {%- if s.bar_footer != blank -%}
-    <div class="aj-crt-page__bar aj-crt-page__bar--bottom" aria-hidden="true">
-      <span>{{ s.bar_footer }}</span>
-      <span>{{ s.bar_footer_right }}</span>
+    {%- comment -%}
+      The left cell is a real link now, so the bar is NOT aria-hidden the way
+      the top one is — hiding a navigable link from assistive tech is worse
+      than the small amount of noise the label adds.
+
+      NO ESCAPE-KEY BINDING, despite the label inviting one. Escape is how
+      people dismiss drawers, dialogs and the search overlay, and a page that
+      navigates away when you try to close something is the kind of surprise
+      nobody forgives. The label reads as terminal furniture; making it
+      literal would cost more than it earns.
+    {%- endcomment -%}
+    <div class="aj-crt-page__bar aj-crt-page__bar--bottom">
+      <a class="aj-crt-page__barlink" href="{{ s.bar_footer_link | default: '/' }}">
+        {{- s.bar_footer -}}
+      </a>
+      <span aria-hidden="true">{{ s.bar_footer_right }}</span>
     </div>
   {%- endif -%}
 </div>
@@ -266,6 +279,26 @@
 
   .aj-crt-page__bar-mid {
     opacity: 0.75;
+  }
+
+  /* Inherits the bar's punched-out colour rather than the theme's link blue,
+     which on a phosphor strip would be the only thing on the page that looks
+     like a web page. */
+  .aj-crt-page__barlink {
+    color: inherit;
+    text-decoration: none;
+    border-block-end: 1px solid transparent;
+  }
+
+  @media (hover: hover) {
+    .aj-crt-page__barlink:hover {
+      border-block-end-color: currentColor;
+    }
+  }
+
+  .aj-crt-page__barlink:focus-visible {
+    outline: 2px solid var(--aj-crt-screen);
+    outline-offset: 2px;
   }
 
   @media screen and (max-width: 749px) {
@@ -538,6 +571,7 @@
     { "type": "text", "id": "bar_mid", "label": "Top bar — middle", "default": "our-story.txt" },
     { "type": "text", "id": "bar_right", "label": "Top bar — right", "default": "Read only" },
     { "type": "text", "id": "bar_footer", "label": "Bottom bar — left", "default": "Esc = back to the shop" },
+    { "type": "url", "id": "bar_footer_link", "label": "Bottom bar — left link", "info": "Defaults to the homepage." },
     { "type": "text", "id": "bar_footer_right", "label": "Bottom bar — right", "default": "One deal a day" },
     { "type": "header", "content": "Terminal" },
     { "type": "text", "id": "prompt", "label": "Prompt", "default": "C:\\>" },
