@@ -145,6 +145,25 @@
             assign max_visible_slide_count = 2
           endif
 
+          # AND THEN ACTUALLY STOP AT IT. Horizon computes the limit above and
+          # only ever uses it to decide which slides get `hidden` -- every image
+          # a product owns is still emitted into the DOM with a full srcset.
+          #
+          # Measured on /collections/new-arrivals: 1.03MB of HTML, of which 54%
+          # was product cards. One product, COLDEST 46oz Limitless Ultra v8,
+          # carries EIGHTY images and rendered a 162KB card -- 16% of the entire
+          # page for one tile nobody can see past the fifth slide of. srcset
+          # attributes alone were 150KB across the grid.
+          #
+          # Truncating here rather than inside the loop so `slide_count` below
+          # agrees with what was rendered; a slideshow told it has 80 slides
+          # when 5 exist builds 75 phantom controls.
+          #
+          # Safe against the variant-image branch because `show_variant_image`
+          # is off for this store -- cards never swap image on variant change,
+          # so nothing downstream needs a media item that is not shown.
+          assign media_list_to_show = media_list_to_show | slice: 0, max_visible_slide_count
+
           capture slides
             for media in media_list_to_show
               assign hidden = false
