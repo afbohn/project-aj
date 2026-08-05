@@ -22,7 +22,24 @@
 {%- endcomment -%}
 
 {%- liquid
-  assign prefix = 'cat-'
+  comment
+    `tax1-`, NOT `cat-`. Two category trees existed side by side: the `cat-*`
+    one this section was built on, hand-mapped from vendor and product type, and
+    the `tax1/2/3-*` one that syncTaxonomyTree maintains from Shopify's own
+    product taxonomy. The second is three levels deep, self-maintaining, and the
+    only one `sections/aj-category-drill.liquid` can drill into.
+
+    The main menu was pointed at it on 5 Aug. Leaving this section on `cat-*`
+    would have meant the homepage tiles and the nav sending a shopper to two
+    different pages for the same department — and the tile's destination would
+    be the one with no drill-down on it.
+
+    These collections carry no image either, so the tile art still comes from
+    the fallback below. That is now a better picture rather than a worse one:
+    the first product is whatever `interleaveCollections` put at the front,
+    which is a deliberate vendor-diverse pick and not an accident of sort order.
+  endcomment
+  assign prefix = 'tax1-'
   assign min_products = section.settings.min_products | plus: 0
   assign max_cats = section.settings.max_cats | plus: 0
 
