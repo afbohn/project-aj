@@ -75,7 +75,7 @@
         "body": "One graphic tee, pulled from the pile and sealed up for seven days. Then it goes back and a new one takes its place.",
         "cta_label": "Yoink it",
         "archive_label": "See the whole set",
-        "archive_link": "shopify://collections/tee-past",
+        "archive_link": "/collections/tee-past",
         "sold_out_label": "Gone \u2014 back next week with a new one",
         "card_series": "The Yoink",
         "card_subset": "Tee of the Week",

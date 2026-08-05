@@ -43,9 +43,25 @@
   assign s = section.settings
 
   # The picker wins, so a manual override never needs a deploy or an agent pause.
+  #
+  # A HANDLE, NOT A COLLECTION PICKER, and the reason cost a deploy. A
+  # `collection` setting makes Shopify resolve the handle to a real collection
+  # when it VALIDATES the template — and this collection is created by the app,
+  # so on a fresh install it does not exist yet. The whole of index.json was
+  # rejected server-side and the section silently never appeared. Every other
+  # app-maintained collection in this theme is referenced by handle for exactly
+  # this reason; see `collection_handle` in aj-bargain-bin.
+  #
+  # Resolve the handle FIRST. Liquid does not allow a filter inside a bracket
+  # lookup, so `collections[s.tee_collection | default: 'x']` silently yields
+  # nil — the same trap aj-drawer-picks documents.
   assign tee = s.tee_product
-  if tee == blank and s.tee_collection != blank
-    assign tee = s.tee_collection.products.first
+  if tee == blank
+    assign tee_handle = s.tee_collection | default: 'tee-of-the-week'
+    assign tee_collection = collections[tee_handle]
+    if tee_collection != blank
+      assign tee = tee_collection.products.first
+    endif
   endif
 -%}
 
@@ -1013,10 +1029,11 @@
     { "type": "header", "content": "This week's tee" },
     { "type": "product", "id": "tee_product", "label": "Tee" },
     {
-      "type": "collection",
+      "type": "text",
       "id": "tee_collection",
-      "label": "Fallback collection",
-      "info": "Used only when no tee is picked above — takes the first product. This is what the Tee of the Week agent maintains."
+      "label": "Fallback collection handle",
+      "info": "Used only when no tee is picked above — takes the first product. Must match the collection the app maintains.",
+      "default": "tee-of-the-week"
     },
     {
       "type": "image_picker",
@@ -1054,10 +1071,11 @@
       "default": "See the whole set"
     },
     {
-      "type": "url",
+      "type": "text",
       "id": "archive_link",
       "label": "Archive link",
-      "info": "The agent creates /collections/tee-past on its first rotation."
+      "info": "A plain path, not a picker — the agent creates this collection, so a picker would refuse to resolve it before the first rotation.",
+      "default": "/collections/tee-past"
     },
     { "type": "text", "id": "sold_out_label", "label": "Sold-out text", "default": "Gone — back next week with a new one" },
     { "type": "header", "content": "Card" },
