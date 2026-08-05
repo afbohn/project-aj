@@ -1,0 +1,577 @@
+{%- comment -%}
+  AJ Tee Archive — the binder. Every tee that has held the weekly slot, in
+  pockets, with the week it ran printed on it.
+
+  THE SET IS THE PRODUCT HERE. A page listing past features is a changelog and
+  nobody reads it. A page showing a part-filled binder is an invitation to come
+  back, which is the only reason a weekly section is worth running at all — and
+  it makes the number on the homepage card mean something, because the numbers
+  have somewhere to live.
+
+  EMPTY POCKETS ARE DELIBERATE. A binder with three blanks at the end reads as a
+  set in progress; the same binder cropped to its filled pockets reads as
+  finished. They cost nothing and they are the whole difference between "here is
+  what we did" and "here is what is coming".
+
+  MINI SLABS, NOT THE HOMEPAGE CARD SHRUNK. The homepage card carries a grading
+  label, a barcode, a serial, four stats and a sticker. At a third the width
+  none of that is legible, and illegible detail reads as noise rather than as
+  richness. This keeps the three things that survive the size — the sleeve, the
+  week number, the name plate — and drops the rest.
+
+  THE WEEK NUMBER COMES OFF THE PRODUCT, and falls back to position when it is
+  absent. The agent writes `tee.week` when it promotes a tee. Counting backwards
+  from today instead would be right until the first week the queue runs dry, and
+  then every card behind the gap would be permanently mislabelled.
+{%- endcomment -%}
+
+{%- liquid
+  assign s = section.settings
+
+  # LIQUID DOES NOT ALLOW A FILTER INSIDE A BRACKET LOOKUP — written as
+  # `collections[handle | default: 'tee-past']` this resolves to nil and the
+  # section renders nothing, silently. Resolve the handle first.
+  assign archive_handle = s.archive_handle | default: 'tee-past'
+  assign archive = collections[archive_handle]
+  assign cards = archive.products
+  assign filled = cards | size
+-%}
+
+<div
+  class="aj-teeb color-{{ s.color_scheme }}"
+  style="padding-block-start: {{ s.padding-block-start }}px; padding-block-end: {{ s.padding-block-end }}px;"
+  {{ section.shopify_attributes }}
+>
+  <div class="aj-teeb__inner page-width">
+    <header class="aj-teeb__head">
+      {%- if s.kicker != blank -%}
+        <p class="aj-teeb__kicker">{{ s.kicker | escape }}</p>
+      {%- endif -%}
+      {%- if s.heading != blank -%}
+        <h1 class="aj-teeb__heading">{{ s.heading | escape }}</h1>
+      {%- endif -%}
+      <span class="aj-teeb__rule" aria-hidden="true"></span>
+      {%- if s.body != blank -%}
+        <p class="aj-teeb__body">{{ s.body | escape }}</p>
+      {%- endif -%}
+      {%- comment -%}
+        The count is rendered rather than written, so it can never be a stale
+        number somebody typed once.
+      {%- endcomment -%}
+      <p class="aj-teeb__count">
+        <span class="aj-teeb__count-n">{{ filled }}</span>
+        {% if filled == 1 %}{{ s.count_one | escape }}{% else %}{{ s.count_many | escape }}{% endif %}
+      </p>
+    </header>
+
+    {%- if filled > 0 -%}
+      <ul class="aj-teeb__grid" role="list">
+        {%- for product in cards -%}
+          {%- liquid
+            assign v = product.selected_or_first_available_variant
+
+            # The number the card actually ran as. `| plus: 0` forces the
+            # metafield to a number so the zero test below is not comparing a
+            # string; an absent metafield yields 0 and falls through.
+            assign wk = product.metafields.tee.week.value | plus: 0
+            if wk == 0
+              assign wk = filled | minus: forloop.index0
+            endif
+
+            assign wk_label = wk | append: ''
+            if wk < 100
+              assign wk_label = wk_label | prepend: '0'
+            endif
+            if wk < 10
+              assign wk_label = wk_label | prepend: '0'
+            endif
+          -%}
+          <li class="aj-teeb__pocket">
+            <a class="aj-teeb__slab" href="{{ product.url }}">
+              <span class="aj-teeb__glass" aria-hidden="true"></span>
+
+              <span class="aj-teeb__label">
+                <span class="aj-teeb__label-set">{{ s.card_series | escape }}</span>
+                <span class="aj-teeb__label-no">{{ wk_label }}</span>
+              </span>
+
+              <span class="aj-teeb__card">
+                <span class="aj-teeb__bands" aria-hidden="true"></span>
+                <span class="aj-teeb__cardin">
+                  <span class="aj-teeb__window">
+                    {%- if product.featured_image != blank -%}
+                      {{
+                        product.featured_image
+                        | image_url: width: 500
+                        | image_tag:
+                          loading: 'lazy',
+                          widths: '200, 320, 500',
+                          sizes: '(min-width: 990px) 22vw, (min-width: 750px) 30vw, 44vw',
+                          class: 'aj-teeb__art',
+                          alt: product.title
+                      }}
+                    {%- endif -%}
+                  </span>
+                  <span class="aj-teeb__plate">
+                    <span class="aj-teeb__name">{{ product.title | escape }}</span>
+                    {%- comment -%}
+                      The archive shows TODAY's price, not the week's price. The
+                      discount was restored when the tee left the slot, so
+                      printing what it cost that week would be advertising a
+                      price nobody can now pay.
+                    {%- endcomment -%}
+                    <span class="aj-teeb__price">
+                      {%- if product.available -%}
+                        {{ v.price | money }}
+                      {%- else -%}
+                        {{ s.gone_label | escape }}
+                      {%- endif -%}
+                    </span>
+                  </span>
+                </span>
+              </span>
+            </a>
+          </li>
+        {%- endfor -%}
+
+        {%- comment -%}
+          The pockets still to fill. `aria-hidden` because "empty slot" repeated
+          three times is noise to a screen reader — the count above already says
+          how many cards exist.
+        {%- endcomment -%}
+        {%- for i in (1..s.empty_slots) -%}
+          <li class="aj-teeb__pocket aj-teeb__pocket--empty" aria-hidden="true">
+            <span class="aj-teeb__empty">
+              <span class="aj-teeb__empty-q">?</span>
+              <span class="aj-teeb__empty-t">{{ s.empty_label | escape }}</span>
+            </span>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- else -%}
+      <p class="aj-teeb__none">{{ s.empty_state | escape }}</p>
+    {%- endif -%}
+  </div>
+</div>
+
+{% stylesheet %}
+  /*
+    The same purple ground as the homepage section, because this page is that
+    section's other half and a different colour would break the connection the
+    week number is trying to make.
+  */
+  .aj-teeb {
+    --aj-teeb-cream: #f2ead9;
+    --aj-teeb-cream-2: #e4d8c0;
+    background: var(--aj-brand-purple, #7a3fa0);
+    color: #ffffff;
+  }
+
+  .aj-teeb__inner {
+    max-width: 72rem;
+    margin-inline: auto;
+  }
+
+  /* ---- the header --------------------------------------------------------- */
+
+  .aj-teeb__head {
+    text-align: center;
+    margin-block-end: 2.5rem;
+  }
+
+  .aj-teeb__kicker {
+    margin: 0 0 0.5rem;
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--aj-brand-yellow, #ffe000);
+  }
+
+  .aj-teeb__heading {
+    margin: 0 0 0.85rem;
+    font-family: "Flashy", var(--font-heading--family);
+    font-weight: 400;
+    font-size: clamp(2.25rem, 8vw, 4rem);
+    line-height: 0.96;
+    text-wrap: balance;
+  }
+
+  /* Ink stands in for purple — on this ground the brand purple is a hole. */
+  .aj-teeb__rule {
+    display: block;
+    width: 8rem;
+    height: 5px;
+    margin: 0 auto 1.1rem;
+    border-radius: 2px;
+    background: linear-gradient(
+      90deg,
+      var(--aj-brand-cyan, #5cd8f8) 0 25%,
+      var(--aj-brand-yellow, #ffe000) 25% 50%,
+      var(--aj-brand-ink, #282828) 50% 75%,
+      var(--aj-brand-teal, #30aac6) 75% 100%
+    );
+  }
+
+  .aj-teeb__body {
+    margin: 0 auto 1rem;
+    max-width: 46ch;
+    font-size: 1.0625rem;
+    line-height: 1.55;
+    color: rgb(255 255 255 / 0.86);
+  }
+
+  .aj-teeb__count {
+    margin: 0;
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.7);
+  }
+
+  /*
+    The one number on the page, so it gets display size. Flashy's digits are
+    narrow — at 1.5rem a single digit beside spaced uppercase read as a stray
+    mark rather than as a count.
+  */
+  .aj-teeb__count-n {
+    font-family: "Flashy", var(--font-heading--family);
+    font-size: 2.25rem;
+    letter-spacing: 0;
+    color: var(--aj-brand-yellow, #ffe000);
+    vertical-align: -0.16em;
+    margin-inline-end: 0.35rem;
+  }
+
+  /* ---- the binder --------------------------------------------------------- */
+
+  .aj-teeb__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media screen and (min-width: 750px) {
+    .aj-teeb__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.5rem;
+    }
+  }
+
+  @media screen and (min-width: 990px) {
+    .aj-teeb__grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  /*
+    EVERY CARD LEANS SLIGHTLY DIFFERENTLY. A grid of perfectly square rectangles
+    reads as a spreadsheet; three repeating angles read as objects somebody put
+    in pockets by hand. Three is enough — the eye stops looking for the pattern
+    past about that, and more would need a rule per card.
+  */
+  .aj-teeb__pocket:nth-child(3n + 1) .aj-teeb__slab { rotate: -1.6deg; }
+  .aj-teeb__pocket:nth-child(3n + 2) .aj-teeb__slab { rotate: 1.1deg; }
+  .aj-teeb__pocket:nth-child(3n + 3) .aj-teeb__slab { rotate: -0.5deg; }
+
+  .aj-teeb__slab {
+    position: relative;
+    display: block;
+    padding: 0.4rem 0.4rem 0.5rem;
+    border-radius: 10px;
+    text-decoration: none;
+    color: inherit;
+    background: linear-gradient(160deg, rgb(255 255 255 / 0.32), rgb(255 255 255 / 0.1));
+    border: 1px solid rgb(255 255 255 / 0.45);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.65),
+      inset 0 -1px 0 rgb(0 0 0 / 0.16),
+      0 12px 24px rgb(0 0 0 / 0.34);
+    transition: translate 0.2s ease, scale 0.2s ease, rotate 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  /*
+    Straightens and lifts, exactly as the homepage slab does. Pulling a card out
+    of a pocket is the gesture; whichever card you reach for is the one that
+    comes up straight.
+  */
+  @media (hover: hover) {
+    .aj-teeb__slab:hover {
+      translate: 0 -6px;
+      scale: 1.03;
+      rotate: 0deg;
+      box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.8),
+        inset 0 -1px 0 rgb(0 0 0 / 0.18),
+        0 20px 38px rgb(0 0 0 / 0.46);
+    }
+  }
+
+  .aj-teeb__slab:focus-visible {
+    outline: 3px solid var(--aj-brand-yellow, #ffe000);
+    outline-offset: 3px;
+    rotate: 0deg;
+  }
+
+  .aj-teeb__glass {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    border-radius: 10px;
+    background: linear-gradient(
+      118deg,
+      rgb(255 255 255 / 0) 36%,
+      rgb(255 255 255 / 0.15) 46%,
+      rgb(255 255 255 / 0) 58%
+    );
+  }
+
+  /* The grading label, reduced to the two things legible at this size. */
+  .aj-teeb__label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.28rem 0.4rem;
+    margin-block-end: 0.35rem;
+    border-radius: 3px;
+    background: var(--aj-teeb-cream, #f2ead9);
+    color: var(--aj-brand-ink, #282828);
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.1);
+  }
+
+  .aj-teeb__label-set {
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.5rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.65;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .aj-teeb__label-no {
+    font-family: "Flashy", var(--font-heading--family);
+    font-size: 0.95rem;
+    line-height: 0.9;
+    white-space: nowrap;
+  }
+
+  .aj-teeb__card {
+    display: block;
+    padding: 0.28rem;
+    border-radius: 6px;
+    background: linear-gradient(180deg, var(--aj-teeb-cream, #f2ead9), var(--aj-teeb-cream-2, #e4d8c0));
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.16);
+  }
+
+  .aj-teeb__bands {
+    display: block;
+    height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(
+      90deg,
+      var(--aj-brand-cyan, #5cd8f8) 0 25%,
+      var(--aj-brand-yellow, #ffe000) 25% 50%,
+      var(--aj-brand-purple, #7a3fa0) 50% 75%,
+      var(--aj-brand-teal, #30aac6) 75% 100%
+    );
+  }
+
+  .aj-teeb__cardin {
+    display: block;
+    overflow: hidden;
+    margin-block-start: 0.28rem;
+    border-radius: 4px;
+  }
+
+  .aj-teeb__window {
+    display: block;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: inset 0 0 0 2px var(--aj-brand-ink, #282828);
+  }
+
+  /*
+    Cover, matching the homepage card's photo mode. Most of this catalogue's tee
+    photography is flat-lay on concrete, which crops to a frame the way card
+    photography does.
+  */
+  .aj-teeb__art {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .aj-teeb__plate {
+    display: block;
+    padding: 0.4rem 0.45rem 0.35rem;
+    text-align: center;
+    background: var(--aj-brand-ink, #282828);
+    color: var(--aj-teeb-cream, #f2ead9);
+  }
+
+  /*
+    Two lines and then a clamp. These titles run long — "03 Resident Evil
+    Outbreak Ps2 Black T-Shirt" — and a plate that grows to fit breaks the grid
+    into ragged rows.
+  */
+  .aj-teeb__name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-family: "Flashy", var(--font-heading--family);
+    font-weight: 400;
+    font-size: 0.8125rem;
+    line-height: 1.12;
+  }
+
+  .aj-teeb__price {
+    display: block;
+    margin-block-start: 0.2rem;
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.5625rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--aj-brand-yellow, #ffe000);
+  }
+
+  /* ---- the empty pockets --------------------------------------------------- */
+
+  /*
+    A dashed outline rather than a card. It has to read as an absence — a pocket
+    with nothing in it — and anything with a fill reads as a card that failed to
+    load.
+  */
+  .aj-teeb__pocket--empty .aj-teeb__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    height: 100%;
+    min-height: 12rem;
+    padding: 1rem;
+    border: 2px dashed rgb(255 255 255 / 0.32);
+    border-radius: 10px;
+    text-align: center;
+  }
+
+  .aj-teeb__empty-q {
+    font-family: "Flashy", var(--font-heading--family);
+    font-size: 2.25rem;
+    line-height: 1;
+    color: rgb(255 255 255 / 0.4);
+  }
+
+  .aj-teeb__empty-t {
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.5625rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.5);
+  }
+
+  .aj-teeb__none {
+    margin: 0;
+    text-align: center;
+    font-size: 1rem;
+    color: rgb(255 255 255 / 0.8);
+  }
+
+  /* ---- motion -------------------------------------------------------------- */
+
+  /*
+    Scroll-driven, so no JavaScript. Guarded twice, as everywhere else in this
+    theme: @supports for browsers with no view timeline, which see the finished
+    state, and reduced-motion for people who asked not to have it.
+
+    The animation owns `translate` and `opacity`; the resting lean owns `rotate`
+    and the hover owns `scale`. Three independent properties, so a card that has
+    finished animating can still be picked up.
+  */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .aj-teeb__slab {
+        animation: aj-teeb-in linear both;
+        animation-timeline: view();
+        animation-range: entry 0% cover 24%;
+      }
+
+      @keyframes aj-teeb-in {
+        from {
+          opacity: 0;
+          translate: 0 20px;
+        }
+
+        to {
+          opacity: 1;
+          translate: 0 0;
+        }
+      }
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "AJ Tee archive",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "The binder of past Tee of the Week picks. The agent tags each tee 'tee-past' when it leaves the slot and records the week it ran, so this fills itself."
+    },
+    {
+      "type": "text",
+      "id": "archive_handle",
+      "label": "Collection handle",
+      "info": "The agent maintains 'tee-past'. Change only if that collection is renamed.",
+      "default": "tee-past"
+    },
+    { "type": "header", "content": "Copy" },
+    { "type": "text", "id": "kicker", "label": "Kicker", "default": "The set" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Every tee that made the cut" },
+    {
+      "type": "text",
+      "id": "body",
+      "label": "Text",
+      "default": "One graphic tee gets sealed up every week. This is all of them, in order, with the week each one ran."
+    },
+    { "type": "text", "id": "count_one", "label": "Count label, singular", "default": "card in the set" },
+    { "type": "text", "id": "count_many", "label": "Count label, plural", "default": "cards in the set" },
+    { "type": "text", "id": "gone_label", "label": "Sold-out label", "default": "Sold out" },
+    {
+      "type": "text",
+      "id": "empty_state",
+      "label": "Text when the set is empty",
+      "default": "The first card goes in this week. Come back and watch it fill up."
+    },
+    { "type": "header", "content": "Card" },
+    { "type": "text", "id": "card_series", "label": "Label set name", "default": "The Yoink" },
+    {
+      "type": "range",
+      "id": "empty_slots",
+      "label": "Empty pockets shown",
+      "info": "Blank slots after the last card, so the set reads as unfinished.",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "default": 3
+    },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "header", "content": "Padding" },
+    { "type": "range", "id": "padding-block-start", "label": "Top", "min": 0, "max": 120, "step": 4, "unit": "px", "default": 64 },
+    { "type": "range", "id": "padding-block-end", "label": "Bottom", "min": 0, "max": 120, "step": 4, "unit": "px", "default": 72 }
+  ],
+  "presets": [{ "name": "AJ Tee archive" }]
+}
+{% endschema %}

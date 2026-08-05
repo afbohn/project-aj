@@ -1,0 +1,15 @@
+{
+  "sections": {
+    "main": {
+      "type": "aj-tee-archive",
+      "settings": {
+        "archive_handle": "tee-past",
+        "color_scheme": "scheme-1",
+        "empty_slots": 3,
+        "padding-block-start": 64,
+        "padding-block-end": 72
+      }
+    }
+  },
+  "order": ["main"]
+}

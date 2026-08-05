@@ -65,6 +65,24 @@
         "padding-block-end": 32
       }
     },
+    "aj_tee_week": {
+      "type": "aj-tee-week",
+      "settings": {
+        "tee_collection": "tee-of-the-week",
+        "window_style": "photo",
+        "kicker": "One a week",
+        "heading": "Tee of the Week",
+        "body": "One graphic tee, pulled from the pile and sealed up for seven days. Then it goes back and a new one takes its place.",
+        "cta_label": "Yoink it",
+        "sold_out_label": "Gone \u2014 back next week with a new one",
+        "card_series": "The Yoink",
+        "card_subset": "Tee of the Week",
+        "series_start": "2026-08-04",
+        "color_scheme": "scheme-1",
+        "padding-block-start": 56,
+        "padding-block-end": 56
+      }
+    },
     "aj_bargain_bin": {
       "type": "aj-bargain-bin",
       "settings": {
@@ -99,6 +117,7 @@
     "aj_daily_deal",
     "aj_how",
     "aj_bargain_bin",
+    "aj_tee_week",
     "aj_shop_by_price",
     "aj_shop_by_category",
     "aj_past_deals",

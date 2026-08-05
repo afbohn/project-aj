@@ -1,0 +1,1014 @@
+{%- comment -%}
+  AJ Tee of the Week — one graphic tee, slabbed like a graded collector card.
+
+  A CARD RATHER THAN A DEAL, and the discount arithmetic is the reason. Measured
+  on 4 August against the live catalogue: 145 graphic tees, median price $46.00
+  against a $27.60 cost, so a 40% margin. Hold a 20% margin floor and a 15% cut
+  leaves 93 of the 145 eligible — nearly two years of weekly picks. A 25% cut
+  leaves 18, which is four months and then repeats.
+
+  So 15% is the only sustainable number, and 15% is the problem: the Bargain Bin
+  two sections up is a permanent 25%, and a shallower discount presented AS a
+  discount reads as the worse offer sitting above the better one. A slabbed card
+  sidesteps the comparison entirely — it sells scarcity and curation, which is
+  what a weekly pick actually is, and lets the 15% arrive as a corner sticker
+  rather than the headline. Nothing here claims to beat the Bin.
+
+  THE SLAB, NOT JUST A CARD, and that came out of the graded-card mockup: a
+  cream label band carrying the set name and a serial, then the card itself,
+  the whole assembly inside a rigid clear case. A bare card is a bordered
+  rectangle. A card somebody sealed in plastic is a thing that was judged worth
+  protecting, which is the entire argument this section makes. It costs three
+  wrapper elements and no image assets.
+
+  NO GRADE NUMBER, and that omission is deliberate rather than an oversight.
+  The obvious move is to put a big "9.5" where a graded card carries its grade,
+  and it would look terrific — but a grade is a claim about condition, and a
+  made-up one on a live storefront is a small lie printed in the largest type on
+  the page. The slot holds the week number instead, which is true, sits in the
+  same place, and reads the same at a glance.
+
+  THE PERCENTAGE IS COMPUTED, NEVER TYPED. The sticker renders only when the
+  variant genuinely carries a compare-at above its price, and prints whatever
+  the real gap is. If nobody discounts the product this week the card still
+  works — it is a pick, not a sale — and no number appears.
+
+  PICKED BY AN AGENT, ORDERED BY HAND. The product picker wins if it is set;
+  otherwise the first product of the tee collection is used, which is what the
+  Tee of the Week agent maintains. Clearing the picker hands control back to the
+  queue without touching this file.
+{%- endcomment -%}
+
+{%- liquid
+  assign s = section.settings
+
+  # The picker wins, so a manual override never needs a deploy or an agent pause.
+  assign tee = s.tee_product
+  if tee == blank and s.tee_collection != blank
+    assign tee = s.tee_collection.products.first
+  endif
+-%}
+
+{%- if tee != blank -%}
+  {%- liquid
+    assign v = tee.selected_or_first_available_variant
+
+    assign off_pct = 0
+    if v.compare_at_price > v.price
+      assign off_pct = v.compare_at_price | minus: v.price | times: 100 | divided_by: v.compare_at_price
+    endif
+
+    # THE SERIES NUMBER IS DERIVED FROM THE CALENDAR, not a field somebody has to
+    # remember to bump. A number that silently stops incrementing is worse than
+    # no number, because it makes a weekly section look abandoned. 604800 is a
+    # week in seconds.
+    assign anchor_s = s.series_start | date: '%s' | plus: 0
+    assign now_s = 'now' | date: '%s' | plus: 0
+    assign week_no = now_s | minus: anchor_s | divided_by: 604800 | plus: 1
+    if week_no < 1
+      assign week_no = 1
+    endif
+
+    # Zero-padded to three digits, applied cumulatively — testing `week_no`
+    # against both bounds while re-deriving from the raw number each time would
+    # give single digits only one zero.
+    assign week_label = week_no | append: ''
+    if week_no < 100
+      assign week_label = week_label | prepend: '0'
+    endif
+    if week_no < 10
+      assign week_label = week_label | prepend: '0'
+    endif
+
+    # Size range off whichever option is actually named size. Suppliers in this
+    # catalogue are not consistent about option ORDER, so matching on the name is
+    # the only reliable read.
+    assign size_first = ''
+    assign size_last = ''
+    for opt in tee.options_with_values
+      assign opt_name = opt.name | downcase
+      if opt_name contains 'size'
+        assign size_first = opt.values | first
+        assign size_last = opt.values | last
+      endif
+    endfor
+
+    # The slab serial. A real one, not a random string: the variant's SKU if the
+    # supplier set one, otherwise the product id, which is stable and unique.
+    assign serial = v.sku
+    if serial == blank
+      assign serial = tee.id
+    endif
+  -%}
+
+  <div
+    class="aj-teew color-{{ s.color_scheme }}"
+    style="padding-block-start: {{ s.padding-block-start }}px; padding-block-end: {{ s.padding-block-end }}px;"
+    {{ section.shopify_attributes }}
+  >
+    <div class="aj-teew__inner page-width">
+      {%- comment -%}
+        The slab leads on desktop and the copy sits beside it, because the slab
+        IS the argument — a paragraph explaining that a t-shirt is collectible
+        persuades nobody, and a sealed numbered card does it without a sentence.
+      {%- endcomment -%}
+      <div class="aj-teew__stage">
+        <div class="aj-teew__slab" data-aj-tilt>
+          {%- comment -%}
+            The case itself: one element for the plastic, one for the light
+            running across it. Both inert.
+          {%- endcomment -%}
+          <span class="aj-teew__glass" aria-hidden="true"></span>
+
+          {%- comment -%}
+            The grading label. Set name on the left, week number where a grade
+            would sit, serial and barcode beneath — the barcode is drawn with a
+            repeating gradient, so it encodes nothing and claims nothing.
+          {%- endcomment -%}
+          <div class="aj-teew__label">
+            <div class="aj-teew__label-l">
+              <span class="aj-teew__label-set">{{ s.card_series | escape }}</span>
+              <span class="aj-teew__label-sub">{{ s.card_subset | escape }}</span>
+            </div>
+            <div class="aj-teew__label-r">
+              <span class="aj-teew__label-wk">Wk</span>
+              <span class="aj-teew__label-no">{{ week_label }}</span>
+            </div>
+            <span class="aj-teew__barcode" aria-hidden="true"></span>
+            <span class="aj-teew__serial">{{ serial | escape }}</span>
+          </div>
+
+          <article class="aj-teew__card">
+            <span class="aj-teew__bands" aria-hidden="true"></span>
+
+            <div class="aj-teew__cardin">
+              <span class="aj-teew__roundel" aria-hidden="true">Y</span>
+
+              <a
+                class="aj-teew__window aj-teew__window--{{ s.window_style }}"
+                href="{{ tee.url }}"
+                tabindex="-1"
+                aria-hidden="true"
+              >
+                {%- liquid
+                  assign art = s.tee_image
+                  if art == blank
+                    assign art = tee.featured_image
+                  endif
+                -%}
+                {%- if art != blank -%}
+                  {{
+                    art
+                    | image_url: width: 900
+                    | image_tag:
+                      loading: 'lazy',
+                      widths: '360, 540, 720, 900',
+                      sizes: '(min-width: 750px) 32vw, 72vw',
+                      class: 'aj-teew__art',
+                      alt: ''
+                  }}
+                {%- endif -%}
+              </a>
+
+              {%- comment -%}
+                The name plate, which on a real card is the only place the
+                subject is named — so the product title goes here and nowhere
+                else on the slab.
+              {%- endcomment -%}
+              <div class="aj-teew__plate">
+                <h3 class="aj-teew__name">{{ tee.title | escape }}</h3>
+                <p class="aj-teew__plate-sub">
+                  <span aria-hidden="true">&#9733;</span>
+                  {{ s.card_subset | escape }}
+                  <span aria-hidden="true">&#9733;</span>
+                </p>
+              </div>
+
+              {%- comment -%}
+                Every figure here is read off the product. Nothing in this strip
+                is typed into the editor, so it cannot drift away from the thing
+                it describes.
+              {%- endcomment -%}
+              <dl class="aj-teew__strip">
+                <div class="aj-teew__stat">
+                  <dt>Price</dt>
+                  <dd class="aj-teew__stat-price">{{ v.price | money }}</dd>
+                </div>
+                {%- if off_pct > 0 -%}
+                  <div class="aj-teew__stat">
+                    <dt>Was</dt>
+                    <dd><s>{{ v.compare_at_price | money }}</s></dd>
+                  </div>
+                {%- endif -%}
+                {%- if size_first != blank -%}
+                  <div class="aj-teew__stat">
+                    <dt>Sizes</dt>
+                    <dd>
+                      {{- size_first | escape -}}
+                      {%- if size_last != size_first %}&ndash;{{ size_last | escape }}{% endif -%}
+                    </dd>
+                  </div>
+                {%- endif -%}
+              </dl>
+
+              <span class="aj-teew__sheen" aria-hidden="true"></span>
+            </div>
+          </article>
+
+          {%- if off_pct > 0 -%}
+            <span class="aj-teew__flag">{{ off_pct }}% off</span>
+          {%- endif -%}
+        </div>
+      </div>
+
+      <div class="aj-teew__copy">
+        {%- if s.kicker != blank -%}
+          <p class="aj-teew__kicker">{{ s.kicker | escape }}</p>
+        {%- endif -%}
+        {%- if s.heading != blank -%}
+          <h2 class="aj-teew__heading">{{ s.heading | escape }}</h2>
+          {%- comment -%}
+            The same four colours in the same order as the card's own band. Two
+            halves of a section sitting on a flat ground read as two things; one
+            repeated element makes them one.
+          {%- endcomment -%}
+          <span class="aj-teew__rule" aria-hidden="true"></span>
+        {%- endif -%}
+        {%- if s.body != blank -%}
+          <p class="aj-teew__body">{{ s.body | escape }}</p>
+        {%- endif -%}
+
+        {%- comment -%}
+          A sold-out pick is a real possibility on a section that holds one
+          product for seven days, and a live buy button on a dead product is
+          worse than an honest label.
+        {%- endcomment -%}
+        {%- if tee.available -%}
+          <a class="aj-teew__cta" href="{{ tee.url }}">
+            {{- s.cta_label | escape -}}
+            <span aria-hidden="true">&nbsp;&rarr;</span>
+          </a>
+        {%- else -%}
+          <p class="aj-teew__gone">{{ s.sold_out_label | escape }}</p>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+
+  {%- comment -%}
+    PROGRESSIVE ENHANCEMENT, NOT A DEPENDENCY. Everything above already works —
+    the slab lifts, straightens and catches the light on hover in pure CSS. This
+    adds cursor tracking, which is the difference between a card that reacts and
+    a card that feels held. If it never runs, nothing is missing.
+
+    It writes rotation into two custom properties rather than setting `transform`
+    directly, so the CSS keeps ownership of how they are composed.
+  {%- endcomment -%}
+  <script>
+    (function () {
+      var root = document.querySelector('#shopify-section-{{ section.id }}');
+      if (!root) return;
+      if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+      var slab = root.querySelector('[data-aj-tilt]');
+      var stage = root.querySelector('.aj-teew__stage');
+      if (!slab || !stage) return;
+
+      var MAX = 9; // degrees; past ~12 the case reads as a glitch rather than a tilt
+      var frame = null;
+
+      function track(event) {
+        if (frame) return;
+        frame = requestAnimationFrame(function () {
+          frame = null;
+          var box = slab.getBoundingClientRect();
+          if (!box.width || !box.height) return;
+          var px = (event.clientX - box.left) / box.width - 0.5;
+          var py = (event.clientY - box.top) / box.height - 0.5;
+          slab.style.setProperty('--aj-teew-ry', (px * MAX * 2).toFixed(2) + 'deg');
+          slab.style.setProperty('--aj-teew-rx', (py * -MAX * 2).toFixed(2) + 'deg');
+        });
+      }
+
+      function release() {
+        if (frame) {
+          cancelAnimationFrame(frame);
+          frame = null;
+        }
+        slab.style.setProperty('--aj-teew-ry', '0deg');
+        slab.style.setProperty('--aj-teew-rx', '0deg');
+      }
+
+      stage.addEventListener('pointermove', track);
+      stage.addEventListener('pointerleave', release);
+    })();
+  </script>
+{%- endif -%}
+
+{% stylesheet %}
+  /*
+    A PURPLE BAND, and the choice was made by what the homepage had already
+    spent. `aj-how` runs cyan and `aj-story` runs yellow, so a third section in
+    either turns the page into stripes of the same two colours. Purple is the
+    remaining brand colour with enough contrast to hold white type, and it is
+    the one that reads as a display case rather than a banner, which is the
+    whole idea here. A cream slab on purple is also the highest-contrast
+    pairing available — the card has to be the first thing seen.
+  */
+  .aj-teew {
+    --aj-teew-cream: #f2ead9;
+    --aj-teew-cream-2: #e4d8c0;
+    background: var(--aj-brand-purple, #7a3fa0);
+    color: #ffffff;
+    overflow: hidden;
+  }
+
+  .aj-teew__inner {
+    display: grid;
+    gap: 2rem;
+    justify-items: center;
+    max-width: 64rem;
+    margin-inline: auto;
+  }
+
+  @media screen and (min-width: 750px) {
+    .aj-teew__inner {
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+      align-items: center;
+      gap: 3.5rem;
+      justify-items: stretch;
+    }
+  }
+
+  /* ---- the slab ---------------------------------------------------------- */
+
+  /*
+    The perspective lives on the stage rather than the slab, because an element
+    that owns its own perspective rotates around its own centre and reads flat.
+    On the parent, the vanishing point stays put and the slab turns inside it.
+  */
+  .aj-teew__stage {
+    perspective: 1400px;
+    width: 100%;
+    max-width: 22rem;
+    justify-self: center;
+  }
+
+  /*
+    THE RIGID CASE. Translucent white over the purple ground with a bright inner
+    top edge and a dark bottom one — two inset shadows are what make a flat
+    panel read as a moulded bevel, and they cost nothing.
+
+    It rests at a slight lean and straightens when you reach for it, which is
+    the whole gesture the mockup's leaning card was doing.
+  */
+  .aj-teew__slab {
+    position: relative;
+    padding: 0.55rem 0.55rem 0.7rem;
+    border-radius: 14px;
+    background: linear-gradient(160deg, rgb(255 255 255 / 0.34), rgb(255 255 255 / 0.12));
+    border: 1px solid rgb(255 255 255 / 0.5);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.7),
+      inset 0 -1px 0 rgb(0 0 0 / 0.18),
+      0 22px 44px rgb(0 0 0 / 0.42);
+
+    /*
+      TWO TRANSFORM SYSTEMS, DELIBERATELY SEPARATED — the same rule aj-how
+      documents. The pointer tilt owns `transform`; the resting lean owns
+      `rotate` and the hover lift owns `translate` and `scale`, which are
+      independent properties applied before it. Written as one `transform`, a
+      pointermove would overwrite the lift on its next frame and the slab would
+      drop mid-hover.
+    */
+    transform: rotateX(var(--aj-teew-rx, 0deg)) rotateY(var(--aj-teew-ry, 0deg));
+    rotate: -2.5deg;
+    transition: translate 0.25s ease, scale 0.25s ease, rotate 0.25s ease, box-shadow 0.25s ease;
+    will-change: transform;
+  }
+
+  @media (hover: hover) {
+    .aj-teew__stage:hover .aj-teew__slab {
+      translate: 0 -8px;
+      scale: 1.02;
+      rotate: 0deg;
+      box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.8),
+        inset 0 -1px 0 rgb(0 0 0 / 0.2),
+        0 32px 60px rgb(0 0 0 / 0.5);
+    }
+  }
+
+  /* The one highlight that says "there is plastic in front of this". */
+  .aj-teew__glass {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    border-radius: 14px;
+    background: linear-gradient(
+      118deg,
+      rgb(255 255 255 / 0) 34%,
+      rgb(255 255 255 / 0.16) 44%,
+      rgb(255 255 255 / 0.04) 52%,
+      rgb(255 255 255 / 0) 62%
+    );
+  }
+
+  /* ---- the grading label -------------------------------------------------- */
+
+  .aj-teew__label {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    gap: 0.4rem 0.6rem;
+    padding: 0.5rem 0.6rem 0.45rem;
+    margin-block-end: 0.5rem;
+    border-radius: 5px;
+    background: var(--aj-teew-cream, #f2ead9);
+    color: var(--aj-brand-ink, #282828);
+    /* The label is a separate printed insert, so it gets its own edge. */
+    box-shadow: 0 1px 0 rgb(0 0 0 / 0.25), inset 0 0 0 1px rgb(0 0 0 / 0.1);
+  }
+
+  .aj-teew__label-l {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+  }
+
+  .aj-teew__label-set {
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.6875rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.1;
+  }
+
+  .aj-teew__label-sub {
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.5625rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    line-height: 1.1;
+    opacity: 0.62;
+  }
+
+  /*
+    Where a graded card carries its grade. It carries the week instead — see the
+    note at the top of this file. Set at the same weight a grade would be,
+    because the slot's job is to be the loudest number on the label.
+  */
+  .aj-teew__label-r {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    justify-self: end;
+  }
+
+  .aj-teew__label-wk {
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.5625rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+
+  .aj-teew__label-no {
+    font-family: "Flashy", var(--font-heading--family);
+    font-weight: 400;
+    font-size: 1.5rem;
+    line-height: 0.85;
+  }
+
+  /*
+    Drawn, not encoded. Irregular bar widths from a repeating gradient with four
+    stops — an even comb reads as a texture, uneven bars read as a barcode.
+  */
+  .aj-teew__barcode {
+    grid-column: 1;
+    height: 0.85rem;
+    align-self: end;
+    background-image: repeating-linear-gradient(
+      90deg,
+      var(--aj-brand-ink, #282828) 0 1px,
+      transparent 1px 3px,
+      var(--aj-brand-ink, #282828) 3px 5px,
+      transparent 5px 6px,
+      var(--aj-brand-ink, #282828) 6px 7px,
+      transparent 7px 10px
+    );
+    opacity: 0.85;
+  }
+
+  .aj-teew__serial {
+    grid-column: 2;
+    align-self: end;
+    justify-self: end;
+    max-width: 9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.5625rem;
+    letter-spacing: 0.08em;
+    opacity: 0.7;
+  }
+
+  /* ---- the card ---------------------------------------------------------- */
+
+  /*
+    Cream stock with everything printed on it in brand colour, which is how a
+    real card works: the paper is neutral and the team owns the ink. A card in
+    brand purple on a brand purple band would simply disappear.
+  */
+  .aj-teew__card {
+    position: relative;
+    border-radius: 8px;
+    padding: 0.4rem;
+    background: linear-gradient(180deg, var(--aj-teew-cream, #f2ead9), var(--aj-teew-cream-2, #e4d8c0));
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.16);
+  }
+
+  /* Team colours, four hard stops. The one element that is purely brand. */
+  .aj-teew__bands {
+    display: block;
+    height: 5px;
+    border-radius: 2px;
+    background: linear-gradient(
+      90deg,
+      var(--aj-brand-cyan, #5cd8f8) 0 25%,
+      var(--aj-brand-yellow, #ffe000) 25% 50%,
+      var(--aj-brand-purple, #7a3fa0) 50% 75%,
+      var(--aj-brand-teal, #30aac6) 75% 100%
+    );
+  }
+
+  .aj-teew__cardin {
+    position: relative;
+    overflow: hidden;
+    margin-block-start: 0.4rem;
+    border-radius: 5px;
+  }
+
+  /*
+    The roundel a card puts its league mark in. A Flashy "Y" rather than a star,
+    because a star belongs to every card ever printed and the Y belongs to this
+    shop.
+  */
+  .aj-teew__roundel {
+    position: absolute;
+    top: 0.4rem;
+    left: 0.4rem;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: var(--aj-brand-yellow, #ffe000);
+    color: var(--aj-brand-ink, #282828);
+    font-family: "Flashy", var(--font-heading--family);
+    font-weight: 400;
+    font-size: 1.15rem;
+    line-height: 1;
+    /* Flashy's caps sit high in the em box, so centring on the box leaves the
+       glyph visibly above the circle's middle. Nudged down by eye. */
+    padding-block-start: 0.14em;
+    box-shadow: 0 0 0 2px var(--aj-brand-ink, #282828), 0 2px 5px rgb(0 0 0 / 0.3);
+  }
+
+  /*
+    THREE WINDOW MODES, BECAUSE THE CATALOGUE IS NOT ONE THING. Checked against
+    live product images on 4 August: Parallel, who supply 87 of the 145 eligible
+    tees, shoot flat-lay on CONCRETE. Obsessed With Graphic Tees shoot on white.
+    A single treatment flatters one and ruins the other.
+
+    Photo is the default and it is the one the graded-card reference actually
+    uses — that mockup's window holds a full-bleed action shot, not a cut-out.
+    A concrete-backed tee cropped to fill reads exactly like card photography,
+    so the supplier's least convenient habit turns out to be the right asset.
+
+    Cut-out is for later: a background-free PNG floating on a halftone field.
+    White is the honest fallback for stock already shot on white, where cover
+    would crop the tee and contain would at least sit on matching ground.
+  */
+  .aj-teew__window {
+    display: block;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 2px var(--aj-brand-ink, #282828);
+  }
+
+  .aj-teew__window--cutout {
+    background-color: var(--aj-brand-teal, #30aac6);
+    background-image: radial-gradient(rgb(255 255 255 / 0.3) 1.5px, transparent 1.6px);
+    background-size: 9px 9px;
+  }
+
+  .aj-teew__window--white {
+    background: #ffffff;
+  }
+
+  .aj-teew__art {
+    width: 100%;
+    height: 100%;
+  }
+
+  /*
+    Cover for the photo mode, so the shot fills the frame the way card
+    photography does. Contain everywhere else, so a cut-out is never cropped.
+  */
+  .aj-teew__window--photo .aj-teew__art {
+    object-fit: cover;
+  }
+
+  .aj-teew__window--cutout .aj-teew__art,
+  .aj-teew__window--white .aj-teew__art {
+    object-fit: contain;
+  }
+
+  /* Lifts a cut-out off the field so it reads as an object on the card. */
+  .aj-teew__window--cutout .aj-teew__art {
+    filter: drop-shadow(0 6px 10px rgb(0 0 0 / 0.28));
+  }
+
+  /* ---- the name plate ----------------------------------------------------- */
+
+  .aj-teew__plate {
+    padding: 0.6rem 0.7rem 0.5rem;
+    text-align: center;
+    background: var(--aj-brand-ink, #282828);
+    color: var(--aj-teew-cream, #f2ead9);
+  }
+
+  .aj-teew__name {
+    margin: 0;
+    font-family: "Flashy", var(--font-heading--family);
+    font-weight: 400;
+    font-size: clamp(1.1rem, 4.2vw, 1.45rem);
+    line-height: 1.02;
+    text-wrap: balance;
+  }
+
+  .aj-teew__plate-sub {
+    margin: 0.25rem 0 0;
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.5625rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--aj-brand-yellow, #ffe000);
+  }
+
+  /* ---- the stat strip ----------------------------------------------------- */
+
+  .aj-teew__strip {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0.45rem 0.55rem;
+    background: var(--aj-teew-cream, #f2ead9);
+    color: var(--aj-brand-ink, #282828);
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.5625rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-block-start: 2px solid rgb(0 0 0 / 0.14);
+  }
+
+  .aj-teew__stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.12rem;
+    min-width: 0;
+  }
+
+  .aj-teew__stat + .aj-teew__stat {
+    padding-inline-start: 0.5rem;
+    border-inline-start: 1px dotted rgb(0 0 0 / 0.22);
+  }
+
+  .aj-teew__stat dt {
+    opacity: 0.55;
+  }
+
+  .aj-teew__stat dd {
+    margin: 0;
+    font-size: 0.6875rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .aj-teew__stat-price {
+    color: var(--aj-brand-purple, #7a3fa0);
+  }
+
+  .aj-teew__stat s {
+    opacity: 0.55;
+  }
+
+  /* ---- the sticker -------------------------------------------------------- */
+
+  /*
+    Cocked at an angle on the corner of the case, like something applied after
+    sealing. Small on purpose: the week number is the headline, not this.
+  */
+  .aj-teew__flag {
+    position: absolute;
+    top: -0.55rem;
+    right: -0.6rem;
+    z-index: 4;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    rotate: 7deg;
+    background: var(--aj-brand-yellow, #ffe000);
+    color: var(--aj-brand-ink, #282828);
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    box-shadow: 0 4px 10px rgb(0 0 0 / 0.32);
+  }
+
+  /* ---- the sheen ---------------------------------------------------------- */
+
+  /*
+    Clipped by the card's inner box, never interactive, and it owns `translate`
+    alone so it cannot collide with the slab's tilt.
+  */
+  .aj-teew__sheen {
+    position: absolute;
+    inset-block: -30%;
+    inset-inline-start: 0;
+    z-index: 2;
+    width: 55%;
+    pointer-events: none;
+    translate: -190% 0;
+    rotate: 8deg;
+    background: linear-gradient(
+      90deg,
+      rgb(255 255 255 / 0) 0%,
+      rgb(255 255 255 / 0.2) 40%,
+      rgb(255 255 255 / 0.55) 50%,
+      rgb(255 255 255 / 0.2) 60%,
+      rgb(255 255 255 / 0) 100%
+    );
+  }
+
+  @media (hover: hover) {
+    .aj-teew__sheen {
+      transition: translate 0.8s cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+
+    .aj-teew__stage:hover .aj-teew__sheen {
+      translate: 320% 0;
+    }
+  }
+
+  /* ---- the copy column ---------------------------------------------------- */
+
+  .aj-teew__copy {
+    text-align: center;
+  }
+
+  @media screen and (min-width: 750px) {
+    .aj-teew__copy {
+      text-align: start;
+    }
+  }
+
+  .aj-teew__kicker {
+    margin: 0 0 0.5rem;
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--aj-brand-yellow, #ffe000);
+  }
+
+  .aj-teew__rule {
+    display: block;
+    width: 8rem;
+    height: 5px;
+    margin: 0 auto 1rem;
+    border-radius: 2px;
+    /*
+      INK WHERE THE CARD USES PURPLE. The card's band sits on cream, where all
+      four brand colours read. This one sits on the purple ground, and rendered
+      with the card's exact palette the third segment simply vanished — a
+      four-colour bar with a hole in it. Ink is the substitution that keeps the
+      rhythm without inventing a fifth brand colour.
+    */
+    background: linear-gradient(
+      90deg,
+      var(--aj-brand-cyan, #5cd8f8) 0 25%,
+      var(--aj-brand-yellow, #ffe000) 25% 50%,
+      var(--aj-brand-ink, #282828) 50% 75%,
+      var(--aj-brand-teal, #30aac6) 75% 100%
+    );
+  }
+
+  @media screen and (min-width: 750px) {
+    .aj-teew__rule {
+      margin-inline: 0;
+    }
+  }
+
+  .aj-teew__heading {
+    margin: 0 0 0.75rem;
+    font-family: "Flashy", var(--font-heading--family);
+    font-weight: 400;
+    font-size: clamp(2rem, 6.5vw, 3.25rem);
+    line-height: 0.98;
+    text-wrap: balance;
+  }
+
+  .aj-teew__body {
+    margin: 0 auto 1.4rem;
+    max-width: 36ch;
+    font-size: 1rem;
+    line-height: 1.55;
+    color: rgb(255 255 255 / 0.86);
+  }
+
+  @media screen and (min-width: 750px) {
+    .aj-teew__body {
+      margin-inline: 0;
+    }
+  }
+
+  .aj-teew__cta {
+    display: inline-block;
+    padding: 0.85rem 1.6rem;
+    border-radius: 6px;
+    background: var(--aj-brand-yellow, #ffe000);
+    color: var(--aj-brand-ink, #282828);
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.8125rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: translate 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .aj-teew__cta:hover {
+    translate: 0 -2px;
+    box-shadow: 0 10px 20px rgb(0 0 0 / 0.28);
+  }
+
+  .aj-teew__gone {
+    margin: 0;
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.8125rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.66);
+  }
+
+  /* ---- motion on touch ---------------------------------------------------- */
+
+  /*
+    A PHONE HAS NO HOVER, so the two effects that carry this section on desktop
+    are unreachable there. Scroll position substitutes for the pointer: the card
+    rises into place and the sheen sweeps once as it arrives. Same approach and
+    the same two guards as aj-how — @supports for browsers with no view
+    timeline, which simply see the finished state, and reduced-motion for people
+    who asked not to have any of it.
+
+    THE RISE IS ON THE CARD AND THE LIFT IS ON THE SLAB, which is not tidiness.
+    An animation with `both` holds its end state and wins over a plain
+    declaration, so a hover rule setting `translate` on the same element the
+    entrance animates would simply never apply. Different elements, no contest.
+  */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .aj-teew__card {
+        animation: aj-teew-rise linear both;
+        animation-timeline: view();
+        animation-range: entry 5% cover 32%;
+      }
+
+      @keyframes aj-teew-rise {
+        from {
+          opacity: 0;
+          translate: 0 26px;
+        }
+
+        to {
+          opacity: 1;
+          translate: 0 0;
+        }
+      }
+    }
+
+    @media (prefers-reduced-motion: no-preference) and (hover: none) {
+      .aj-teew__sheen {
+        animation: aj-teew-sweep linear both;
+        animation-timeline: view();
+        animation-range: entry 40% cover 55%;
+      }
+
+      @keyframes aj-teew-sweep {
+        from {
+          translate: -190% 0;
+        }
+
+        to {
+          translate: 320% 0;
+        }
+      }
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .aj-teew__inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.6rem;
+    }
+
+    /*
+      The copy leads on a phone. Stacked in source order the slab would come
+      first and push the heading below the fold, so the reader meets an
+      unlabelled object. On desktop both are visible at once and the slab leads.
+    */
+    .aj-teew__copy {
+      order: -1;
+    }
+
+    .aj-teew__stage {
+      max-width: 19rem;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "AJ Tee of the Week",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "One graphic tee a week, presented as a graded collector card. The week number increments from the series start date on its own — nothing to bump."
+    },
+    { "type": "header", "content": "This week's tee" },
+    { "type": "product", "id": "tee_product", "label": "Tee" },
+    {
+      "type": "collection",
+      "id": "tee_collection",
+      "label": "Fallback collection",
+      "info": "Used only when no tee is picked above — takes the first product. This is what the Tee of the Week agent maintains."
+    },
+    {
+      "type": "image_picker",
+      "id": "tee_image",
+      "label": "Cut-out image",
+      "info": "Optional. A background-free PNG of the tee, square, centred, with a little padding. Overrides the product's own image on this card only."
+    },
+    {
+      "type": "select",
+      "id": "window_style",
+      "label": "Card window",
+      "info": "Photo fills the frame — right for tees shot on concrete, which is most of them. Cut-out floats a background-free PNG on a halftone field. White suits stock shot on white.",
+      "options": [
+        { "value": "photo", "label": "Photo (fills the frame)" },
+        { "value": "cutout", "label": "Cut-out on halftone" },
+        { "value": "white", "label": "Plain white" }
+      ],
+      "default": "photo"
+    },
+    { "type": "header", "content": "Copy" },
+    { "type": "text", "id": "kicker", "label": "Kicker", "default": "One a week" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Tee of the Week" },
+    {
+      "type": "text",
+      "id": "body",
+      "label": "Text",
+      "default": "One graphic tee, pulled from the pile and sealed up for seven days. Then it goes back and a new one takes its place."
+    },
+    { "type": "text", "id": "cta_label", "label": "Button", "default": "Yoink it" },
+    { "type": "text", "id": "sold_out_label", "label": "Sold-out text", "default": "Gone — back next week with a new one" },
+    { "type": "header", "content": "Card" },
+    { "type": "text", "id": "card_series", "label": "Label set name", "default": "The Yoink" },
+    { "type": "text", "id": "card_subset", "label": "Label subset", "default": "Tee of the Week" },
+    {
+      "type": "text",
+      "id": "series_start",
+      "label": "Series start date",
+      "info": "YYYY-MM-DD. Week 1 begins here; the number climbs by one every seven days.",
+      "default": "2026-08-04"
+    },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "header", "content": "Padding" },
+    { "type": "range", "id": "padding-block-start", "label": "Top", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 56 },
+    { "type": "range", "id": "padding-block-end", "label": "Bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 56 }
+  ],
+  "presets": [{ "name": "AJ Tee of the Week" }]
+}
+{% endschema %}
