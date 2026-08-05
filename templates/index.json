@@ -81,8 +81,8 @@
         "card_subset": "Tee of the Week",
         "series_start": "2026-08-04",
         "color_scheme": "scheme-1",
-        "padding-block-start": 56,
-        "padding-block-end": 56
+        "padding-block-start": 24,
+        "padding-block-end": 24
       }
     },
     "aj_bargain_bin": {

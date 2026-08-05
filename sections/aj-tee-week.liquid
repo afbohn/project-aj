@@ -348,12 +348,30 @@
     whole idea here. A cream slab on purple is also the highest-contrast
     pairing available — the card has to be the first thing seen.
   */
+  /*
+    A THIN BAND THE CARD BREAKS OUT OF. The slab overhangs the purple top and
+    bottom, which is the one thing here that cannot be done by any stock
+    section — and it is why `overflow` is visible rather than hidden. Hidden
+    would clip precisely the overhang that makes the effect.
+
+    `position: relative` and a z-index are load-bearing, not tidiness. Sections
+    paint in source order, so without them the NEXT section down (Shop by
+    price) would paint its white background over the bottom of the card while
+    the top half hung correctly over the Bargain Bin — an asymmetry that reads
+    as a rendering bug rather than a design.
+
+    Cyan hairlines top and bottom. Cyan is legal here as a rule but never as
+    type on this ground — see the contrast note in aj-how.
+  */
   .aj-teew {
     --aj-teew-cream: #f2ead9;
     --aj-teew-cream-2: #e4d8c0;
+    position: relative;
+    z-index: 1;
     background: var(--aj-brand-purple, #7a3fa0);
     color: #ffffff;
-    overflow: hidden;
+    overflow: visible;
+    border-block: 3px solid var(--aj-brand-cyan, #5cd8f8);
   }
 
   .aj-teew__inner {
@@ -385,6 +403,28 @@
     width: 100%;
     max-width: 22rem;
     justify-self: center;
+  }
+
+  /*
+    THE BREAKOUT, and it is negative margin rather than a transform on purpose.
+    A translate would move the card without shortening the row, so the band
+    would stay tall and the card would simply sit high inside it. Negative block
+    margins shrink the row the card occupies, so the BAND gets thinner and the
+    card keeps its size — which is the actual request.
+
+    The overhang is the difference between this and the section's own padding.
+    At 24px padding and -4.5rem here, the card clears the purple by about 3rem
+    at each edge. Raising the padding sliders in the editor eats into that
+    before it eats into anything else, which is the right order.
+
+    DESKTOP ONLY. On a phone the copy stacks above the slab, and pulling the
+    slab up by 4.5rem would drive it into the button rather than out of the
+    band. The phone gets a smaller, bottom-only breakout below.
+  */
+  @media screen and (min-width: 750px) {
+    .aj-teew__stage {
+      margin-block: -4.5rem;
+    }
   }
 
   /*
@@ -1012,8 +1052,15 @@
       order: -1;
     }
 
+    /*
+      A BOTTOM-ONLY BREAKOUT ON A PHONE. The copy stacks above the card here, so
+      pulling the top out would push the slab into the button rather than
+      through the purple. The bottom edge still gets crossed, which is enough to
+      read as deliberate.
+    */
     .aj-teew__stage {
       max-width: 19rem;
+      margin-block-end: -2.5rem;
     }
   }
 {% endstylesheet %}
@@ -1091,8 +1138,14 @@
     { "type": "header", "content": "Appearance" },
     { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
     { "type": "header", "content": "Padding" },
-    { "type": "range", "id": "padding-block-start", "label": "Top", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 56 },
-    { "type": "range", "id": "padding-block-end", "label": "Bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 56 }
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top",
+      "info": "The card overhangs the band by roughly 72px minus this. Raise it and the breakout shrinks.",
+      "min": 0, "max": 100, "step": 4, "unit": "px", "default": 24
+    },
+    { "type": "range", "id": "padding-block-end", "label": "Bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 24 }
   ],
   "presets": [{ "name": "AJ Tee of the Week" }]
 }
