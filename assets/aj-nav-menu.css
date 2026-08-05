@@ -96,23 +96,31 @@
 }
 
 /*
-  A column of ten headings and half a panel of white space beside it.
+  A column of childless headings, and half a panel of white space beside it.
 
-  The theme groups every childless top-level link into ONE column, so Pet
-  Supplies through Baby & Toddler stack ten deep while the columns to the right
-  sit empty. Splitting that column in two fills the space and halves the scan
-  length, without touching the menu structure in the admin.
+  The theme groups every childless top-level link into ONE column, so a dozen
+  departments stack deep while the columns to the right sit empty. Splitting
+  that column fills the space and halves the scan length.
+
+  IT MUST CLAIM A SECOND GRID TRACK TO DO IT. `.mega-menu__grid` is a grid of
+  equal tracks and a column spans one, so `columns: 2` alone divides a single
+  narrow track in half — and at that width the labels break MID-WORD. The live
+  menu read "ELECTRONI / CS" and "ARTS & ENTERTAIN / MENT" once the nav was
+  pointed at the taxonomy tree and this group grew from ten to thirteen.
+  Spanning two tracks makes each half exactly as wide as a normal department
+  column, which is a width these names are already known to fit.
 
   `:has(> div:nth-of-type(6))` means "a column holding six or more links",
   which is only ever the childless group and never a real parent-and-children
   column — so it cannot catch Apparel or Home & Garden as those grow. Browsers
-  without :has() see the tall single column, which is what they see today.
+  without :has() see the tall single column, which is safe.
 */
 @supports selector(:has(*)) {
   @media screen and (min-width: 990px) {
     .mega-menu__column:has(> div:nth-of-type(6)) {
+      grid-column: span 2;
       columns: 2;
-      column-gap: 3rem;
+      column-gap: 2.5rem;
     }
 
     /* A heading and its rule must never be split across the column break. */
@@ -120,4 +128,17 @@
       break-inside: avoid;
     }
   }
+}
+
+/*
+  BELT AND BRACES AGAINST MID-WORD BREAKS. The span above gives these labels
+  room, but a department name is a proper noun and should never be hyphenated or
+  split whatever the column width — a future one longer than "Business &
+  Industrial" would otherwise reintroduce "ELECTRONI / CS". Wrapping between
+  words is fine and expected; breaking inside one never is.
+*/
+.mega-menu__column > div > .mega-menu__link {
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
 }
