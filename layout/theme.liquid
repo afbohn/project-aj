@@ -93,6 +93,13 @@
     {%- endcomment -%}
     {{ 'aj-nav-caret.css' | asset_url | stylesheet_tag }}
 
+    {%- comment -%}
+      Mega-menu hierarchy. Same reasoning and the same separate-file rule as the
+      carets above: the header block's {% stylesheet %} is nested, and appending
+      to it took the header down once.
+    {%- endcomment -%}
+    {{ 'aj-nav-menu.css' | asset_url | stylesheet_tag }}
+
     {% if request.design_mode %}
       {%- render 'theme-editor' -%}
     {% endif %}

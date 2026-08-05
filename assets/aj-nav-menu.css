@@ -1,0 +1,96 @@
+/*
+  Mega-menu hierarchy: a top-level category must not look like a subcategory.
+
+  THE THEME DECIDES RANK BY WHETHER A LINK HAS CHILDREN, WHICH IS THE BUG.
+  `mega-menu-list.liquid` applies `mega-menu__link--parent` only inside
+  `{% if link.links != blank %}`, so a top-level category with no children —
+  Pet Supplies, Arts & Entertainment, Food & Beverages, Electronics, Sporting
+  Goods, Furniture, Office Supplies, Books, Vehicles & Parts, Baby & Toddler —
+  renders in the CHILD style. Ten of them stack into one column and read as a
+  subcategory list belonging to whatever heading sits above.
+
+  So rank is taken from POSITION instead, which is always true: a top-level link
+  is a direct child of the column's div, and a subcategory is inside the <ul>
+  that follows it. No Liquid change, and it cannot drift out of step with the
+  `--parent` class.
+
+  THIS IS A SEPARATE FILE ON PURPOSE. The header block carries a nested
+  {% stylesheet %}, and appending to it collapsed the live header once already —
+  see aj-nav-caret.css, which exists for the same reason.
+
+  SPECIFICITY IS LOAD-BEARING. Block stylesheets compile into
+  compiled_assets/styles.css, which loads AFTER the <head> links, so a tie on
+  source order goes to Horizon. Both selectors below are three levels deep
+  against Horizon's single class, so they win on specificity rather than order.
+*/
+
+/* ---- top-level categories --------------------------------------------- */
+
+/*
+  Purple, small, spaced: the vocabulary of a section label rather than a link.
+  Measured 7.4:1 on white, comfortably past AA. Cyan would fail here — see the
+  contrast note in aj-brand.css, which is why cyan is only ever a fill.
+*/
+.mega-menu__column > div > .mega-menu__link {
+  color: var(--aj-brand-purple, #7a3fa0);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding-block-end: 0.35rem;
+}
+
+/*
+  A rule under the heading, not a border on the column. It ends where the
+  heading ends, so a one-word category gets a short rule and a long one a long
+  rule — which groups the list beneath it without drawing a box around it.
+*/
+.mega-menu__column > div > .mega-menu__link::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--aj-brand-yellow, #ffe000);
+}
+
+.mega-menu__column > div > .mega-menu__link {
+  position: relative;
+  margin-block-end: 0.5rem;
+}
+
+.mega-menu__column > div > .mega-menu__link:hover {
+  color: var(--aj-brand-ink, #282828);
+}
+
+/* ---- subcategories ------------------------------------------------------ */
+
+/*
+  SENTENCE CASE, and this is half the fix. Every level was uppercase, so the
+  only signal left was weight and a slight grey — which is what made the panel
+  read as one flat shouted list. Case is a stronger hierarchy cue than either,
+  and it also makes the long names legible: "Vehicles & Parts" beats
+  "VEHICLES & PARTS" at a glance.
+*/
+.mega-menu__column ul .mega-menu__link {
+  color: var(--aj-brand-ink, #282828);
+  font-weight: 500;
+  font-size: 0.9375rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.mega-menu__column ul .mega-menu__link:hover {
+  color: var(--aj-brand-purple, #7a3fa0);
+}
+
+/* ---- the column of childless categories --------------------------------- */
+
+/*
+  Those ten headings now sit in one column as ten purple labels with nothing
+  under them, which is honest but airless. A little more room between them
+  keeps them reading as separate destinations rather than as a paragraph.
+*/
+.mega-menu__column > div:only-child > .mega-menu__link {
+  margin-block-end: 0.75rem;
+}
