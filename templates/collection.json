@@ -95,6 +95,16 @@
         "padding-block-end": 48
       }
     },
+    "aj_drill": {
+      "type": "aj-category-drill",
+      "settings": {
+        "heading_children": "Narrow it down",
+        "show_counts": true,
+        "color_scheme": "scheme-1",
+        "padding-block-start": 8,
+        "padding-block-end": 24
+      }
+    },
     "main": {
       "type": "main-collection",
       "blocks": {
@@ -236,6 +246,7 @@
   },
   "order": [
     "section",
+    "aj_drill",
     "main"
   ]
 }

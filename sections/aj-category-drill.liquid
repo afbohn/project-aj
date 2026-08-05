@@ -1,0 +1,469 @@
+{%- comment -%}
+  AJ Category Drill — where you are in the catalogue, and where you can go next.
+
+  THE PROBLEM THIS SOLVES. A 2,700-product catalogue behind a two-level menu
+  gives a shopper one move: pick a department, then scroll 800 products. There
+  was no third move, which is why "Games" opened onto a wall of D&D dice — the
+  dice are 67 of the 93 games and nothing on the page said so, or offered a way
+  past them. The taxonomy tree has that third level; this surfaces it.
+
+  DRIVEN BY THE HANDLE, NOT BY A MENU OR A SETTING. `syncTaxonomyTree` names
+  every collection it maintains as `tax{tier}-{path}`, and a child's path is its
+  parent's path plus one segment:
+
+      tax1-home-and-garden
+      tax2-home-and-garden-decor
+      tax3-home-and-garden-decor-home-fragrances
+
+  So the whole tree is derivable from the handles alone. Nothing here needs
+  maintaining as the agent adds or retires a node — a new tax3 collection shows
+  up under its parent on the next page load, and one that drops below
+  TAX_MIN_PRODUCTS disappears with it. A hand-kept list of links would be stale
+  the first time the catalogue moved.
+
+  WHY PREFIX MATCHING IS SAFE HERE. Matching children by string prefix only
+  breaks if one node's path is a prefix of a sibling's. It cannot happen across
+  tiers, because the tier number is part of the prefix. Within a tier it would
+  need two Shopify taxonomy names where one is a leading substring of the other
+  at the same level — "Furniture" and "Furniture Accessories" as two separate
+  top-level departments. Checked against all 16 top-level and 27 mid-level nodes
+  in this catalogue: none is a prefix of another. If that ever changes the
+  symptom is a stray chip, not a broken page.
+
+  TEXT, NOT TILES. Every one of the 88 tax collections has no image, and a grid
+  of grey placeholder squares reads as broken rather than as navigation. Chips
+  also let 12 destinations sit above the fold where 12 tiles would not, and the
+  point of this section is to be passed through quickly, not looked at.
+
+  COUNTS ARE THE HONEST PART. A shopper deciding between "Games" and "Toys"
+  wants to know one is 93 and the other 12. It is also the only signal that a
+  branch is worth opening at all.
+
+  RENDERS NOTHING OUTSIDE THE TREE. On cat-*, sub-*, vendor-*, price bands and
+  the Yoink collections `tier` stays 0 and the section outputs no markup at all
+  — not an empty wrapper, which would still draw section padding.
+{%- endcomment -%}
+
+{%- liquid
+  assign h = collection.handle | default: ''
+  assign pre = h | slice: 0, 5
+
+  assign tier = 0
+  if pre == 'tax1-'
+    assign tier = 1
+  elsif pre == 'tax2-'
+    assign tier = 2
+  elsif pre == 'tax3-'
+    assign tier = 3
+  endif
+-%}
+
+{%- if tier > 0 -%}
+  {%- liquid
+    assign path = h | slice: 5, 250
+
+    comment
+      ANCESTORS. Handles are stored rather than collection objects: a Liquid
+      bracket lookup takes a variable fine, and carrying the string keeps the
+      single pass below cheap over 230 collections.
+    endcomment
+    assign a1_handle = ''
+    assign a2_handle = ''
+
+    if tier > 1
+      for c in collections
+        assign ch = c.handle
+        assign cpre = ch | slice: 0, 5
+
+        if cpre == 'tax1-'
+          assign cpath = ch | slice: 5, 250
+          assign probe = cpath | append: '-'
+          assign plen = probe | size
+          assign head = path | slice: 0, plen
+          if head == probe
+            assign a1_handle = ch
+          endif
+        endif
+
+        if tier > 2 and cpre == 'tax2-'
+          assign cpath = ch | slice: 5, 250
+          assign probe = cpath | append: '-'
+          assign plen = probe | size
+          assign head = path | slice: 0, plen
+          if head == probe
+            assign a2_handle = ch
+          endif
+        endif
+      endfor
+    endif
+
+    comment
+      CHILDREN first, SIBLINGS only as a fallback. A branch node's useful next
+      move is downward; a leaf has no downward move, and its useful next move is
+      sideways to the rest of its parent's set. Showing both at once on a branch
+      would put two rows of chips above the products and bury them.
+    endcomment
+    assign child_tier = tier | plus: 1
+    assign kid_prefix = 'tax' | append: child_tier | append: '-' | append: path | append: '-'
+    assign kid_len = kid_prefix | size
+
+    assign kid_count = 0
+    for c in collections
+      assign head = c.handle | slice: 0, kid_len
+      if head == kid_prefix
+        assign kid_count = kid_count | plus: 1
+      endif
+    endfor
+
+    comment
+      A single child is not a choice, it is a redirect — and it always carries
+      close to the parent's whole count, so the chip tells the shopper nothing
+      they did not already know. Two is the smallest number that narrows.
+    endcomment
+    assign show_kids = false
+    if kid_count > 1
+      assign show_kids = true
+    endif
+
+    assign sib_prefix = ''
+    assign sib_count = 0
+    unless show_kids
+      if tier == 3 and a2_handle != ''
+        assign parent_path = a2_handle | slice: 5, 250
+        assign sib_prefix = 'tax3-' | append: parent_path | append: '-'
+      elsif tier == 2 and a1_handle != ''
+        assign parent_path = a1_handle | slice: 5, 250
+        assign sib_prefix = 'tax2-' | append: parent_path | append: '-'
+      endif
+
+      if sib_prefix != ''
+        assign sib_len = sib_prefix | size
+        for c in collections
+          assign head = c.handle | slice: 0, sib_len
+          if head == sib_prefix
+            assign sib_count = sib_count | plus: 1
+          endif
+        endfor
+      endif
+    endunless
+
+    comment
+      Same rule as children: a lone sibling is the page you are already on.
+    endcomment
+    assign show_sibs = false
+    if show_kids == false and sib_count > 1
+      assign show_sibs = true
+    endif
+
+    assign has_crumbs = false
+    if tier > 1
+      assign has_crumbs = true
+    endif
+  -%}
+
+  {%- if has_crumbs or show_kids or show_sibs -%}
+    <nav
+      class="aj-drill color-{{ section.settings.color_scheme }} section spacing-style"
+      style="{% render 'spacing-style', settings: section.settings %}"
+      aria-label="Category navigation"
+    >
+      <div class="page-width">
+        {%- comment -%}
+          BREADCRUMBS ARE A LADDER, NOT DECORATION. Landing on a tax3 page from
+          search or an ad is the common case, and without this the shopper has
+          no route to the 400-product parent — only the browser back button,
+          which does not exist for a fresh visit.
+        {%- endcomment -%}
+        {%- if has_crumbs -%}
+          <ol class="aj-drill__crumbs">
+            {%- comment -%}
+              NOT `routes.collections_url`. /collections renders
+              main-collection-list capped at four collections, so the standard
+              breadcrumb root is a near-empty page here. The homepage category
+              section is the curated department list — the same destination the
+              "Categories" item in the main menu points at.
+            {%- endcomment -%}
+            <li class="aj-drill__crumb">
+              <a class="aj-drill__crumb-link" href="{{ routes.root_url }}#shop-by-category">All departments</a>
+            </li>
+            {%- if a1_handle != '' -%}
+              {%- assign a1 = collections[a1_handle] -%}
+              {%- if a1 != blank -%}
+                <li class="aj-drill__crumb">
+                  <a class="aj-drill__crumb-link" href="{{ a1.url }}">{{ a1.title | escape }}</a>
+                </li>
+              {%- endif -%}
+            {%- endif -%}
+            {%- if a2_handle != '' -%}
+              {%- assign a2 = collections[a2_handle] -%}
+              {%- if a2 != blank -%}
+                <li class="aj-drill__crumb">
+                  <a class="aj-drill__crumb-link" href="{{ a2.url }}">{{ a2.title | escape }}</a>
+                </li>
+              {%- endif -%}
+            {%- endif -%}
+            <li class="aj-drill__crumb aj-drill__crumb--here" aria-current="page">
+              {{- collection.title | escape -}}
+            </li>
+          </ol>
+        {%- endif -%}
+
+        {%- if show_kids or show_sibs -%}
+          {%- liquid
+            if show_kids
+              assign use_prefix = kid_prefix
+              assign use_len = kid_len
+              assign label = section.settings.heading_children | default: 'Narrow it down'
+            else
+              assign use_prefix = sib_prefix
+              assign use_len = sib_len
+              assign parent_title = ''
+              if tier == 3 and a2_handle != ''
+                assign parent_col = collections[a2_handle]
+                assign parent_title = parent_col.title
+              elsif tier == 2 and a1_handle != ''
+                assign parent_col = collections[a1_handle]
+                assign parent_title = parent_col.title
+              endif
+              assign label = 'More in ' | append: parent_title
+            endif
+          -%}
+
+          <p class="aj-drill__label">{{ label | escape }}</p>
+
+          <ul class="aj-drill__chips">
+            {%- for c in collections -%}
+              {%- assign head = c.handle | slice: 0, use_len -%}
+              {%- if head == use_prefix -%}
+                {%- comment -%}
+                  The sibling set includes the page you are standing on. It stays
+                  in, marked, because removing it makes the row shift under the
+                  shopper as they move across a set — and the marked chip is what
+                  tells them where they are in it.
+                {%- endcomment -%}
+                {%- assign is_here = false -%}
+                {%- if c.handle == h -%}
+                  {%- assign is_here = true -%}
+                {%- endif -%}
+                <li>
+                  <a
+                    class="aj-drill__chip{% if is_here %} aj-drill__chip--here{% endif %}"
+                    href="{{ c.url }}"
+                    {% if is_here %}
+                      aria-current="page"
+                    {% endif %}
+                  >
+                    <span class="aj-drill__chip-name">{{ c.title | escape }}</span>
+                    {%- if section.settings.show_counts -%}
+                      <span class="aj-drill__chip-count">{{ c.all_products_count }}</span>
+                    {%- endif -%}
+                  </a>
+                </li>
+              {%- endif -%}
+            {%- endfor -%}
+          </ul>
+        {%- endif -%}
+      </div>
+    </nav>
+  {%- endif -%}
+{%- endif -%}
+
+{% stylesheet %}
+  .aj-drill__crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.15rem 0.5rem;
+    margin: 0 0 0.9rem;
+    padding: 0;
+    list-style: none;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+  }
+
+  /* The separator is generated rather than marked up so it never lands in the
+     accessible name of a crumb, and so a wrapped row cannot start with one. */
+  .aj-drill__crumb + .aj-drill__crumb::before {
+    content: "›";
+    margin-inline-end: 0.5rem;
+    color: rgb(var(--color-foreground-rgb) / 0.35);
+  }
+
+  .aj-drill__crumb-link {
+    color: var(--aj-brand-purple, #7a3fa0);
+    text-decoration: none;
+    border-block-end: 1px solid transparent;
+  }
+
+  .aj-drill__crumb-link:hover {
+    border-block-end-color: currentcolor;
+  }
+
+  /* The current page is the one crumb that is not a link, so it must not read
+     as one — same weight, no colour, no underline on hover. */
+  .aj-drill__crumb--here {
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+  }
+
+  /*
+    THE SAME LABEL TREATMENT AS THE MEGA MENU, on purpose. Purple, small, wide
+    tracking and a short yellow rule is now what a section label looks like on
+    this site — see aj-nav-menu.css, where the identical rule separates a
+    department from its subcategories. Two different label styles for the same
+    job would read as two different sites.
+
+    Measured 7.4:1 on white. Cyan is a fill-only colour here and would fail.
+  */
+  .aj-drill__label {
+    position: relative;
+    display: inline-block;
+    margin: 0 0 0.75rem;
+    padding-block-end: 0.35rem;
+    color: var(--aj-brand-purple, #7a3fa0);
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  .aj-drill__label::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 2px;
+    background: var(--aj-brand-yellow, #ffe000);
+  }
+
+  /*
+    WRAP RATHER THAN SCROLL. A horizontal scroller fits more chips on a phone
+    and hides how many there are, which is the opposite of what this section is
+    for — the shopper is here because the catalogue already felt endless. Twelve
+    is the widest real set (Home & Garden), and wrapped it costs three rows.
+  */
+  .aj-drill__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .aj-drill__chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    padding: 0.45rem 0.85rem;
+    border: 1px solid rgb(var(--color-foreground-rgb) / 0.18);
+    border-radius: 999px;
+    color: var(--aj-brand-ink, #282828);
+    font-size: 0.9375rem;
+    line-height: 1.2;
+    text-decoration: none;
+    background: rgb(var(--color-background-rgb) / 1);
+    transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+  }
+
+  .aj-drill__chip:hover {
+    border-color: var(--aj-brand-purple, #7a3fa0);
+    color: var(--aj-brand-purple, #7a3fa0);
+  }
+
+  /* Focus has to survive the border-radius and the hover colour change, so it
+     is an outline rather than a border swap. */
+  .aj-drill__chip:focus-visible {
+    outline: 2px solid var(--aj-brand-purple, #7a3fa0);
+    outline-offset: 2px;
+  }
+
+  /*
+    The chip you are standing on: yellow, because it is the one place on this
+    site where yellow means "here" rather than "buy" — there is no price or CTA
+    in this section for it to compete with.
+  */
+  .aj-drill__chip--here {
+    background: var(--aj-brand-yellow, #ffe000);
+    border-color: var(--aj-brand-yellow, #ffe000);
+    color: var(--aj-brand-ink, #282828);
+    font-weight: 600;
+  }
+
+  .aj-drill__chip--here:hover {
+    border-color: var(--aj-brand-ink, #282828);
+    color: var(--aj-brand-ink, #282828);
+  }
+
+  /* Tabular figures so a column of counts does not jitter, and a lighter weight
+     so the name stays the thing being read. */
+  .aj-drill__chip-count {
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    color: rgb(var(--color-foreground-rgb) / 0.5);
+  }
+
+  .aj-drill__chip--here .aj-drill__chip-count {
+    color: rgb(var(--color-foreground-rgb) / 0.65);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Category drill-down",
+  "tag": "section",
+  "class": "section-wrapper",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Shows breadcrumbs and subcategory links on taxonomy collection pages (tax1-, tax2-, tax3-). Renders nothing on other collections. The tree is read from collection handles, so no setup is needed as categories change."
+    },
+    {
+      "type": "text",
+      "id": "heading_children",
+      "label": "Label above subcategories",
+      "default": "Narrow it down"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_counts",
+      "label": "Show product counts",
+      "default": true
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 24
+    }
+  ],
+  "presets": [
+    {
+      "name": "Category drill-down"
+    }
+  ]
+}
+{% endschema %}
