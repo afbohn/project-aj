@@ -243,14 +243,30 @@
           product for seven days, and a live buy button on a dead product is
           worse than an honest label.
         {%- endcomment -%}
-        {%- if tee.available -%}
-          <a class="aj-teew__cta" href="{{ tee.url }}">
-            {{- s.cta_label | escape -}}
-            <span aria-hidden="true">&nbsp;&rarr;</span>
-          </a>
-        {%- else -%}
-          <p class="aj-teew__gone">{{ s.sold_out_label | escape }}</p>
-        {%- endif -%}
+        {%- comment -%}
+          TWO ACTIONS, ONE OF THEM ALWAYS AVAILABLE. Buying is the primary and
+          it disappears when the tee sells out — but "see the rest of the set"
+          is the more interesting click for anyone who came for the collecting
+          rather than the shirt, and it is the ONLY thing left to offer when
+          the week's card is gone. So the archive link sits outside the
+          availability branch and renders either way.
+        {%- endcomment -%}
+        <div class="aj-teew__actions">
+          {%- if tee.available -%}
+            <a class="aj-teew__cta" href="{{ tee.url }}">
+              {{- s.cta_label | escape -}}
+              <span aria-hidden="true">&nbsp;&rarr;</span>
+            </a>
+          {%- else -%}
+            <p class="aj-teew__gone">{{ s.sold_out_label | escape }}</p>
+          {%- endif -%}
+
+          {%- if s.archive_label != blank and s.archive_link != blank -%}
+            <a class="aj-teew__cta2" href="{{ s.archive_link }}">
+              {{- s.archive_label | escape -}}
+            </a>
+          {%- endif -%}
+        </div>
       </div>
     </div>
   </div>
@@ -842,6 +858,20 @@
     }
   }
 
+  .aj-teew__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem 1rem;
+  }
+
+  @media screen and (min-width: 750px) {
+    .aj-teew__actions {
+      justify-content: flex-start;
+    }
+  }
+
   .aj-teew__cta {
     display: inline-block;
     padding: 0.85rem 1.6rem;
@@ -859,6 +889,30 @@
   .aj-teew__cta:hover {
     translate: 0 -2px;
     box-shadow: 0 10px 20px rgb(0 0 0 / 0.28);
+  }
+
+  /*
+    A LINK, NOT A SECOND BUTTON. Two filled buttons side by side make a reader
+    choose before they know what either does, and this one is the lesser of the
+    two on a section whose job is to sell the tee in front of them. Underlined
+    rather than outlined so it reads as somewhere to go rather than something
+    to press.
+  */
+  .aj-teew__cta2 {
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #ffffff;
+    text-decoration: underline;
+    text-decoration-color: var(--aj-brand-yellow, #ffe000);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+    transition: color 0.15s ease;
+  }
+
+  .aj-teew__cta2:hover {
+    color: var(--aj-brand-yellow, #ffe000);
   }
 
   .aj-teew__gone {
@@ -992,6 +1046,19 @@
       "default": "One graphic tee, pulled from the pile and sealed up for seven days. Then it goes back and a new one takes its place."
     },
     { "type": "text", "id": "cta_label", "label": "Button", "default": "Yoink it" },
+    {
+      "type": "text",
+      "id": "archive_label",
+      "label": "Archive link text",
+      "info": "Shows whether or not this week's tee is in stock — when it sells out this is the only thing left to click.",
+      "default": "See the whole set"
+    },
+    {
+      "type": "url",
+      "id": "archive_link",
+      "label": "Archive link",
+      "info": "The agent creates /collections/tee-past on its first rotation."
+    },
     { "type": "text", "id": "sold_out_label", "label": "Sold-out text", "default": "Gone — back next week with a new one" },
     { "type": "header", "content": "Card" },
     { "type": "text", "id": "card_series", "label": "Label set name", "default": "The Yoink" },
