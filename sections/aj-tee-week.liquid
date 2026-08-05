@@ -231,8 +231,21 @@
             </div>
           </article>
 
+          {%- comment -%}
+            THE SAVING, AT THE SIZE IT DESERVES. It was a small corner sticker
+            while the concern was that 15% would be read against the Bargain
+            Bin's 25%. On the page that fear was misplaced — the card frames it
+            as a perk on a curated pick rather than as a competing deal, so the
+            number can be loud without inviting the comparison.
+
+            Still computed, never typed: this whole block is inside `off_pct > 0`
+            and prints whatever the real gap is.
+          {%- endcomment -%}
           {%- if off_pct > 0 -%}
-            <span class="aj-teew__flag">{{ off_pct }}% off</span>
+            <span class="aj-teew__flag">
+              <span class="aj-teew__flag-n">{{ off_pct }}%</span>
+              <span class="aj-teew__flag-t">off</span>
+            </span>
           {%- endif -%}
         </div>
       </div>
@@ -277,13 +290,21 @@
             <p class="aj-teew__gone">{{ s.sold_out_label | escape }}</p>
           {%- endif -%}
 
-          {%- if s.archive_label != blank and s.archive_link != blank -%}
-            <a class="aj-teew__cta2" href="{{ s.archive_link }}">
-              {{- s.archive_label | escape -}}
-            </a>
-          {%- endif -%}
         </div>
       </div>
+
+      {%- comment -%}
+        A SIBLING OF THE CARD, NOT A NEIGHBOUR OF THE BUY BUTTON. Sat next to
+        "Yoink it" on a phone it read as a second, competing call to action —
+        two things to press, one of which does not buy anything. Out here it can
+        be placed under the copy on desktop and below the card on a phone, from
+        one element and one link.
+      {%- endcomment -%}
+      {%- if s.archive_label != blank and s.archive_link != blank -%}
+        <a class="aj-teew__cta2" href="{{ s.archive_link }}">
+          {{- s.archive_label | escape -}}
+        </a>
+      {%- endif -%}
     </div>
   </div>
 
@@ -372,6 +393,23 @@
     color: #ffffff;
     overflow: visible;
     border-block: 3px solid var(--aj-brand-cyan, #5cd8f8);
+
+    /*
+      CLEARANCE FOR THE OVERHANG. The card hangs out of the band by design, so
+      the band needs room around it or the card lands ON the neighbouring
+      section — it was overlapping the Bargain Bin's own button. This is margin
+      rather than padding on purpose: padding would grow the purple back, which
+      is the exact opposite of the thin strip we wanted. The margin puts empty
+      white either side for the card to hang into.
+    */
+    margin-block: 5rem;
+  }
+
+  @media screen and (max-width: 749px) {
+    .aj-teew {
+      /* Only the bottom overhangs on a phone, so only the bottom needs the room. */
+      margin-block: 2rem 3.5rem;
+    }
   }
 
   .aj-teew__inner {
@@ -386,7 +424,10 @@
     .aj-teew__inner {
       grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
       align-items: center;
-      gap: 3.5rem;
+      /* Column gap only. The row gap here would push the archive link away from
+         the button it belongs under, since the two are now in adjacent rows. */
+      column-gap: 3.5rem;
+      row-gap: 0;
       justify-items: stretch;
     }
   }
@@ -424,6 +465,31 @@
   @media screen and (min-width: 750px) {
     .aj-teew__stage {
       margin-block: -4.5rem;
+    }
+
+    /*
+      THE CARD SPANS BOTH ROWS so the copy and this link stay next to each
+      other. Left to auto-placement the link landed in its own row beneath a
+      600px-tall card row, which stranded it at the very bottom of the band,
+      nowhere near the paragraph it belongs to. Spanning lets row 1 end where
+      the copy ends and row 2 begin immediately after.
+    */
+    .aj-teew__stage {
+      grid-row: 1 / span 2;
+    }
+
+    .aj-teew__copy {
+      grid-column: 2;
+      grid-row: 1;
+      align-self: end;
+    }
+
+    .aj-teew__cta2 {
+      grid-column: 2;
+      grid-row: 2;
+      align-self: start;
+      justify-self: start;
+      margin-block-start: 1.25rem;
     }
   }
 
@@ -790,21 +856,62 @@
     Cocked at an angle on the corner of the case, like something applied after
     sealing. Small on purpose: the week number is the headline, not this.
   */
+  /*
+    A DISC, NOT A LABEL. At this size a rectangle reads as a UI chip; a circle
+    cocked off the corner reads as something stuck onto the case, which is the
+    same logic as the rest of the slab. The ink ring keeps it legible where it
+    crosses from the cream label onto the purple.
+  */
+  /*
+    PUSHED OFF THE CORNER, not laid over it. Sitting closer in, the disc covered
+    the week number and half the serial — the two things that make the slab read
+    as a numbered collectible rather than a photo in a frame. Overlapping only
+    the corner keeps every printed value legible.
+  */
   .aj-teew__flag {
     position: absolute;
-    top: -0.55rem;
-    right: -0.6rem;
+    top: -2.6rem;
+    right: -5rem;
     z-index: 4;
-    padding: 0.3rem 0.6rem;
-    border-radius: 4px;
-    rotate: 7deg;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 5.5rem;
+    height: 5.5rem;
+    border-radius: 50%;
+    rotate: -9deg;
     background: var(--aj-brand-yellow, #ffe000);
     color: var(--aj-brand-ink, #282828);
+    box-shadow: 0 0 0 3px var(--aj-brand-ink, #282828), 0 6px 16px rgb(0 0 0 / 0.4);
+  }
+
+  .aj-teew__flag-n {
+    font-family: "Flashy", var(--font-heading--family);
+    font-weight: 400;
+    font-size: 1.75rem;
+    line-height: 0.9;
+  }
+
+  .aj-teew__flag-t {
+    margin-block-start: 0.15rem;
     font-family: "Ohpixel", var(--font-heading--family);
     font-size: 0.6875rem;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    box-shadow: 0 4px 10px rgb(0 0 0 / 0.32);
+  }
+
+  @media screen and (max-width: 749px) {
+    .aj-teew__flag {
+      width: 4.75rem;
+      height: 4.75rem;
+      top: -2rem;
+      right: -3.3rem;
+    }
+
+    .aj-teew__flag-n {
+      font-size: 1.5rem;
+    }
   }
 
   /* ---- the sheen ---------------------------------------------------------- */
@@ -955,6 +1062,8 @@
     to press.
   */
   .aj-teew__cta2 {
+    display: inline-block;
+    justify-self: center;
     font-family: "Ohpixel", var(--font-heading--family);
     font-size: 0.75rem;
     letter-spacing: 0.1em;
@@ -1061,6 +1170,16 @@
     .aj-teew__stage {
       max-width: 19rem;
       margin-block-end: -2.5rem;
+    }
+
+    /*
+      LAST, BELOW THE CARD. The order it sits in is the order of intent: read
+      the pitch, look at the tee, buy it — and only then, if none of that landed,
+      go and browse the rest of the set.
+    */
+    .aj-teew__cta2 {
+      order: 1;
+      margin-block-start: 3.25rem;
     }
   }
 {% endstylesheet %}
