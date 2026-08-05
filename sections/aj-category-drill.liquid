@@ -336,10 +336,22 @@
   }
 
   /*
-    WRAP RATHER THAN SCROLL. A horizontal scroller fits more chips on a phone
-    and hides how many there are, which is the opposite of what this section is
-    for — the shopper is here because the catalogue already felt endless. Twelve
-    is the widest real set (Home & Garden), and wrapped it costs three rows.
+    WRAP ON DESKTOP, SCROLL ON A PHONE — and the phone case is why this rule is
+    split rather than shared.
+
+    Wrapping was the first instinct on both: a scroller hides how many
+    destinations there are, which is the opposite of what this section is for.
+    On a 430px screen it is the wrong trade anyway. The names are real category
+    names — "Home Fragrance Accessories" is 26 characters — so two chips never
+    fit on one line and the row becomes one chip per row. Decor's three
+    subcategories then cost 200px of vertical space, and Clothing's eight would
+    cost 500px, all of it above the first product. A shopper who has to scroll
+    past the navigation to reach the thing they came for reads the page as
+    longer, not as better organised.
+
+    So the row scrolls on a phone, and it bleeds to the page edge so a chip is
+    always visibly cut off — that clipped edge is the only honest signal that
+    there is more, and it costs nothing vertically.
   */
   .aj-drill__chips {
     display: flex;
@@ -348,6 +360,39 @@
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+
+  @media screen and (max-width: 749px) {
+    .aj-drill__chips {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scroll-snap-type: x proximity;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+
+      /* --page-margin is 16px below 750px (assets/base.css). Pulling the row
+         out by exactly that and padding it back puts the first chip on the
+         same left edge as the heading while letting the last one run under
+         the right edge. */
+      margin-inline: calc(-1 * var(--page-margin, 16px));
+      padding-inline: var(--page-margin, 16px);
+
+      /* Room for the focus ring, which would otherwise be clipped by the
+         scroll container. */
+      padding-block: 3px;
+    }
+
+    .aj-drill__chips::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Without this, flex shrinks every chip to fit and the row stops scrolling
+       — the names truncate instead, which is worse than either option. */
+    .aj-drill__chips > li {
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+    }
   }
 
   .aj-drill__chip {
@@ -400,6 +445,31 @@
     font-size: 0.75rem;
     font-variant-numeric: tabular-nums;
     color: rgb(var(--color-foreground-rgb) / 0.5);
+  }
+
+  /*
+    PHONE RHYTHM. Everything in this section sits between the collection title
+    and the first product, so on a phone each block is competing directly with
+    the thing the shopper came for. The desktop spacing costs about 150px here,
+    which is a quarter of the visible screen before a single item — tightened to
+    roughly 100px, and the crumb row drops a size because a four-level path
+    ("All departments › Apparel & Accessories › Clothing Accessories › Sunglasses")
+    otherwise takes three lines at 430px.
+  */
+  @media screen and (max-width: 749px) {
+    .aj-drill__crumbs {
+      margin-block-end: 0.6rem;
+      font-size: 0.75rem;
+    }
+
+    .aj-drill__label {
+      margin-block-end: 0.5rem;
+    }
+
+    .aj-drill__chip {
+      padding: 0.4rem 0.75rem;
+      font-size: 0.875rem;
+    }
   }
 
   .aj-drill__chip--here .aj-drill__chip-count {
