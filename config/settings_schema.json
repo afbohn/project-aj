@@ -2149,7 +2149,6 @@
         "type": "text",
         "id": "cart_upsell_fallback",
         "label": "Fallback collection handle",
-        "default": "",
         "info": "Used only when nothing matches the cart's own suppliers. Put higher-margin items in it."
       }
     ]
