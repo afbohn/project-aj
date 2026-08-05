@@ -1,15 +1,47 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "main": {
       "type": "aj-about",
       "settings": {
+        "bar_left": "The Yoink Co.",
+        "bar_mid": "our-story.txt",
+        "bar_right": "Read only",
+        "bar_footer": "Esc = back to the shop",
+        "bar_footer_link": "",
+        "bar_footer_right": "One deal a day",
+        "prompt": "C:\\>",
+        "boot_lines": "The Yoink Co. Terminal v1.0\n> Created 1990\n> Est. 2026\n> Mounting c:\\yoink ...\n> Loading origin.txt ...\n> OK",
+        "heading": "Our story",
+        "lead": "<p>Just a couple of '90s kids that missed the dot-com boom by about a decade. We came of age dodging recessions, pandemics, and have spent our whole adult lives being told the timing's bad. So instead of waiting around for a better hand, we decided to have some fun with the one we were dealt.</p>",
+        "cmd_1": "type how-it-started.txt",
+        "body_1": "<p>The short version: We are two guys that had a lot of fun working together, until one of them decided to move out of state... So, in order to keep the bromance alive, we did the most reasonable thing two grown adults could do.</p><p>We started an online store.</p><p>The Yoink is our excuse to keep scheming, hang out and finally have some fun with retail — because the places we came from were about as playful as a tax form. Case in point: one of us stayed up half the night last week, wide awake, brain fully hijacked by what should tomorrow's deal be. That's not a healthy relationship with a website. We're aware. We're not stopping.</p><p>Here's the bit: every single day, we go dig up one genuinely cool, slightly random, actually-worth-owning thing — and drop it at a price that feels a little bit illegal.</p>",
+        "pull_quote": "One deal. One day. Blink and it's someone else's.",
+        "cmd_2": "type the-bit.txt",
+        "body_2": "<p>We call it the Yoink of the Day, because yoink is the sound of grabbing something great half a second before the person next to you.</p><p>To be clear, we are not out here trying to buy a yacht. A canoe, maybe. We're just making the most of the hand we've been dealt — and, conveniently, dealing is kind of our whole thing. Mostly we like tracking down cool stuff for cheap and hand you a deal like it's a dare. Some days the Yoink is exactly what you didn't know you needed. Some days it's a penguin-shaped thing that is very much Not For You — no worries, there's a new one tomorrow.</p><p>So stick around. Watch the drops. Rummage the Bargain Bin between yoinks. And when the good one hits — you know what to do.</p>",
+        "cmd_3": "echo %welcome%",
+        "signoff": "Welcome to The Yoink. Yoink accordingly.",
+        "tagline": "One deal a day. Yoink it before it's gone.",
+        "primary_text": "See today's Yoink",
         "primary_link": "/",
+        "secondary_text": "Dig through the Bargain Bin",
         "secondary_link": "/collections/bargain-bin",
-        "color_scheme": "scheme-1",
+        "phosphor": "#5cf08a",
+        "screen_color": "#0b100c",
         "padding-block-start": 60,
         "padding-block-end": 60
       }
     }
   },
-  "order": ["main"]
+  "order": [
+    "main"
+  ]
 }
