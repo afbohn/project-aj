@@ -105,120 +105,218 @@
 </div>
 
 {% stylesheet %}
+  /*
+    A CYAN BAND, because the first version was correct and characterless — a
+    numbered list in grey on white, which is every SaaS "how it works" section
+    ever shipped and says nothing about this shop.
+
+    Cyan is the one brand colour doing no work anywhere else: teal holds the
+    header, purple the footer, yellow the story band below. It also breaks up a
+    homepage that runs white from the deal all the way to the story.
+
+    INK ON CYAN, NEVER CYAN AS TYPE. aj-brand.css measured cyan at 1.66:1
+    against white, which fails WCAG 1.4.3 at any size as text. As a background
+    under ink it is the opposite problem — comfortably past AA — which is the
+    same reason the yellow is only ever a fill.
+  */
+  .aj-how {
+    background: var(--aj-brand-cyan, #5cd8f8);
+    color: var(--aj-brand-ink, #282828);
+  }
+
   .aj-how__inner {
     max-width: 62rem;
     margin-inline: auto;
   }
 
-  /* ---- the definition --------------------------------------------------- */
+  /* ---- the definition, now the loudest thing here ----------------------- */
 
+  /*
+    THE DEFINITION IS THE HERO, not a caption above a list. It is the one line
+    that explains the brand's own name, it is already the device used on social
+    and on the About page, and set at display size it does more work than three
+    steps of body copy.
+  */
   .aj-how__def {
-    margin: 0 0 2rem;
-    padding-block-end: 1.5rem;
-    border-block-end: 1px solid rgb(var(--color-foreground-rgb) / 0.12);
+    margin: 0 0 2.25rem;
     text-align: center;
     text-wrap: balance;
   }
 
   .aj-how__term {
-    font-family: "Ohpixel", var(--font-heading--family);
-    font-size: 1.0625rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--aj-price-act, #7a3fa0);
+    display: block;
+    font-family: "Flashy", var(--font-heading--family);
+    font-weight: 400;
+    font-size: clamp(2.5rem, 9vw, 4.25rem);
+    line-height: 0.95;
+    letter-spacing: 0.01em;
   }
 
-  /* Italic, lowercase, quiet — it is a part-of-speech marker, not a word. */
+  /* Sits under the word like a dictionary entry rather than beside it. */
   .aj-how__pos {
-    margin-inline: 0.4em;
-    font-style: italic;
-    font-size: 0.9375rem;
-    opacity: 0.6;
+    display: block;
+    margin-block: 0.35rem 0.75rem;
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.8125rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    opacity: 0.62;
   }
 
   .aj-how__gloss {
-    font-size: 1.0625rem;
-    line-height: 1.5;
+    display: block;
+    max-width: 34ch;
+    margin-inline: auto;
+    font-size: 1.125rem;
+    line-height: 1.45;
+    font-weight: 500;
   }
 
   /* ---- the steps -------------------------------------------------------- */
 
-  /*
-    Three across from 750px. Below that they stack, because three columns on a
-    phone is three columns of two-word wraps — the shape wins and the sentence
-    loses, which is backwards for a section whose entire job is being read.
-  */
   .aj-how__steps {
     display: grid;
-    gap: 1.75rem;
+    gap: 1rem;
     margin: 0;
     padding: 0;
     list-style: none;
-    counter-reset: none;
   }
 
   @media screen and (min-width: 750px) {
     .aj-how__steps {
       grid-template-columns: repeat(3, 1fr);
-      gap: 2.5rem;
+      gap: 1.25rem;
     }
   }
 
+  /*
+    Each step is a card in the ink, not a bullet on the band. Three solid blocks
+    read as deliberate objects; three lines of text on a colour read as a caption
+    that overflowed.
+  */
   .aj-how__step {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    column-gap: 0.75rem;
-    row-gap: 0.35rem;
-    align-items: start;
+    position: relative;
+    padding: 1.5rem 1.35rem 1.35rem;
+    border-radius: var(--aj-tile-radius, 8px);
+    background: var(--aj-brand-ink, #282828);
+    color: #ffffff;
   }
 
   /*
-    Ohpixel for the numeral: a single digit is exactly the shape a pixel face
-    is drawn for, and it is the one place on this section where the brand's
-    display type costs no legibility at all.
+    The numeral is a chip that overlaps the card's top edge — the small piece of
+    deliberate untidiness that stops three rectangles looking like a table.
+    Yellow on ink is 11.17:1, the brand's loudest legal pairing.
   */
   .aj-how__num {
-    grid-row: 1 / 3;
+    position: absolute;
+    top: -0.7rem;
+    left: 1.2rem;
     display: grid;
     place-items: center;
-    width: 1.9rem;
-    height: 1.9rem;
-    border-radius: 50%;
-    background: var(--aj-price-act, #7a3fa0);
-    color: #ffffff;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 4px;
+    transform: rotate(-4deg);
+    background: var(--aj-brand-yellow, #ffe000);
+    color: var(--aj-brand-ink, #282828);
     font-family: "Ohpixel", var(--font-heading--family);
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     line-height: 1;
   }
 
   .aj-how__label {
-    font-family: "Ohpixel", var(--font-heading--family);
-    font-size: 0.8125rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    align-self: center;
+    display: block;
+    margin-block-end: 0.4rem;
+    font-family: "Flashy", var(--font-heading--family);
+    font-weight: 400;
+    font-size: 1.375rem;
+    line-height: 1.1;
   }
 
   .aj-how__body {
-    grid-column: 2;
+    display: block;
     font-size: 0.9375rem;
-    line-height: 1.6;
-    opacity: 0.78;
+    line-height: 1.55;
+    opacity: 0.82;
+  }
+
+  /* ---- motion ------------------------------------------------------------ */
+
+  /*
+    TWO DIFFERENT ANSWERS, BECAUSE PHONES HAVE NO HOVER.
+
+    Desktop gets a lift on hover — motion that answers an action, which is the
+    only kind this codebase ships. Touch gets a scroll-driven entrance instead:
+    the cards rise as they come into view, which is the closest thing to
+    interactivity a finger can trigger without tapping something.
+
+    THE TWO NEVER FIGHT OVER A PROPERTY. The entrance owns `translate` and the
+    hover owns `scale` — CSS's independent transform properties, specifically so
+    a scroll-driven animation holding its end state cannot be clobbered by a
+    hover rule, and vice versa. Written as one `transform` on both, whichever
+    fired last would win and the cards would jump.
+  */
+  .aj-how__step,
+  .aj-how__num {
+    transition: scale 0.18s ease, box-shadow 0.18s ease, rotate 0.18s ease;
+  }
+
+  @media (hover: hover) {
+    .aj-how__step:hover {
+      scale: 1.02;
+      box-shadow: 0 14px 28px rgb(0 0 0 / 0.22);
+    }
+
+    /* The chip straightens up as you arrive, then leans back when you leave. */
+    .aj-how__step:hover .aj-how__num {
+      rotate: 2deg;
+      scale: 1.1;
+    }
+  }
+
+  /* Touch feedback: a press should feel like a press even with nothing to tap. */
+  .aj-how__step:active {
+    scale: 0.985;
+  }
+
+  /*
+    Scroll-driven, so no JavaScript and no IntersectionObserver. Guarded twice:
+    @supports for browsers without a view timeline, which simply see the
+    finished state, and reduced-motion for people who asked not to have this.
+  */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .aj-how__step {
+        animation: aj-how-rise linear both;
+        animation-timeline: view();
+        animation-range: entry 5% cover 30%;
+      }
+
+      @keyframes aj-how-rise {
+        from {
+          opacity: 0;
+          translate: 0 18px;
+        }
+
+        to {
+          opacity: 1;
+          translate: 0 0;
+        }
+      }
+    }
   }
 
   @media screen and (max-width: 749px) {
     .aj-how__def {
-      margin-block-end: 1.5rem;
-      padding-block-end: 1.25rem;
+      margin-block-end: 1.75rem;
     }
 
-    .aj-how__gloss,
-    .aj-how__term {
-      font-size: 1rem;
+    .aj-how__gloss {
+      font-size: 1.0625rem;
     }
 
     .aj-how__steps {
-      gap: 1.25rem;
+      gap: 1.4rem;
     }
   }
 {% endstylesheet %}
