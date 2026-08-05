@@ -94,3 +94,30 @@
 .mega-menu__column > div:only-child > .mega-menu__link {
   margin-block-end: 0.75rem;
 }
+
+/*
+  A column of ten headings and half a panel of white space beside it.
+
+  The theme groups every childless top-level link into ONE column, so Pet
+  Supplies through Baby & Toddler stack ten deep while the columns to the right
+  sit empty. Splitting that column in two fills the space and halves the scan
+  length, without touching the menu structure in the admin.
+
+  `:has(> div:nth-of-type(6))` means "a column holding six or more links",
+  which is only ever the childless group and never a real parent-and-children
+  column — so it cannot catch Apparel or Home & Garden as those grow. Browsers
+  without :has() see the tall single column, which is what they see today.
+*/
+@supports selector(:has(*)) {
+  @media screen and (min-width: 990px) {
+    .mega-menu__column:has(> div:nth-of-type(6)) {
+      columns: 2;
+      column-gap: 3rem;
+    }
+
+    /* A heading and its rule must never be split across the column break. */
+    .mega-menu__column:has(> div:nth-of-type(6)) > div {
+      break-inside: avoid;
+    }
+  }
+}
