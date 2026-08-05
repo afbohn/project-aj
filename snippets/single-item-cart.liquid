@@ -1,0 +1,131 @@
+{%- comment -%}
+  Single-item cart enforcement.
+
+  Requirement: the cart may only ever hold ONE product, in a quantity of ONE.
+
+  Every add-to-cart entry point in this theme (main product form, quick-add
+  modal, quick-order list, batch add) POSTs to `Theme.routes.cart_add_url`
+  (`/cart/add.js`), and every quantity change POSTs to `cart_change_url` /
+  `cart_update_url`. Rather than patch each compiled component (which would
+  break on theme updates and miss entry points), we wrap `window.fetch` once
+  and enforce the invariant at that single network chokepoint:
+
+    - On ADD: clear the cart first, then force the added quantity to 1. The
+      result is that the just-added product silently replaces whatever was
+      there. (Add buttons are disabled for unavailable variants, so the
+      clear-then-add failure window is negligible.)
+    - On CHANGE / UPDATE: cap any line quantity above 1 back down to 1, so a
+      customer can't bump the single item to 2 from the cart. Quantity 0
+      (removal) is left untouched.
+
+  The quantity steppers are also hidden via CSS so the UI matches the enforced
+  behaviour (a visible +/- that snaps back would just confuse people).
+
+  Pure client-side, theme-update-safe, no vendor JS touched.
+
+  Gated on the "Limit cart to one item" theme setting (Cart rules).
+{%- endcomment -%}
+{%- if settings.single_item_cart -%}
+<style>
+  /* We force qty 1, so hide the steppers to avoid a control that snaps back. */
+  product-form-component .quantity-selector,
+  product-form-component quantity-selector-component,
+  .cart-items__quantity-controls {
+    display: none !important;
+  }
+</style>
+<script>
+  (function () {
+    if (window.__txgcSingleItemCart) return;
+    window.__txgcSingleItemCart = true;
+
+    var origFetch = window.fetch.bind(window);
+
+    // Locale-safe path matching: routes may carry an /en-style prefix, so we
+    // match on the trailing cart path rather than the full URL.
+    function pathOf(input) {
+      try {
+        var raw = (typeof input === 'string') ? input : (input && input.url) || '';
+        return new URL(raw, window.location.origin).pathname;
+      } catch (e) {
+        return '';
+      }
+    }
+
+    function isAdd(path)    { return /\/cart\/add(\.js)?$/.test(path); }
+    function isChange(path) { return /\/cart\/change(\.js)?$/.test(path); }
+    function isUpdate(path) { return /\/cart\/update(\.js)?$/.test(path); }
+
+    function clearUrl() {
+      // Derive from cart_add_url so any locale prefix is preserved.
+      var addUrl = (window.Theme && Theme.routes && Theme.routes.cart_add_url) || '/cart/add.js';
+      return addUrl.replace(/\/add(\.js)?$/, '/clear.js');
+    }
+
+    // Force the ADD payload down to a single unit of a single variant.
+    function capAddBody(body) {
+      if (body instanceof FormData) {
+        body.set('quantity', '1');
+        return body;
+      }
+      if (typeof body === 'string') {
+        try {
+          var data = JSON.parse(body);
+          if (Array.isArray(data.items)) {
+            var first = data.items[0];
+            if (first) {
+              data.items = [{ id: first.id, quantity: 1 }];
+            }
+          } else if ('quantity' in data) {
+            data.quantity = 1;
+          }
+          return JSON.stringify(data);
+        } catch (e) {
+          return body;
+        }
+      }
+      return body;
+    }
+
+    // Cap a CHANGE / UPDATE payload so no line exceeds quantity 1 (0 = remove).
+    function capMutationBody(body) {
+      if (typeof body !== 'string') return body;
+      try {
+        var data = JSON.parse(body);
+        if ('quantity' in data && Number(data.quantity) > 1) {
+          data.quantity = 1;
+        }
+        if (data.updates && typeof data.updates === 'object') {
+          Object.keys(data.updates).forEach(function (key) {
+            if (Number(data.updates[key]) > 1) data.updates[key] = 1;
+          });
+        }
+        return JSON.stringify(data);
+      } catch (e) {
+        return body;
+      }
+    }
+
+    window.fetch = function (input, init) {
+      var path = pathOf(input);
+
+      // Only intercept when the body travels in `init` (how this theme calls
+      // the cart API). Request-object bodies are left untouched.
+      if (init && init.body != null && typeof input === 'string') {
+        if (isAdd(path)) {
+          init = Object.assign({}, init, { body: capAddBody(init.body) });
+          return origFetch(clearUrl(), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+            .catch(function () { /* proceed with add even if clear fails */ })
+            .then(function () { return origFetch(input, init); });
+        }
+        if (isChange(path) || isUpdate(path)) {
+          init = Object.assign({}, init, { body: capMutationBody(init.body) });
+          return origFetch(input, init);
+        }
+      }
+
+      return origFetch(input, init);
+    };
+  })();
+</script>
+{%- endif -%}

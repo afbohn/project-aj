@@ -1,0 +1,53 @@
+{%- comment -%}
+  TWX Tech Promo — private child of twx-tech-promos.
+  Maps one product tag to one icon image. Renders only when the current product carries the tag.
+  Configure tag + image in the theme editor. Example tags (from the brand catalog):
+  cellstretch, steel-toe, composite-toe, nano-toe, alloy-toe, waterproof, oil-and-slip-resistant,
+  ecotwx, merino-wool, "UltraLite X", viperguard, metguard, chemical-resistant, ...
+
+  Install: blocks/_twx-tech-promo.liquid in the theme.
+{%- endcomment -%}
+
+{%- liquid
+  assign p = closest.product
+  assign tag = block.settings.tag | strip
+-%}
+
+{%- if tag != blank and p.tags contains tag and block.settings.image != blank -%}
+  <figure class="twx-tech__item" {{ block.shopify_attributes }}>
+    <img
+      src="{{ block.settings.image | image_url: width: 240 }}"
+      alt="{{ block.settings.label | default: tag | escape }}"
+      width="120" height="120" loading="lazy"
+    >
+    {% if block.settings.label != blank %}
+      <figcaption class="twx-tech__label">{{ block.settings.label | escape }}</figcaption>
+    {% endif %}
+  </figure>
+{%- endif -%}
+
+{% stylesheet %}
+  .twx-tech__item {
+    margin: 0;
+    width: 120px;
+    text-align: center;
+  }
+  .twx-tech__item img { display: block; width: 120px; height: 120px; object-fit: contain; }
+  .twx-tech__label {
+    margin-top: var(--padding-2xs);
+    font-size: 0.8em;
+    color: rgb(var(--color-foreground-rgb) / var(--opacity-subdued-text));
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "TWX Tech Promo",
+  "tag": null,
+  "settings": [
+    { "type": "text", "id": "tag", "label": "Product tag", "info": "Shows this icon only when the product has this exact tag (e.g. cellstretch, steel-toe, waterproof)." },
+    { "type": "image_picker", "id": "image", "label": "Icon image" },
+    { "type": "text", "id": "label", "label": "Label / caption (also used as alt text)" }
+  ]
+}
+{% endschema %}

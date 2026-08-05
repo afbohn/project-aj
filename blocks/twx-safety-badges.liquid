@@ -1,0 +1,447 @@
+{%- comment -%}
+  TWX Safety Badges — Horizon theme block.
+
+  Renders a product's safety features as compact pills. Designed for the product
+  CARD (collection grids), but works anywhere `closest.product` resolves.
+
+  Reads the same metafields the PDP spec block uses (see twx-product-specs.liquid);
+  they are populated by the backfill app (backfill-app/src/index.js SPEC_KEYS):
+
+    custom.toe_safety                  value IS the label   ("Steel Toe")
+    custom.additional_safety_features  value IS the label, pipe-delimited
+    global.waterproof                  flag -> "Waterproof"
+    global.xrd_met_guard               flag -> "Met Guard"
+    global.comfort_technology          value IS the label, pipe-delimited (off by default)
+
+  DEFENSIVE VALUE HANDLING — the exact strings the CSV export writes are not yet
+  confirmed, so this block tolerates both shapes without knowing which is used:
+
+    * Flag fields render their fixed label for any affirmative-looking value
+      ("Yes", "TRUE", "Waterproof", ...) and render NOTHING for anything in the
+      negative list below. This is the important one: if `global.waterproof`
+      turns out to carry "No" for non-waterproof product, those products must
+      not get a "Waterproof" badge.
+    * Value fields render the value verbatim, minus any negative entries, so a
+      "Soft Toe" / "Non-Safety" product shows no toe badge.
+
+  Once the real values are confirmed, tighten negative_values below.
+{%- endcomment -%}
+
+{%- liquid
+  assign block_settings = block.settings
+  assign product_resource = closest.product
+  assign mf = product_resource.metafields
+
+  assign max_badges = block_settings.max_badges | default: 3
+
+  comment
+    Values that mean "this product does NOT have the feature". Compared
+    case-insensitively against the whole trimmed value, pipe-wrapped on both
+    sides so partial words can never match (e.g. "no" must not match "nomex").
+  endcomment
+  assign negative_values = '|no|none|n/a|na|false|0|null|not applicable|standard|soft|soft toe|non-safety|non safety|nonsafety|non-safety toe|no met guard|not waterproof|'
+-%}
+
+{%- comment -%}
+  Pass 1 — collect candidate labels into a "~"-delimited string.
+  Flag fields resolve to a fixed label; value fields contribute their own text.
+{%- endcomment -%}
+{%- capture candidates -%}
+  {%- if block_settings.show_toe_safety -%}
+    {%- assign toe_values = mf.custom.toe_safety.value | split: '|' -%}
+    {%- for toe_value in toe_values -%}
+      {%- assign clean = toe_value | strip -%}
+      {%- assign probe = '|' | append: clean | downcase | append: '|' -%}
+      {%- unless clean == blank or negative_values contains probe -%}{{ clean }}~{%- endunless -%}
+    {%- endfor -%}
+  {%- endif -%}
+
+  {%- if block_settings.show_waterproof -%}
+    {%- assign wp = mf.global.waterproof.value | strip -%}
+    {%- assign probe = '|' | append: wp | downcase | append: '|' -%}
+    {%- unless wp == blank or negative_values contains probe -%}Waterproof~{%- endunless -%}
+  {%- endif -%}
+
+  {%- if block_settings.show_met_guard -%}
+    {%- assign mg = mf.global.xrd_met_guard.value | strip -%}
+    {%- assign probe = '|' | append: mg | downcase | append: '|' -%}
+    {%- unless mg == blank or negative_values contains probe -%}Met Guard~{%- endunless -%}
+  {%- endif -%}
+
+  {%- if block_settings.show_additional -%}
+    {%- assign extra_values = mf.custom.additional_safety_features.value | split: '|' -%}
+    {%- for extra_value in extra_values -%}
+      {%- assign clean = extra_value | strip -%}
+      {%- assign probe = '|' | append: clean | downcase | append: '|' -%}
+      {%- unless clean == blank or negative_values contains probe -%}{{ clean }}~{%- endunless -%}
+    {%- endfor -%}
+  {%- endif -%}
+
+  {%- if block_settings.show_comfort -%}
+    {%- assign comfort_values = mf.global.comfort_technology.value | split: '|' -%}
+    {%- for comfort_value in comfort_values -%}
+      {%- assign clean = comfort_value | strip -%}
+      {%- assign probe = '|' | append: clean | downcase | append: '|' -%}
+      {%- unless clean == blank or negative_values contains probe -%}{{ clean }}~{%- endunless -%}
+    {%- endfor -%}
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- comment -%}
+  Pass 2 — shorten for card display, then dedupe (a feature can appear in both
+  toe_safety and the additional list) and count, so the overflow chip is
+  accurate before anything renders.
+
+  Shortening rule for parenthetical values:
+    "Slip resistant (SR)"                        -> "SR"
+    "Slip resistant (SRO)"                       -> "SRO"
+    "BarnShield™ (livestock chemical resistant)" -> "BarnShield™"
+  A SHORT parenthetical is the recognised industry abbreviation and says more
+  than the words before it; a LONG one is a gloss, so the lead text wins. The
+  full original value stays in the title attribute either way.
+{%- endcomment -%}
+{%- liquid
+  assign candidate_list = candidates | split: '~'
+  assign seen = '|'
+  assign unique_labels = ''
+
+  for candidate in candidate_list
+    assign clean = candidate | strip
+    if clean == blank
+      continue
+    endif
+
+    assign display = clean
+    if clean contains '('
+      assign lead = clean | split: '(' | first | strip
+      assign inner = clean | split: '(' | last | split: ')' | first | strip
+      assign inner_size = inner | size
+      if inner_size > 0 and inner_size <= 5
+        assign display = inner
+      elsif lead != blank
+        assign display = lead
+      endif
+    endif
+
+    comment
+      Shoppers filter on "is it a safety toe", not on which material. Collapsing
+      "Nano composite toe" / "Steel toe" / "Alloy toe" to one label also means
+      the dedupe below leaves a single toe pill per product. Non-safety values
+      ("Soft toe", "Non-safety toe") never reach here — negative_values drops
+      them in pass 1, so this can't mislabel a soft-toe boot.
+    endcomment
+    assign display_probe = display | downcase
+    if display_probe contains 'toe'
+      assign display = 'Safety toe'
+    elsif display_probe contains 'met guard'
+      comment
+        Same reasoning for met guards: "XRD® Met Guard" and "Met Guard" are the
+        same feature to a shopper, and a product carrying both values would
+        otherwise show two near-identical pills. One label, deduped below.
+      endcomment
+      assign display = 'Met guard'
+    endif
+
+    assign probe = '|' | append: display | downcase | append: '|'
+    unless seen contains probe
+      assign seen = seen | append: display | downcase | append: '|'
+      comment
+        Carry the original alongside the display label, "display^original", so
+        the tooltip can still show the unabbreviated value.
+      endcomment
+      assign unique_labels = unique_labels | append: display | append: '^' | append: clean | append: '~'
+    endunless
+  endfor
+
+  assign badges = unique_labels | split: '~'
+  assign badge_count = badges | size
+
+  comment
+    Show every feature by default. When the merchant opts into a cap, a "+1"
+    chip costs the same room as the badge it hides, so only collapse when at
+    least two features would be hidden.
+  endcomment
+  assign display_limit = badge_count
+  assign overflow = 0
+
+  if block_settings.limit_badges
+    assign potential_overflow = badge_count | minus: max_badges
+    if potential_overflow > 1
+      assign display_limit = max_badges
+      assign overflow = potential_overflow
+    endif
+  endif
+-%}
+
+{%- if badge_count > 0 -%}
+  <div
+    class="twx-safety spacing-style"
+    style="{% render 'spacing-style', settings: block_settings %}"
+    {{ block.shopify_attributes }}
+  >
+    <ul class="twx-safety__list">
+      {%- for badge in badges limit: display_limit -%}
+        {%- liquid
+          assign badge_label = badge | split: '^' | first
+          assign badge_full = badge | split: '^' | last
+          assign match = badge_full | downcase
+
+          comment
+            Colour by feature family, matched against the ORIGINAL value so the
+            abbreviated labels ("SR") still classify correctly.
+          endcomment
+          assign tone = 'neutral'
+          if match contains 'slip'
+            assign tone = 'slip'
+          elsif match contains 'toe'
+            assign tone = 'toe'
+          elsif match contains 'waterproof'
+            assign tone = 'water'
+          elsif match contains 'heat' or match contains 'thermal'
+            assign tone = 'heat'
+          elsif match contains 'eh protection' or match contains 'electrical'
+            assign tone = 'electrical'
+          elsif match contains 'met guard'
+            assign tone = 'guard'
+          elsif match contains 'barnshield'
+            assign tone = 'brand'
+          elsif match contains 'chemical' or match contains 'oil' or match contains 'viperguard'
+            assign tone = 'shield'
+          endif
+        -%}
+        <li
+          class="twx-safety__badge twx-safety__badge--{{ tone }}"
+          title="{{ badge_full | escape }}"
+        >
+          {{- badge_label | escape -}}
+        </li>
+      {%- endfor -%}
+      {%- if overflow > 0 -%}
+        <li class="twx-safety__badge twx-safety__badge--more">+{{ overflow }}</li>
+      {%- endif -%}
+    </ul>
+  </div>
+{%- endif -%}
+
+{% stylesheet %}
+  .twx-safety__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--padding-2xs, 0.25rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .twx-safety__badge {
+    display: inline-block;
+    padding: 0.15em 0.5em;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+
+    /* Never truncate: a safety spec that reads "HEAT RESISTA…" is worse than
+       one that takes two lines. Long labels wrap inside the pill and the pill
+       is bounded by the card, so nothing overflows and nothing is cut off. */
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+
+  /* Feature families — solid fills with white text throughout, so the pills
+     read as one system.
+
+     The grey and amber fills were LIGHT in an earlier revision (dark text on
+     them); they are darkened here so white stays legible on every pill rather
+     than leaving two odd ones out. Contrast against white, all >= 4.5:1 (WCAG
+     AA) except the orange — see the note on --toe. */
+  .twx-safety__badge {
+    color: #ffffff;
+  }
+
+  /* #ff8200 against white is 2.5:1, below the 4.5:1 AA threshold — this is the
+     one pill where white text is a legibility compromise rather than a win.
+     Two ways out if it reads poorly in situ: dark text on this exact orange
+     (8.4:1), or keep white and darken the fill to about #a85300 (5.4:1). */
+  .twx-safety__badge--toe {
+    background: #ff8200;
+    border-color: #ff8200;
+  }
+
+  .twx-safety__badge--slip {
+    background: #5f5f5f;
+    border-color: #5f5f5f;
+  }
+
+  .twx-safety__badge--heat {
+    background: #941114;
+    border-color: #941114;
+  }
+
+  .twx-safety__badge--water {
+    background: #242f46;
+    border-color: #242f46;
+  }
+
+  .twx-safety__badge--brand {
+    background: #5c4127;
+    border-color: #5c4127;
+  }
+
+  /* Electrical hazard is yellow by convention, and yellow is the one hue white
+     text cannot sit on: #f5c400 against white is 1.9:1, effectively unreadable,
+     against near-black it is 11:1. This pill keeps dark text on purpose — the
+     alternative that preserves white text is a dark amber (#8a6a00), which no
+     longer reads as the EH yellow. */
+  .twx-safety__badge--electrical {
+    background: #f5c400;
+    border-color: #f5c400;
+    color: #1a1a1a;
+  }
+
+  .twx-safety__badge--guard {
+    background: #4a2c6b;
+    border-color: #4a2c6b;
+  }
+
+  .twx-safety__badge--shield {
+    background: #4f5b6b;
+    border-color: #4f5b6b;
+  }
+
+  .twx-safety__badge--neutral {
+    background: #4a4a4a;
+    border-color: #4a4a4a;
+  }
+
+  .twx-safety__badge--more {
+    background: none;
+    border-color: rgb(var(--color-foreground-rgb) / 0.25);
+    border-style: dashed;
+    color: rgb(var(--color-foreground-rgb) / var(--opacity-subdued-text, 0.7));
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "TWX Safety Badges",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Shows safety and comfort features as pills, read from the product's spec metafields. Renders nothing when a product has none of them set."
+    },
+    {
+      "type": "header",
+      "content": "Features to show"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_toe_safety",
+      "label": "Toe safety",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_waterproof",
+      "label": "Waterproof",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_met_guard",
+      "label": "Met guard",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_additional",
+      "label": "Additional safety features",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_comfort",
+      "label": "Comfort technology",
+      "default": false,
+      "info": "Off by default — comfort tech is usually too long for a product card."
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "checkbox",
+      "id": "limit_badges",
+      "label": "Limit how many badges show",
+      "default": false,
+      "info": "Off shows every feature a product has."
+    },
+    {
+      "type": "range",
+      "id": "max_badges",
+      "label": "Maximum badges",
+      "min": 1,
+      "max": 8,
+      "step": 1,
+      "default": 4,
+      "info": "Extra features collapse into a \"+N\" chip.",
+      "visible_if": "{{ block.settings.limit_badges }}"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-start",
+      "label": "Left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-end",
+      "label": "Right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "TWX Safety Badges",
+      "category": "Product"
+    }
+  ]
+}
+{% endschema %}
