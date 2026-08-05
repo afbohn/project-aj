@@ -1,0 +1,126 @@
+{%- comment -%}
+  Three Bargain Bin picks at the foot of the mobile menu.
+
+  THE BIN, NOT THE YOINK, and the reason is placement economics rather than
+  taste. The Yoink is already the most-surfaced thing on this site: the
+  announcement bar carries it on EVERY page, it is the homepage hero, and the
+  nav points at it. Anybody who opened this drawer scrolled past it to get
+  here. The Bargain Bin has one nav link and one homepage section, so the menu
+  is the cheapest place to give it a second surface.
+
+  Margin agrees. The Yoink is priced near cost — measured at $3.30 a unit on 4
+  August against a $15.00 cost — while bin members sit above a 20% margin floor
+  at a flat 25% off. A drawer is a conversion surface, so it should carry the
+  thing that makes money rather than the thing that makes the brand.
+
+  And a menu is opened by somebody who did NOT find what they wanted. Varied,
+  cheap, impulse-shaped items are exactly right for that moment; one expensive
+  deal they have already declined is not.
+
+  RANKED BY DOLLAR SAVING, which is the ranking the weekly email had to learn
+  the hard way. The bin is a FLAT 25%, so every member ties on percentage and
+  the sort collapses to whatever the tie-break is — breaking toward cheapest
+  put two colourways of one ball holder and "NUDE MALE BODY FIGURINE #2" in the
+  first weekly. At a fixed percentage the biggest saving is simply the most
+  expensive item, so sorting by price descending gets it for free.
+
+  ONE PER TITLE FAMILY. Collective syncs colourways as separate products, and
+  three cards showing the same object twice reads as a bin with nothing in it.
+  Keyed on the title before the first dash, which is where every supplier in
+  this catalogue puts the variant name.
+
+  `no-promo` is honoured here too. The bin is curated on margin, not on whether
+  something belongs in a shop window, and this is a shop window.
+{%- endcomment -%}
+
+{%- liquid
+  # LIQUID DOES NOT ALLOW A FILTER INSIDE A BRACKET LOOKUP. Written as
+  # `collections[handle | default: 'bargain-bin']` this resolves to nil, the
+  # guard below fails, and the snippet renders absolutely nothing — silently,
+  # with no error anywhere. Resolve the handle first, then index with it.
+  #
+  # `collection_handle` rather than `handle`, because `handle` is a global on
+  # product and collection templates and a snippet parameter that shadows a
+  # global is a bug waiting for a different page.
+  assign picks_handle = collection_handle | default: 'bargain-bin'
+  assign bin = collections[picks_handle]
+  assign want = count | default: 3
+-%}
+
+{%- if bin != blank and bin.products_count > 0 -%}
+  {%- liquid
+    assign ranked = bin.products | sort: 'price' | reverse
+    assign seen = ''
+    assign taken = 0
+  -%}
+
+  <div class="aj-picks">
+    {%- if heading != blank -%}
+      <p class="aj-picks__heading">{{ heading }}</p>
+    {%- endif -%}
+
+    <ul class="aj-picks__grid" role="list">
+      {%- for product in ranked -%}
+        {%- if taken >= want -%}
+          {%- break -%}
+        {%- endif -%}
+
+        {%- liquid
+          assign tags_joined = product.tags | join: ','
+          assign family = product.title | split: '-' | first | split: '|' | first | strip | downcase
+          assign skip = false
+          if tags_joined contains 'no-promo'
+            assign skip = true
+          endif
+          if seen contains family
+            assign skip = true
+          endif
+        -%}
+
+        {%- unless skip -%}
+          {%- liquid
+            assign seen = seen | append: family | append: '||'
+            assign taken = taken | plus: 1
+            assign v = product.selected_or_first_available_variant
+            assign saving = 0
+            if v.compare_at_price > v.price
+              assign saving = v.compare_at_price | minus: v.price
+            endif
+          -%}
+          <li class="aj-picks__item">
+            <a class="aj-picks__tile" href="{{ product.url }}">
+              <span class="aj-picks__media">
+                {%- if product.featured_media -%}
+                  {{
+                    product.featured_media
+                    | image_url: width: 300
+                    | image_tag:
+                      loading: 'lazy',
+                      widths: '120, 200, 300',
+                      sizes: '30vw',
+                      class: 'aj-picks__image',
+                      alt: product.title
+                  }}
+                {%- endif -%}
+              </span>
+              <span class="aj-picks__name">{{ product.title | escape }}</span>
+              <span class="aj-picks__price">
+                {{ v.price | money }}
+                {%- if saving > 0 -%}
+                  <s class="aj-picks__was">{{ v.compare_at_price | money }}</s>
+                {%- endif -%}
+              </span>
+            </a>
+          </li>
+        {%- endunless -%}
+      {%- endfor -%}
+    </ul>
+
+    {%- if link_text != blank -%}
+      <a class="aj-picks__all" href="{{ bin.url }}">
+        {{- link_text -}}
+        <span aria-hidden="true">&nbsp;&rarr;</span>
+      </a>
+    {%- endif -%}
+  </div>
+{%- endif -%}

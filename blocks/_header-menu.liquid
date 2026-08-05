@@ -114,7 +114,22 @@
             {% endif %}
             ref="menuitem"
           >
-            <span class="menu-list__link-title">{{- link.title -}}</span>
+            <span class="menu-list__link-title">
+              {{- link.title -}}
+              {%- comment -%}
+                INSIDE the title span, not beside it. As a sibling of the title
+                the caret became its own flex item and wrapped onto a second
+                line under the words — the anchor is a flex container and the
+                title carries padding-inline, so there was no room left on the
+                row. Nested here it shares the text's inline flow and sits
+                where a caret should.
+              {%- endcomment -%}
+              {%- if link.links != blank -%}
+                <span class="menu-list__caret" aria-hidden="true">
+                  {{- 'icon-caret.svg' | inline_asset_content -}}
+                </span>
+              {%- endif -%}
+            </span>
           </a>
           {%- if link.links != blank -%}
             <div class="menu-list__submenu{{ background_color_classes }}" ref="submenu[]">

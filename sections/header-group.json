@@ -76,7 +76,7 @@
             "text_color_navigation_bar": "",
             "drawer_accordion": false,
             "drawer_accordion_expand_first": false,
-            "drawer_dividers": true
+            "drawer_dividers": false
           },
           "blocks": {}
         }

@@ -1,0 +1,92 @@
+/*
+ * Bargain Bin picks at the foot of the mobile menu.
+ *
+ * Three across rather than a scroller. A horizontal scroll row hides two of
+ * three items behind a gesture nobody performs in a menu they opened to
+ * navigate — the whole point is that all three are visible without work.
+ */
+.aj-picks {
+  padding: 1.25rem 1.5rem 0.5rem;
+}
+
+.aj-picks__heading {
+  margin: 0 0 0.85rem;
+  font-family: "Ohpixel", var(--font-heading--family);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.aj-picks__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.aj-picks__tile {
+  display: grid;
+  gap: 0.35rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Square well, contained image — the same treatment as every other tile on the
+   site, via the shared tokens rather than a fourth set of values. */
+.aj-picks__media {
+  display: block;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: var(--aj-tile-radius, 8px);
+  background: var(--aj-tile-well, rgb(0 0 0 / 0.04));
+}
+
+.aj-picks__image {
+  width: 100%;
+  height: 100%;
+  object-fit: var(--aj-tile-fit, contain);
+  display: block;
+}
+
+/* Two lines, hard. These cells are about a third of a phone, and a
+   supplier title left unclamped turns a three-up row into three different
+   heights. */
+.aj-picks__name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--aj-tile-clamp, 2);
+  overflow: hidden;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.aj-picks__price {
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.aj-picks__was {
+  margin-inline-start: 0.3em;
+  font-weight: 400;
+  opacity: 0.55;
+}
+
+.aj-picks__all {
+  display: inline-block;
+  margin-block-start: 0.9rem;
+  font-family: "Ohpixel", var(--font-heading--family);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .aj-picks__all:hover {
+    text-decoration: underline;
+  }
+}

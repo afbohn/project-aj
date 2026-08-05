@@ -1,0 +1,44 @@
+/*
+ * Dropdown carets on the desktop nav.
+ *
+ * ITS OWN FILE FOR A REASON. The first attempt put these rules inside
+ * blocks/_header-menu.liquid's {% stylesheet %}, next to
+ * `.menu-list__link-title` — which is NESTED inside a parent rule. Appending a
+ * rule carrying its own @media at that nesting level broke the cascade for
+ * everything below it and collapsed the header on the live site. Horizon's
+ * nested stylesheets are not append-safe; a separate asset cannot do that.
+ *
+ * No specificity contest either: the theme has no rules for `.menu-list__caret`
+ * at all, so load order is irrelevant here.
+ */
+.menu-list__caret {
+  /* inline-block, not inline-flex: it lives inside the title's inline flow
+     now, and a flex box here would fight the line box it sits in. */
+  display: inline-block;
+  width: 0.6em;
+  margin-inline-start: 0.35em;
+  vertical-align: middle;
+  opacity: 0.6;
+  /* `rotate`, not `transform` — the link may carry a transform from the
+     theme's own hover treatment, and one would clobber the other. */
+  transition: rotate 0.15s ease, opacity 0.15s ease;
+}
+
+.menu-list__caret svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Points up while its menu is open. The attribute is toggled by the theme's
+   own script, so this needs no JavaScript of its own. */
+.menu-list__link[aria-expanded="true"] .menu-list__caret {
+  rotate: 180deg;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-list__caret {
+    transition: none;
+  }
+}

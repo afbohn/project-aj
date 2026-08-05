@@ -86,6 +86,13 @@
     {%- endcomment -%}
     {{ 'aj-footer.css' | asset_url | stylesheet_tag }}
 
+    {%- comment -%}
+      Desktop nav carets. In its own file rather than the header block's
+      {% stylesheet %} — that one is nested, and appending to it collapsed the
+      header once already.
+    {%- endcomment -%}
+    {{ 'aj-nav-caret.css' | asset_url | stylesheet_tag }}
+
     {% if request.design_mode %}
       {%- render 'theme-editor' -%}
     {% endif %}

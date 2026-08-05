@@ -579,6 +579,18 @@
           {% endif %}
         </ul>
       </nav>
+
+      {%- comment -%}
+        Bin picks, below the links and above the language pickers. See
+        aj-drawer-picks.liquid for why the Bin rather than the Yoink.
+      {%- endcomment -%}
+      {% render 'aj-drawer-picks',
+        heading: 'From the Bargain Bin',
+        link_text: 'Rummage the whole bin',
+        count: 3
+      %}
+      {{ 'aj-picks.css' | asset_url | stylesheet_tag }}
+
       <div
         class="menu-drawer__utility-links menu-drawer__animated-element"
         style="--menu-drawer-animation-index: {{ linklist.links.size }};"
