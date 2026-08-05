@@ -250,6 +250,17 @@
         </div>
       </div>
 
+      {%- comment -%}
+        The copy and the archive link share a column wrapper so the grid row is
+        sized by the CARD rather than by the text. Spanning the card across two
+        rows instead — the previous attempt — handed the row height to the copy,
+        and the card then hung out of the band by half its own height.
+
+        On a phone this wrapper becomes `display: contents`, so the copy and the
+        link drop into the parent flex as separate items and can be ordered
+        around the card independently. One element, two behaviours, one link.
+      {%- endcomment -%}
+      <div class="aj-teew__side">
       <div class="aj-teew__copy">
         {%- if s.kicker != blank -%}
           <p class="aj-teew__kicker">{{ s.kicker | escape }}</p>
@@ -305,6 +316,7 @@
           {{- s.archive_label | escape -}}
         </a>
       {%- endif -%}
+      </div>
     </div>
   </div>
 
@@ -464,32 +476,17 @@
   */
   @media screen and (min-width: 750px) {
     .aj-teew__stage {
-      margin-block: -4.5rem;
+      margin-block: -3.25rem;
     }
 
-    /*
-      THE CARD SPANS BOTH ROWS so the copy and this link stay next to each
-      other. Left to auto-placement the link landed in its own row beneath a
-      600px-tall card row, which stranded it at the very bottom of the band,
-      nowhere near the paragraph it belongs to. Spanning lets row 1 end where
-      the copy ends and row 2 begin immediately after.
-    */
-    .aj-teew__stage {
-      grid-row: 1 / span 2;
-    }
-
-    .aj-teew__copy {
-      grid-column: 2;
-      grid-row: 1;
-      align-self: end;
+    .aj-teew__side {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
     }
 
     .aj-teew__cta2 {
-      grid-column: 2;
-      grid-row: 2;
-      align-self: start;
-      justify-self: start;
-      margin-block-start: 1.25rem;
+      margin-block-start: 1.5rem;
     }
   }
 
@@ -562,7 +559,13 @@
     grid-template-columns: 1fr auto;
     align-items: start;
     gap: 0.4rem 0.6rem;
-    padding: 0.5rem 0.6rem 0.45rem;
+    /*
+      Extra room on the right for the saving disc, which sits on this corner.
+      Without it the disc covers the week number and the serial — the two values
+      that make the slab read as a numbered collectible rather than a photo in a
+      frame.
+    */
+    padding: 0.5rem 4rem 0.45rem 0.6rem;
     margin-block-end: 0.5rem;
     border-radius: 5px;
     background: var(--aj-teew-cream, #f2ead9);
@@ -870,8 +873,8 @@
   */
   .aj-teew__flag {
     position: absolute;
-    top: -2.6rem;
-    right: -5rem;
+    top: -1.7rem;
+    right: -1.7rem;
     z-index: 4;
     display: flex;
     flex-direction: column;
@@ -905,8 +908,8 @@
     .aj-teew__flag {
       width: 4.75rem;
       height: 4.75rem;
-      top: -2rem;
-      right: -3.3rem;
+      top: -1.4rem;
+      right: -1.2rem;
     }
 
     .aj-teew__flag-n {
@@ -1170,6 +1173,14 @@
     .aj-teew__stage {
       max-width: 19rem;
       margin-block-end: -2.5rem;
+    }
+
+    /*
+      The wrapper stops existing as a box, so its two children become flex items
+      of the section itself and can be ordered around the card.
+    */
+    .aj-teew__side {
+      display: contents;
     }
 
     /*
