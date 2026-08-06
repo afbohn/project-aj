@@ -26,62 +26,55 @@
 */
 
 /*
-  THE GROUND. On the homepage the slab sits on the section's purple, and the
-  case is translucent white read against it. A product page is white, so the
-  glass and the outer shadow would both wash out and the card would read as a
-  flat sticker. `--standalone` gives it its own strip of purple to sit on.
+  THE GROUND IS A PHONE-ONLY TREATMENT, and that split came straight from seeing
+  both. The homepage slab sits on the section's purple and the case is
+  translucent white read against it, so the card wants a ground — but on a
+  desktop product page the media column is 900px wide and any purple behind a
+  350px card is a panel floating in the middle of it. Two versions of that got
+  built, a padded box and then a thin band the card broke out of, and Alex's call
+  was that neither belonged there: the card already carries its own frame, cream
+  against white with a deep drop shadow, and the purple was a second frame around
+  a thing that had one.
+
+  On a phone the same rule inverts. The column IS the screen, so the purple runs
+  edge to edge and reads as a band the card is presented on rather than a slab of
+  colour sitting in white space — which is exactly how it reads on the homepage.
+  So: ground below 750px, none above.
+
+  The trade on desktop is that the glass highlight and the slab's white border
+  are quieter on white than on purple. The box shadow is what holds the card off
+  the page there instead.
 
   IT IS A WRAPPER THE HOMEPAGE NEVER RENDERS. `.aj-teew__stage` is a direct grid
   child of `.aj-teew__inner`, so an unconditional wrapper here would have become
   the grid item and taken the two-column desktop layout with it. The snippet
   emits this element only when asked, which leaves the homepage DOM untouched.
-
-  A BAND THE CARD BREAKS OUT OF, not a purple box around it. The first version
-  padded the ground out past the card on all four sides, and at the width of a
-  product page's media column that is a 900px purple panel with a 350px card
-  floating in the middle of it — heavier than the product, and it shoved the buy
-  column down the page. The homepage does the opposite: a thin strip with the
-  card hanging out of it top and bottom, and the overhang is the whole effect.
-  Same trick here, same numbers.
 */
 .aj-teeslab--standalone {
-  /* Room for the card to hang into. Without it the overhang lands on the
-     eyebrow above and the disclosure below. */
-  margin-block: 3.75rem 1.25rem;
-  /*
-    NARROWER THAN THE COLUMN IT SITS IN. On the homepage the band runs the full
-    width of the viewport and the copy fills the half the card does not; here
-    there is no copy, so a full-width strip is 400px of flat purple either side
-    of the card. 36rem puts the card at about three-fifths of the band, which is
-    a plinth it stands on rather than a field it floats in — 30rem was tight
-    enough that the purple read as a border around the card instead.
-  */
-  max-width: 36rem;
-  margin-inline: auto;
-  padding-inline: 1rem;
-  background: var(--aj-brand-purple, #7a3fa0);
-  /* The same cyan hairline that edges the homepage band, and the same rule as
-     there: cyan is legal as a line on this ground, never as type. */
-  border-block: 3px solid var(--aj-brand-cyan, #5cd8f8);
-  color: #ffffff;
-  /* The overhang IS the design, so it must not be clipped. */
-  overflow: visible;
-}
-
-/*
-  Negative block margins rather than a transform, for the reason the section
-  documents: a translate would move the card without shortening the row, so the
-  band would stay tall and the card would simply sit high inside it.
-*/
-.aj-teeslab--standalone .aj-teew__stage {
-  margin-block: -3.25rem;
+  /* Clearance for the discount roundel, which hangs 1.7rem past the slab's
+     top-right corner and would otherwise sit on the eyebrow above. */
+  margin-block: 2.25rem 0.5rem;
 }
 
 @media screen and (max-width: 749px) {
   .aj-teeslab--standalone {
+    /* Room for the card to hang out of the band, top and bottom. */
     margin-block: 3rem 1rem;
+    padding-inline: 1rem;
+    background: var(--aj-brand-purple, #7a3fa0);
+    /* The same cyan hairline that edges the homepage band, and the same rule as
+       there: cyan is legal as a line on this ground, never as type. */
+    border-block: 3px solid var(--aj-brand-cyan, #5cd8f8);
+    color: #ffffff;
+    /* The overhang IS the effect, so it must not be clipped. */
+    overflow: visible;
   }
 
+  /*
+    Negative block margins rather than a transform, for the reason the section
+    documents: a translate would move the card without shortening the row, so the
+    band would stay tall and the card would simply sit high inside it.
+  */
   .aj-teeslab--standalone .aj-teew__stage {
     max-width: 19rem;
     margin-block: -2.5rem;
