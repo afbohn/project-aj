@@ -183,7 +183,8 @@
     letter-spacing: 0.01em;
   }
 
-  /* Sits under the word like a dictionary entry rather than beside it. */
+  /* Stacked on a phone, where a headword and a gloss on one line would put the
+     gloss at about four words a line. The desktop rule below sets it inline. */
   .aj-how__pos {
     display: block;
     margin-block: 0.35rem 0.75rem;
@@ -201,6 +202,41 @@
     font-size: 1.125rem;
     line-height: 1.45;
     font-weight: 500;
+  }
+
+  /*
+    ONE LINE ON DESKTOP: headword, part of speech, gloss — an actual dictionary
+    entry rather than three centred paragraphs. Now that the three step cards
+    are gone this band is only the definition, and stacked it was three lines of
+    text holding open a full-width strip of cyan.
+
+    BASELINE, NOT CENTRE. A 3.25rem headword centred against 1.125rem body text
+    leaves the gloss floating in the middle of the word's height. Sitting them
+    on a shared baseline is what makes it read as typeset rather than arranged —
+    and when the gloss wraps to two lines it is the FIRST line that stays on the
+    headword's baseline, which is exactly the behaviour a dictionary has.
+
+    The gloss goes left-aligned here: centred text hanging off the right of a
+    left-anchored headword has a ragged left edge against nothing.
+  */
+  @media screen and (min-width: 750px) {
+    .aj-how__def {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: center;
+      gap: 0 0.75rem;
+    }
+
+    .aj-how__pos {
+      margin-block: 0;
+    }
+
+    .aj-how__gloss {
+      max-width: 44ch;
+      margin-inline: 0;
+      text-align: left;
+    }
   }
 
   /* ---- the steps -------------------------------------------------------- */
