@@ -48,6 +48,14 @@
   /* Room for the card to hang into. Without it the overhang lands on the
      eyebrow above and the disclosure below. */
   margin-block: 3.75rem 1.25rem;
+  /*
+    NARROWER THAN THE COLUMN IT SITS IN. On the homepage the band runs the full
+    width of the viewport and the copy fills the half the card does not; here
+    there is no copy, so a full-width strip is 400px of flat purple either side
+    of the card. Held just wide enough to read as a plinth the card stands on.
+  */
+  max-width: 30rem;
+  margin-inline: auto;
   padding-inline: 1rem;
   background: var(--aj-brand-purple, #7a3fa0);
   /* The same cyan hairline that edges the homepage band, and the same rule as

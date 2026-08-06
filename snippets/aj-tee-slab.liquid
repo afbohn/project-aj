@@ -148,13 +148,28 @@
               and a price that are already on the page, so it is hidden from
               assistive technology rather than read out twice.
             {%- endcomment -%}
+            {%- comment -%}
+              LAZY ON THE HOMEPAGE, EAGER STANDALONE. The section sits well down
+              the page, so deferring the art is free. On the product page the card
+              IS the hero — it is the first thing above the fold — and lazy left
+              an empty cream window for the first second of every visit.
+            {%- endcomment -%}
+            {%- liquid
+              assign art_loading = 'lazy'
+              assign art_priority = 'auto'
+              if standalone
+                assign art_loading = 'eager'
+                assign art_priority = 'high'
+              endif
+            -%}
             {%- capture card_window -%}
               {%- if card_art != blank -%}
                 {{
                   card_art
                   | image_url: width: 900
                   | image_tag:
-                    loading: 'lazy',
+                    loading: art_loading,
+                    fetchpriority: art_priority,
                     widths: '360, 540, 720, 900',
                     sizes: '(min-width: 750px) 32vw, 72vw',
                     class: 'aj-teew__art',
