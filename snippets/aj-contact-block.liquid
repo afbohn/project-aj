@@ -39,13 +39,29 @@
         </li>
       {%- endif -%}
       {%- if shop.phone != blank -%}
+        {%- comment -%}
+          THE SHOP RECORD STORES IT UNPUNCTUATED — "4794020530" — and printing
+          that raw undercuts the one thing this block exists to do. A phone
+          number nobody has bothered to format reads as machine output, not as a
+          business you can ring.
+
+          `tel:` takes the bare digits; only the label is punctuated. Anything
+          that is not a ten-digit US number is printed exactly as stored rather
+          than forced into a shape it does not have.
+        {%- endcomment -%}
+        {%- liquid
+          assign tel = shop.phone | remove: ' ' | remove: '-' | remove: '(' | remove: ')' | remove: '.' | remove: '+'
+          assign tel_len = tel | size
+          assign phone_label = shop.phone
+          if tel_len == 10
+            assign p1 = tel | slice: 0, 3
+            assign p2 = tel | slice: 3, 3
+            assign p3 = tel | slice: 6, 4
+            assign phone_label = '(' | append: p1 | append: ') ' | append: p2 | append: '-' | append: p3
+          endif
+        -%}
         <li>
-          {%- comment -%}
-            `tel:` needs the digits unpunctuated; the label keeps the spacing a
-            person reads.
-          {%- endcomment -%}
-          {%- assign tel = shop.phone | remove: ' ' | remove: '-' | remove: '(' | remove: ')' -%}
-          <a href="tel:{{ tel }}">{{ shop.phone }}</a>
+          <a href="tel:{{ tel }}">{{ phone_label }}</a>
         </li>
       {%- endif -%}
       {%- if shop.address.city != blank -%}
