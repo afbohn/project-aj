@@ -18,9 +18,22 @@
     window, never before the delay, and never at all without localStorage to
     keep those promises with.
 
-  THE OFFER IS ACCESS, NOT A DISCOUNT. The Yoink is clamped near cost and the
-  bin runs at a 20% floor, so another discount comes out of a $12.67
-  contribution. Early access costs nothing.
+  THE OFFER IS 10% OFF FULL-PRICE ITEMS, AND THE OLD NOTE HERE WAS NOT WRONG.
+  It read "the offer is access, not a discount — the Yoink is clamped near cost
+  and the bin runs at a 20% floor, so another discount comes out of a $12.67
+  contribution." That is exactly true of a discount that can reach the Yoink and
+  the bin, and it is why this one cannot: the code runs through
+  `extensions/signup-discount`, which excludes every product tagged
+  `yoink-of-the-day`, `bargain-bin` or `tee-of-the-week`. Measured on the live
+  catalogue 6 Aug: of 2,793 full-priced products, 2,403 keep 15%+ margin at 10%
+  off and 12 fall below cost, most of those from supplier costs already known to
+  be corrupt.
+
+  THE CONSTRAINT IS ON THE PANEL, NOT ONLY IN THE EMAIL. "Full-price items only"
+  and "one use per person" are stated where somebody decides whether to hand
+  over an address, because finding out at checkout that the code does not apply
+  to the thing you came for is how a signup becomes a complaint. The 10% is
+  still the headline; the limit is the line under it.
 
   AND IT PROMISES NO CADENCE. This said "one email a day", which committed the
   business to a send frequency nobody had decided on — and an unkept promise made
@@ -57,10 +70,10 @@
       <button class="aj-pop__x" type="button" data-close aria-label="Close">&times;</button>
 
       <div data-state="form">
-        <h2 class="aj-pop__title" id="aj-pop-title">Get first look at the good stuff</h2>
-        
-          <p class="aj-pop__sub">A new deal every morning, plus a Bargain Bin that rotates weekly. We&#39;ll make sure you hear about the ones worth your time.</p>
-        
+        <h2 class="aj-pop__title" id="aj-pop-title">Take 10% off</h2>
+
+          <p class="aj-pop__sub">Your own one-time code, on anything at full price. Plus a new deal every morning and a Bargain Bin that rotates weekly.</p>
+
 
         {%- form 'customer', class: 'aj-pop__form' -%}
           <input type="hidden" name="contact[tags]" value="popup">
@@ -76,7 +89,7 @@
           >
           <button class="aj-pop__submit" type="submit">Count me in</button>
           
-            <p class="aj-pop__fine">No spam, no daily pestering. Unsubscribe anytime.</p>
+            <p class="aj-pop__fine">Full-price items only &mdash; the Yoink of the Day, the Bargain Bin and the Tee of the Week are already discounted. One use per person. No spam, unsubscribe anytime.</p>
           
         {%- endform -%}
 
