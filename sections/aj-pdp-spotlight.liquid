@@ -102,20 +102,13 @@
         {%- endif -%}
 
         {%- comment -%}
-          `reload_on_expire` only on the Yoink: when that clock hits zero the
-          price on this very page is wrong until the server re-renders, and this
-          is the page the customer is looking at. The tee rotates weekly, so
-          nobody is sitting on it at the boundary.
+          NO CLOCK HERE. The product-information block already renders a
+          "Deal ends in" countdown in the buy box, a few centimetres below. Two
+          identical timers on one screen reads as a bug, and the one beside the
+          add-to-cart is the one doing the work. This band supplies the framing
+          the buy box cannot: what kind of thing this is, and what the price
+          returns to.
         {%- endcomment -%}
-        {%- if mode == 'yoink' and deal.ends_at.value != blank -%}
-          <div class="aj-spot__clock">
-            {% render 'aj-deal-countdown',
-              ends_at: deal.ends_at.value,
-              reload_on_expire: true,
-              heading: 'Price goes back up in'
-            %}
-          </div>
-        {%- endif -%}
       </div>
     </div>
   </aside>
@@ -130,6 +123,18 @@
   .aj-spot {
     padding-block: 1.1rem;
     margin-block-end: 0.5rem;
+  }
+
+  /*
+    THE BAND IS FULL-BLEED, ITS CONTENTS ARE NOT. `.page-width` centres a column
+    but does not inset it here, so the eyebrow sat hard against the viewport
+    edge while the header and the product below it aligned to the grid — the one
+    element on the page that looked unplaced. `--page-margin` is the theme's own
+    gutter (16px on a phone, 40px from 750px up), so this tracks it rather than
+    guessing a number that drifts.
+  */
+  .aj-spot .page-width {
+    padding-inline: var(--page-margin, 16px);
   }
 
   .aj-spot--yoink {
@@ -220,12 +225,6 @@
     text-transform: uppercase;
     letter-spacing: 0.08em;
     opacity: 0.85;
-  }
-
-  /* The clock inherits its own component styling; this only stops it stretching
-     across the band on a wide screen. */
-  .aj-spot__clock {
-    flex: 0 0 auto;
   }
 
   /*
