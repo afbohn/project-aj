@@ -1,0 +1,88 @@
+{% doc %}
+  Names the product when it is the Yoink of the Day or the Tee of the Week.
+
+  Sits directly above the <h1> in the buy column, so the first two things a
+  visitor reads are "Yoink of the Day" and then the product name. Renders
+  nothing at all on the other 2,700 products.
+
+  WHY A LINE AND NOT A BANNER. The first version of this was a full-width band
+  above the whole product: eyebrow, sentence, saving, its own countdown. It
+  worked, and it was too much — a second header competing with the page, and its
+  countdown duplicated the one already sitting in the buy box a few centimetres
+  below. What the page actually needed was a label, in the place a label goes.
+
+  RESOLVED, NOT TAGGED. The deal comes from walking `daily_deal` metaobject
+  entries for the window containing now — the same lookup `aj-daily-deal.liquid`
+  uses on the homepage. Nothing to remember to set, and the two can never
+  disagree about which product is today's.
+{% enddoc %}
+
+{%- liquid
+  assign now = 'now' | date: '%s' | plus: 0
+  assign deal = null
+  for entry in shop.metaobjects.daily_deal.values
+    assign starts = entry.starts_at.value | date: '%s' | plus: 0
+    assign ends = entry.ends_at.value | date: '%s' | plus: 0
+    if starts <= now and ends > now
+      assign deal = entry
+      break
+    endif
+  endfor
+
+  assign mode = ''
+  if deal != null and deal.product.value.id == product.id
+    assign mode = 'yoink'
+  endif
+
+  if mode == blank
+    assign tee_collection = collections['tee-of-the-week']
+    if tee_collection != blank and tee_collection.products.first.id == product.id
+      assign mode = 'tee'
+    endif
+  endif
+-%}
+
+{%- if mode != blank -%}
+  <p class="aj-eyebrow aj-eyebrow--{{ mode }}">
+    {%- if mode == 'yoink' -%}
+      Yoink of the Day
+    {%- else -%}
+      Tee of the Week
+    {%- endif -%}
+  </p>
+{%- endif -%}
+
+{% stylesheet %}
+  /*
+    Ohpixel, uppercase, tracked out — the same eyebrow vocabulary as the
+    homepage deal block and the category drill-down, so a label means the same
+    thing wherever it appears. The face carries no lowercase, which is why this
+    is set in caps rather than title case.
+
+    Purple rather than yellow: it sits immediately above a large product title
+    and directly over the price, and yellow at this size fought both. Measured
+    7.4:1 on white.
+  */
+  .aj-eyebrow {
+    margin: 0 0 0.35rem;
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.8125rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    line-height: 1.2;
+    color: var(--aj-brand-purple, #7a3fa0);
+  }
+
+  /*
+    A cyan underline on the tee only — the hairline that edges the collector
+    slab on the card. Someone arriving from the card ad should see one detail
+    they recognise. The Yoink of the Day gets no rule: the deal already has a
+    countdown, a save badge and a struck price below it, and a fourth marker
+    would be noise.
+  */
+  .aj-eyebrow--tee {
+    display: inline-block;
+    padding-block-end: 0.2rem;
+    border-block-end: 2px solid var(--aj-brand-cyan, #5cd8f8);
+  }
+{% endstylesheet %}

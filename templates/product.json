@@ -9,10 +9,6 @@
  */
 {
   "sections": {
-    "aj_spotlight": {
-      "type": "aj-pdp-spotlight",
-      "settings": {}
-    },
     "main": {
       "type": "product-information",
       "blocks": {
@@ -130,7 +126,13 @@
                 "padding-inline-end": 0
               },
               "blocks": {
-                "text_xpVMaM": {
+                "aj_eyebrow": {
+              "type": "custom-liquid",
+              "settings": {
+                "custom_liquid": "{% render 'aj-deal-eyebrow' %}"
+              }
+            },
+            "text_xpVMaM": {
                   "type": "text",
                   "name": "t:names.title",
                   "settings": {
@@ -172,6 +174,7 @@
                 }
               },
               "block_order": [
+                "aj_eyebrow",
                 "text_xpVMaM",
                 "aj_price",
                 "aj_brand_shipping_QCePN3"
@@ -550,7 +553,6 @@
     }
   },
   "order": [
-    "aj_spotlight",
     "main",
     "product_recommendations_qggXJq",
     "1785584938b4fd49ae"
