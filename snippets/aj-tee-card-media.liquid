@@ -45,8 +45,21 @@
 
   /* ---- the disclosure holding the supplier photographs ------------------- */
 
+  /*
+    UNDER THE CARD, NOT UNDER THE COLUMN. The card is centred in a media column
+    much wider than it is, so a control pinned to the column's left edge sits
+    half a page away from the thing it opens and reads as unrelated. Centred, the
+    card and its control are one object. On a phone the band fills the screen and
+    the question does not arise.
+  */
   .aj-teecard__more {
     margin-block-start: 0.5rem;
+  }
+
+  @media screen and (min-width: 750px) {
+    .aj-teecard__more {
+      text-align: center;
+    }
   }
 
   /*

@@ -56,6 +56,19 @@
   margin-block: 2.25rem 0.5rem;
 }
 
+/*
+  BIGGER ON A DESKTOP PRODUCT PAGE, and only there. 22rem is the homepage size,
+  set by a card sharing its row with a column of copy. On a product page the card
+  has the whole media column — 900px of it — and at 22rem it read as a small
+  object adrift in white rather than the hero of the page. 28rem gives it
+  presence without returning to the full-width version that was too big.
+*/
+@media screen and (min-width: 750px) {
+  .aj-teeslab--standalone .aj-teew__stage {
+    max-width: 28rem;
+  }
+}
+
 @media screen and (max-width: 749px) {
   .aj-teeslab--standalone {
     /*
