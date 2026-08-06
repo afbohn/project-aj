@@ -1,0 +1,789 @@
+{%- comment -%}
+  AJ Cadence — the week as three calendar pages.
+
+  WHAT IT IS FOR, AND WHY IT IS NOT A REPLACEMENT FOR aj-how. The explainer
+  answers "what is this place". This answers a different question: "how often is
+  it worth coming back". Those are both worth answering, and the second one is
+  answered badly by a numbered list — "Tuesday" and "Thursday" are facts about a
+  WEEK, and three anonymous cards cannot show a week. The two sections are
+  deliberately shippable side by side.
+
+  THREE CARDS, NOT SEVEN. A full seven-day strip was the first version and it
+  spent five cards saying "an ordinary day" — most of the section given over to
+  the days nothing special happens, and on a phone it became a scrolling deck
+  where the two drops were off-screen. The rhythm this store actually has is
+  three-beat: a tee on Tuesday, a bin on Thursday, and a Yoink every single day
+  underneath both. So there are three pages, and the daily one sits in the
+  middle because it is the one that is true on the other two days as well.
+
+  THE EVERYDAY CARD IS THE HERO, AND IT HAS NEITHER A WEEKDAY NOR A DATE. That
+  is the whole design of it: the two cards either side name a day and point at a
+  numeral because you have to wait for them, and the one between them refuses to
+  do either. Its bar carries the brand's loudest legal pairing — yellow on ink,
+  11.17:1 — and its title carries the one accent the palette clears as type,
+  because this is the loudest promise the store makes.
+
+  THE DATES ARE REAL, AND THEN CORRECTED. Liquid renders the next Tuesday, today
+  and the next Thursday from the shop's clock, which is right when the HTML is
+  built and wrong the moment that HTML is cached overnight — and this is the
+  most-cached page on the store. aj-cadence.js re-derives them on connect and on
+  tab focus. The server render is the no-JS fallback and is complete on its own.
+
+  TODAY COUNTS AS THE NEXT ONE. On a Tuesday the tee card reads Tuesday's date,
+  not next week's, and flips its label to say it is happening now. Pointing at
+  the date seven days out would be the section telling somebody to come back for
+  something already on the page.
+
+  ANCHORED AT NOON, NOT AT "NOW". Day arithmetic here is epoch seconds, and
+  adding 86,400 to a timestamp near midnight lands on the wrong date on the two
+  days a year the offset moves. Anchoring at midday store time puts an hour of
+  daylight-saving slop nowhere near a date boundary.
+
+  THE DAYS ARE A PROMISE THE APP KEEPS. `schedule.ts` pins TEE_DROP_WEEKDAY =
+  Tuesday and BIN_DROP_WEEKDAY = Thursday at DROP_HOUR = 9 store time, because
+  the weekly email says those days out loud. A theme cannot read the app's
+  constants — separate repo, separate runtime — so the two days are section
+  settings and the settings carry the warning. This is the class of bug this
+  codebase keeps paying for: two halves each correct, nothing joining them.
+
+  NO INK CARDS. An earlier version made the ordinary days dark and it read as a
+  week that was mostly off. The pages here are paper; ink appears only as the
+  border, and as the one header bar that belongs to the daily deal.
+{%- endcomment -%}
+
+{%- liquid
+  assign s = section.settings
+
+  # Absolute epoch, timezone-independent. Formatting it below renders in the
+  # shop's timezone, which is what every date here should be in.
+  assign now_ts = 'now' | date: '%s' | plus: 0
+
+  # Seconds elapsed in the store's day, so midnight can be subtracted off.
+  # Built in steps rather than one filter chain: Liquid applies filters strictly
+  # left to right, so `h | times: 3600 | plus: m | times: 60` would multiply the
+  # running total by 60 rather than the minutes.
+  assign h = 'now' | date: '%H' | plus: 0
+  assign m = 'now' | date: '%M' | plus: 0
+  assign sec = 'now' | date: '%S' | plus: 0
+  assign hours_part = h | times: 3600
+  assign mins_part = m | times: 60
+  assign since_midnight = hours_part | plus: mins_part | plus: sec
+  assign noon_today = now_ts | minus: since_midnight | plus: 43200
+
+  assign today_dow = 'now' | date: '%w' | plus: 0
+
+  # The store's UTC offset in minutes, for the script. '%z' gives e.g. -0500.
+  assign tz = 'now' | date: '%z'
+  assign tz_sign = tz | slice: 0, 1
+  assign tz_h = tz | slice: 1, 2 | plus: 0
+  assign tz_m = tz | slice: 3, 2 | plus: 0
+  assign tz_minutes = tz_h | times: 60 | plus: tz_m
+  if tz_sign == '-'
+    assign tz_minutes = 0 | minus: tz_minutes
+  endif
+
+  assign tee_dow = s.tee_day | plus: 0
+  assign bin_dow = s.bin_day | plus: 0
+
+  # Days until the next occurrence, counting today as zero.
+  assign tee_ahead = tee_dow | minus: today_dow | plus: 7 | modulo: 7
+  assign bin_ahead = bin_dow | minus: today_dow | plus: 7 | modulo: 7
+
+  assign tee_offset = tee_ahead | times: 86400
+  assign bin_offset = bin_ahead | times: 86400
+  assign tee_ts = noon_today | plus: tee_offset
+  assign bin_ts = noon_today | plus: bin_offset
+-%}
+
+<script src="{{ 'aj-cadence.js' | asset_url }}" type="module" fetchpriority="low"></script>
+
+<div
+  class="aj-cadence aj-cadence--{{ s.band }} color-{{ s.color_scheme }}"
+  style="padding-block-start: {{ s.padding-block-start }}px; padding-block-end: {{ s.padding-block-end }}px;"
+  {{ section.shopify_attributes }}
+>
+  <div class="aj-cadence__inner page-width">
+    {%- if s.kicker != blank -%}
+      <p class="aj-cadence__kicker">{{ s.kicker | escape }}</p>
+    {%- endif -%}
+
+    {%- if s.heading != blank -%}
+      <h2 class="aj-cadence__heading">{{ s.heading | escape }}</h2>
+    {%- endif -%}
+
+    {%- if s.subheading != blank -%}
+      <p class="aj-cadence__sub">{{ s.subheading | escape }}</p>
+    {%- endif -%}
+
+    <aj-cadence data-store-offset-minutes="{{ tz_minutes }}">
+      {%- comment -%}
+        An ordered list because the reading order is the argument: the tee, then
+        the thing that happens on every day including that one, then the bin.
+      {%- endcomment -%}
+      <ol class="aj-cadence__cards" data-cadence-scroller>
+        {%- comment -%} ---- Tuesday: the tee ---- {%- endcomment -%}
+        <li
+          class="aj-cadence__card aj-cadence__card--tee{% if tee_ahead == 0 %} is-today{% endif %}"
+          data-cadence-card
+          data-cadence-weekday="{{ tee_dow }}"
+        >
+          <span class="aj-cadence__bar">
+            {%- comment -%}
+              PLURAL, because the bar names a recurring day rather than a date.
+              "Tuesdays" is the promise; "Tuesday" beside a numeral reads as one
+              particular Tuesday, which is the reading the numeral already
+              covers. Every English weekday pluralises with a bare s, so this
+              stays correct whichever day the setting names.
+            {%- endcomment -%}
+            <span class="aj-cadence__dayname">{{ tee_ts | date: '%A' | append: 's' }}</span>
+            <span class="aj-cadence__today" data-cadence-istoday {% unless tee_ahead == 0 %}hidden{% endunless %}>
+              {{ s.today_label | escape }}
+            </span>
+          </span>
+          <span class="aj-cadence__page">
+            <span class="aj-cadence__date" data-cadence-date>{{ tee_ts | date: '%-d' }}</span>
+            <span class="aj-cadence__title">{{ s.tee_title | escape }}</span>
+            <span class="aj-cadence__body">{{ s.tee_body | escape }}</span>
+            {%- if s.tee_link != blank and s.tee_cta != blank -%}
+              <a class="aj-cadence__cta" href="{{ s.tee_link }}">{{ s.tee_cta | escape }}</a>
+            {%- endif -%}
+          </span>
+        </li>
+
+        {%- comment -%}
+          ---- Every day: the Yoink ----
+          NO data-cadence-weekday, deliberately. The script reads its absence as
+          "this card is always today", which is the whole claim.
+        {%- endcomment -%}
+        <li class="aj-cadence__card aj-cadence__card--daily is-today" data-cadence-card>
+          <span class="aj-cadence__bar">
+            <span class="aj-cadence__dayname">{{ s.daily_kicker | escape }}</span>
+          </span>
+          {%- comment -%}
+            NO DATE NUMERAL, and its absence is the argument. A specific number
+            on the card that means "every day" contradicts the card: it would
+            date the Yoink to one day out of the week, which is the reading this
+            whole section exists to prevent. The two weekly cards point at a
+            date because you have to wait for them; this one does not, so the
+            title takes the display size the numeral would have had and the card
+            keeps its weight without borrowing a fact that is not true.
+          {%- endcomment -%}
+          <span class="aj-cadence__page">
+            <span class="aj-cadence__title">{{ s.daily_title | escape }}</span>
+            <span class="aj-cadence__body">{{ s.daily_body | escape }}</span>
+            {%- if s.daily_link != blank and s.daily_cta != blank -%}
+              <a class="aj-cadence__cta" href="{{ s.daily_link }}">{{ s.daily_cta | escape }}</a>
+            {%- endif -%}
+          </span>
+        </li>
+
+        {%- comment -%} ---- Thursday: the bin ---- {%- endcomment -%}
+        <li
+          class="aj-cadence__card aj-cadence__card--bin{% if bin_ahead == 0 %} is-today{% endif %}"
+          data-cadence-card
+          data-cadence-weekday="{{ bin_dow }}"
+        >
+          <span class="aj-cadence__bar">
+            <span class="aj-cadence__dayname">{{ bin_ts | date: '%A' | append: 's' }}</span>
+            <span class="aj-cadence__today" data-cadence-istoday {% unless bin_ahead == 0 %}hidden{% endunless %}>
+              {{ s.today_label | escape }}
+            </span>
+          </span>
+          <span class="aj-cadence__page">
+            <span class="aj-cadence__date" data-cadence-date>{{ bin_ts | date: '%-d' }}</span>
+            <span class="aj-cadence__title">{{ s.bin_title | escape }}</span>
+            <span class="aj-cadence__body">{{ s.bin_body | escape }}</span>
+            {%- if s.bin_link != blank and s.bin_cta != blank -%}
+              <a class="aj-cadence__cta" href="{{ s.bin_link }}">{{ s.bin_cta | escape }}</a>
+            {%- endif -%}
+          </span>
+        </li>
+      </ol>
+    </aj-cadence>
+
+    {%- if s.footnote != blank -%}
+      <p class="aj-cadence__footnote">{{ s.footnote | escape }}</p>
+    {%- endif -%}
+  </div>
+</div>
+
+{% stylesheet %}
+  /*
+    THE BAND IS A SETTING, because this section's neighbours are not fixed. It
+    ships next to aj-how, which owns the cyan band, and a second cyan band
+    immediately under the first reads as one very tall section that lost its
+    nerve halfway down. Yellow is the default: the loudest ground the brand has,
+    and the only one no other homepage section is using.
+  */
+  .aj-cadence {
+    color: var(--aj-brand-ink, #282828);
+
+    /*
+      The pages. Warm rather than #ffffff: a pure white card on the yellow band
+      looks like a hole punched in the section, and a few degrees of warmth make
+      it read as paper sitting on the colour. Still 19.6:1 under ink, so nothing
+      is bought with contrast.
+    */
+    --aj-cadence-paper: #fffdf7;
+  }
+
+  .aj-cadence--yellow {
+    background: var(--aj-brand-yellow, #ffe000);
+  }
+
+  .aj-cadence--cyan {
+    background: var(--aj-brand-cyan, #5cd8f8);
+  }
+
+  .aj-cadence--paper {
+    background: #f6f3ea;
+  }
+
+  .aj-cadence--none {
+    background: transparent;
+  }
+
+  .aj-cadence__inner {
+    max-width: 68rem;
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .aj-cadence__kicker {
+    margin: 0 0 0.5rem;
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.8125rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    opacity: 0.62;
+  }
+
+  .aj-cadence__heading {
+    margin: 0;
+    font-family: "Flashy", var(--font-heading--family);
+    font-weight: 400;
+    font-size: clamp(2rem, 6.5vw, 3.25rem);
+    line-height: 0.98;
+    text-wrap: balance;
+  }
+
+  .aj-cadence__sub {
+    max-width: 44ch;
+    margin: 0.75rem auto 0;
+    font-size: 1.0625rem;
+    line-height: 1.45;
+    text-wrap: balance;
+  }
+
+  /* ---- the three pages --------------------------------------------------- */
+
+  .aj-cadence__cards {
+    display: grid;
+    gap: 1.25rem;
+    margin: 1.75rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /*
+    THE FAN, AND THE ORDER IT IS BUILT IN. Three across only once there is room
+    for three columns of real copy. Below that they stack, and the daily card
+    moves to the TOP of the stack rather than staying in the middle: on a phone
+    the middle of three is the one nobody scrolls to, and the daily deal is the
+    only one of the three that is true today.
+  */
+  /*
+    THREE EQUAL COLUMNS. The Yoink card was briefly given a wider column and a
+    scale, and both are gone: the middle card is already distinguished three
+    times over — it is the only upright one, the only one with an ink bar, and
+    the only one with a coloured title — so size was a fourth signal saying the
+    same thing, and it made the row lopsided rather than emphatic.
+  */
+  @media screen and (min-width: 900px) {
+    .aj-cadence__cards {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+  }
+
+  /*
+    ---------------------------------------------------------------------------
+    ON A PHONE THEY ARE A FAN YOU SWIPE THROUGH
+    ---------------------------------------------------------------------------
+
+    A NATIVE SCROLLER, NOT A GESTURE LIBRARY. This is a horizontal scroll
+    container with snap points, which buys momentum, rubber-banding, the
+    trackpad, arrow keys, screen-reader navigation and back/forward-safe scroll
+    restoration — all of it correct, none of it written here. A hand-rolled
+    pointer-drag deck would have to reimplement every one of those and would get
+    at least one wrong.
+
+    THE FAN IS THE CARDS OVERLAPPING, and the overlap is a negative margin on
+    every card but the first, so the scroller's own padding arithmetic stays
+    simple: half the scrollport minus half a card, which is what lets the first
+    and last cards reach the middle.
+
+    WHICHEVER CARD IS CENTRED COMES FORWARD AND STRAIGHTENS UP. That is a
+    scroll-driven animation on the inline axis — `view(inline)` — so the card's
+    own position in the scrollport drives its rotation, its scale AND its
+    z-index. The z-index matters more than it looks: overlapping siblings paint
+    in DOM order, so without it the right-hand card would sit on top of the
+    centred one and the fan would read backwards.
+
+    GUARDED TWICE. Browsers without scroll-driven animation keep the static
+    rotations below, which is still recognisably a fan and still swipes. People
+    who asked for reduced motion get the same.
+  */
+  @media screen and (max-width: 899px) {
+    .aj-cadence__cards {
+      display: flex;
+      gap: 0;
+      /* Bleeds to the viewport edge so the deck reads as continuing past it. */
+      margin-inline: calc(-1 * var(--page-margin, 1.25rem));
+      /*
+        Block padding sized to the rotation, not guessed. A 17rem card turned
+        8deg overhangs its box by about (272px / 2) x sin(8deg) ~ 19px at each
+        corner, and the centred card also scales. 1.75rem clears that with a
+        little to spare; anything less and a rotated corner gets shaved off by
+        the scroller, which is the tell that this was done cheaply.
+      */
+      padding: 1.75rem 0 2rem;
+      padding-inline: calc(50% - min(8.5rem, 36vw));
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+    }
+
+    .aj-cadence__cards::-webkit-scrollbar {
+      display: none;
+    }
+
+    .aj-cadence__card {
+      flex: 0 0 min(17rem, 72vw);
+      scroll-snap-align: center;
+    }
+
+    /* The overlap. On the first card it would fight the scroller's padding. */
+    .aj-cadence__card + .aj-cadence__card {
+      margin-inline-start: -1.75rem;
+    }
+
+    /* The no-scroll-timeline fallback, and the resting shape underneath. */
+    .aj-cadence__card--tee {
+      rotate: -5deg;
+    }
+
+    .aj-cadence__card--bin {
+      rotate: 5deg;
+    }
+
+    .aj-cadence__card--daily {
+      z-index: 2;
+    }
+  }
+
+  @supports (animation-timeline: view()) {
+    @media screen and (max-width: 899px) and (prefers-reduced-motion: no-preference) {
+      .aj-cadence__card {
+        animation: aj-cadence-fan linear both;
+        animation-timeline: view(inline);
+        animation-range: cover 0% cover 100%;
+      }
+
+      @keyframes aj-cadence-fan {
+        0% {
+          rotate: -8deg;
+          scale: 0.88;
+          z-index: 1;
+        }
+
+        50% {
+          rotate: 0deg;
+          scale: 1;
+          z-index: 3;
+        }
+
+        100% {
+          rotate: 8deg;
+          scale: 0.88;
+          z-index: 1;
+        }
+      }
+    }
+  }
+
+  .aj-cadence__card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border: 3px solid var(--aj-brand-ink, #282828);
+    border-radius: var(--aj-tile-radius, 8px);
+    background: var(--aj-cadence-paper, #fffdf7);
+    color: var(--aj-brand-ink, #282828);
+    overflow: hidden;
+    box-shadow: 0 8px 0 rgb(0 0 0 / 0.2);
+  }
+
+  /* The lean. Fixed per card rather than random, so it is stable across
+     renders — a card that tilts differently on every reload reads as a bug. */
+  @media screen and (min-width: 900px) {
+    .aj-cadence__card--tee {
+      rotate: -2.5deg;
+    }
+
+    .aj-cadence__card--bin {
+      rotate: 2.5deg;
+    }
+
+    /* The middle page stays upright — the one the other two lean away from.
+       Same size, same padding, no scale: the angle is the whole difference. */
+    .aj-cadence__card--daily {
+      z-index: 2;
+    }
+  }
+
+  /*
+    NO PAD OF PAGES BEHIND THIS CARD, and it was tried twice before being cut.
+    Two extra page edges were meant to say "and another one tomorrow" without
+    spending a word on it. Offset down and right, they put a paper corner beside
+    the black header bar and read as a duplicate that had failed to line up;
+    offset straight down, they read as a rendering fault. Both times the card
+    looked broken rather than layered — which is a high price for a flourish the
+    word EVERYDAY in the bar already pays for. It is one card, built exactly
+    like the other two.
+  */
+
+  /*
+    The title takes the display size the date numeral would have had on the
+    other two, so losing the numeral does not lose the card its weight — and it
+    takes the brand's purple, which is the one accent aj-brand.css clears as
+    TYPE rather than as a fill. 6.80:1 on the paper, comfortably past AA.
+    Yellow or cyan here would be illegible; this is the only coloured heading
+    the palette actually permits.
+  */
+  .aj-cadence__card--daily .aj-cadence__title {
+    margin-block-start: 0;
+    color: var(--aj-brand-purple, #7a3fa0);
+    font-size: clamp(2rem, 4.5vw, 2.625rem);
+    line-height: 0.95;
+  }
+
+
+  /* ---- the header bar ---------------------------------------------------- */
+
+  /*
+    A REAL DESK CALENDAR'S COLOURED TOP. This is where all the colour in the
+    section lives, which is what keeps three cards from becoming three
+    competing blocks — the pages are identical, only the bars differ, so the
+    bars ARE the legend.
+  */
+  .aj-cadence__bar {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    padding: 0.6rem 0.75rem;
+    border-block-end: 3px solid var(--aj-brand-ink, #282828);
+    /* Carried here rather than left to the card's `overflow: hidden`, because
+       the daily card cannot clip — it has a stack hanging out of it. */
+    border-start-start-radius: calc(var(--aj-tile-radius, 8px) - 3px);
+    border-start-end-radius: calc(var(--aj-tile-radius, 8px) - 3px);
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.8125rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  /* Cyan carries ink, never white — aj-brand.css measures white on cyan at
+     2.73:1, the mistake that looks fine on a good monitor. */
+  .aj-cadence__card--tee .aj-cadence__bar {
+    background: var(--aj-brand-cyan, #5cd8f8);
+    color: var(--aj-brand-ink, #282828);
+  }
+
+  /* White on purple is 6.89:1. Contrast is symmetric, so this is the same
+     measurement the brand file already clears for purple type on white. */
+  .aj-cadence__card--bin .aj-cadence__bar {
+    background: var(--aj-brand-purple, #7a3fa0);
+    color: #ffffff;
+  }
+
+  /* Yellow on ink, 11.17:1 — the brand's loudest legal pairing, spent on the
+     one promise that is true every single day. */
+  .aj-cadence__card--daily .aj-cadence__bar {
+    background: var(--aj-brand-ink, #282828);
+    color: var(--aj-brand-yellow, #ffe000);
+    font-size: 0.9375rem;
+  }
+
+  .aj-cadence__dayname {
+    font-weight: 400;
+  }
+
+  /* The "today" chip, on whichever of the two weekly cards has come round. */
+  .aj-cadence__today {
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    background: var(--aj-brand-ink, #282828);
+    color: var(--aj-brand-yellow, #ffe000);
+    font-size: 0.625rem;
+    letter-spacing: 0.12em;
+  }
+
+  .aj-cadence__card--daily .aj-cadence__today,
+  .aj-cadence__today[hidden] {
+    display: none;
+  }
+
+  /* ---- the page ---------------------------------------------------------- */
+
+  .aj-cadence__page {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 1.1rem 1.25rem 1.25rem;
+    background: var(--aj-cadence-paper, #fffdf7);
+    border-end-start-radius: calc(var(--aj-tile-radius, 8px) - 3px);
+    border-end-end-radius: calc(var(--aj-tile-radius, 8px) - 3px);
+  }
+
+  .aj-cadence__date {
+    font-family: "Flashy", var(--font-heading--family);
+    font-weight: 400;
+    font-size: clamp(2.75rem, 6.5vw, 3.75rem);
+    line-height: 0.85;
+    /* Digits in three cards side by side; they should sit on the same rhythm. */
+    font-variant-numeric: tabular-nums;
+  }
+
+  .aj-cadence__title {
+    margin-block-start: 0.35rem;
+    font-family: "Flashy", var(--font-heading--family);
+    font-weight: 400;
+    font-size: 1.5rem;
+    line-height: 1.05;
+    text-wrap: balance;
+  }
+
+  .aj-cadence__body {
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    opacity: 0.8;
+    text-wrap: pretty;
+  }
+
+  .aj-cadence__cta {
+    margin-block-start: auto;
+    padding-block-start: 0.75rem;
+    color: inherit;
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-underline-offset: 0.25em;
+  }
+
+  .aj-cadence__cta::after {
+    content: " \2192";
+  }
+
+  .aj-cadence__footnote {
+    margin: 1.15rem 0 0;
+    font-size: 0.8125rem;
+    opacity: 0.7;
+  }
+
+  /* ---- motion ------------------------------------------------------------ */
+
+  /*
+    TWO DIFFERENT ANSWERS, BECAUSE PHONES HAVE NO HOVER — the same split aj-how
+    uses. Desktop gets a lift on hover; touch gets a scroll-driven entrance.
+
+    THE TWO NEVER FIGHT OVER A PROPERTY. The entrance owns `translate`, the
+    hover owns `scale`, and the fan owns `rotate` — CSS's independent transform
+    properties, specifically so a scroll-driven animation holding its end state
+    cannot be clobbered by a hover rule. Written as one `transform`, whichever
+    fired last would win and the cards would jump.
+  */
+  .aj-cadence__card {
+    transition: scale 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  @media (hover: hover) and (min-width: 900px) {
+    .aj-cadence__card:hover {
+      scale: 1.03;
+      box-shadow: 0 14px 0 rgb(0 0 0 / 0.24);
+    }
+
+  }
+
+  .aj-cadence__card:active {
+    scale: 0.99;
+  }
+
+  /*
+    DESKTOP ONLY. Below 900px the cards are a fan on their own scroll timeline,
+    and two animations on one element driven by two different timelines is how
+    you get a card that arrives at the wrong angle. The phone gets the fan; the
+    desktop gets the deal-in.
+  */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) and (min-width: 900px) {
+      .aj-cadence__card {
+        animation: aj-cadence-deal linear both;
+        animation-timeline: view();
+        animation-range: entry 5% cover 30%;
+      }
+
+      /* Dealt onto the table, middle page last so it lands on top. */
+      .aj-cadence__card--daily {
+        animation-delay: -0.04s;
+      }
+
+      @keyframes aj-cadence-deal {
+        from {
+          opacity: 0;
+          translate: 0 24px;
+        }
+
+        to {
+          opacity: 1;
+          translate: 0 0;
+        }
+      }
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .aj-cadence__sub {
+      font-size: 1rem;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "AJ Cadence calendar",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Three calendar pages: the tee on Tuesday, the Yoink every day, the bin on Thursday. Dates are real and correct themselves in the browser, so a cached homepage never shows a Tuesday that has already gone."
+    },
+    { "type": "header", "content": "Heading" },
+    { "type": "text", "id": "kicker", "label": "Kicker", "default": "How the week works" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Mark your calendar" },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "A new tee on Tuesday, a fresh Bargain Bin on Thursday, and a deeply discounted Yoink every single day in between."
+    },
+    { "type": "header", "content": "Drop days" },
+    {
+      "type": "paragraph",
+      "content": "MUST MATCH THE APP. The rotations are pinned in schedule.ts (TEE_DROP_WEEKDAY, BIN_DROP_WEEKDAY) and the weekly email says those days out loud. Changing a day here does not move the drop — it only changes what the storefront claims. Change both or neither."
+    },
+    {
+      "type": "select",
+      "id": "tee_day",
+      "label": "Tee of the Week drops",
+      "default": "2",
+      "options": [
+        { "value": "0", "label": "Sunday" },
+        { "value": "1", "label": "Monday" },
+        { "value": "2", "label": "Tuesday" },
+        { "value": "3", "label": "Wednesday" },
+        { "value": "4", "label": "Thursday" },
+        { "value": "5", "label": "Friday" },
+        { "value": "6", "label": "Saturday" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "bin_day",
+      "label": "Bargain Bin refills",
+      "default": "4",
+      "options": [
+        { "value": "0", "label": "Sunday" },
+        { "value": "1", "label": "Monday" },
+        { "value": "2", "label": "Tuesday" },
+        { "value": "3", "label": "Wednesday" },
+        { "value": "4", "label": "Thursday" },
+        { "value": "5", "label": "Friday" },
+        { "value": "6", "label": "Saturday" }
+      ]
+    },
+    { "type": "header", "content": "Tuesday card" },
+    { "type": "text", "id": "tee_title", "label": "Title", "default": "New Tee Tuesdays" },
+    {
+      "type": "text",
+      "id": "tee_body",
+      "label": "Text",
+      "default": "One graphic tee, pulled from the pile and dropped at 15% off. Then it goes back and a new one takes its place."
+    },
+    { "type": "text", "id": "tee_cta", "label": "Link text", "default": "See this week's tee" },
+    { "type": "url", "id": "tee_link", "label": "Link" },
+    { "type": "header", "content": "Daily card" },
+    {
+      "type": "text",
+      "id": "daily_kicker",
+      "label": "Bar label",
+      "info": "Deliberately not a weekday. This card is always today.",
+      "default": "Everyday"
+    },
+    { "type": "text", "id": "daily_title", "label": "Title", "default": "Yoink of the Day" },
+    {
+      "type": "text",
+      "id": "daily_body",
+      "label": "Text",
+      "default": "One genuinely good thing, dug out and dropped at a price that feels like a mistake. Gone in 24 hours, and tomorrow it's something else."
+    },
+    { "type": "text", "id": "daily_cta", "label": "Link text", "default": "Today's Yoink" },
+    { "type": "url", "id": "daily_link", "label": "Link" },
+    { "type": "header", "content": "Thursday card" },
+    { "type": "text", "id": "bin_title", "label": "Title", "default": "Bargain Bin Thursdays" },
+    {
+      "type": "text",
+      "id": "bin_body",
+      "label": "Text",
+      "default": "A whole new batch tipped into the bin, every item at 25% off. It empties out again next Thursday."
+    },
+    { "type": "text", "id": "bin_cta", "label": "Link text", "default": "Have a dig" },
+    { "type": "url", "id": "bin_link", "label": "Link" },
+    { "type": "header", "content": "Wording" },
+    { "type": "text", "id": "today_label", "label": "Today chip", "default": "Today" },
+    {
+      "type": "text",
+      "id": "footnote",
+      "label": "Footnote",
+      "default": "Everything lands at 9am."
+    },
+    { "type": "header", "content": "Appearance" },
+    {
+      "type": "select",
+      "id": "band",
+      "label": "Band colour",
+      "info": "Do not repeat the colour of the section directly above or below — two identical bands read as one very tall section.",
+      "default": "yellow",
+      "options": [
+        { "value": "yellow", "label": "Yellow" },
+        { "value": "cyan", "label": "Cyan" },
+        { "value": "paper", "label": "Paper" },
+        { "value": "none", "label": "None (theme scheme)" }
+      ]
+    },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "header", "content": "Padding" },
+    { "type": "range", "id": "padding-block-start", "label": "Top", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 32 },
+    { "type": "range", "id": "padding-block-end", "label": "Bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 32 }
+  ],
+  "presets": [{ "name": "AJ Cadence calendar" }]
+}
+{% endschema %}

@@ -39,6 +39,35 @@
         "padding-block-end": 40
       }
     },
+    "aj_cadence": {
+      "type": "aj-cadence",
+      "settings": {
+        "kicker": "How the week works",
+        "heading": "Mark your calendar",
+        "subheading": "A new tee on Tuesday, a fresh Bargain Bin on Thursday, and a deeply discounted Yoink every single day in between.",
+        "tee_day": "2",
+        "bin_day": "4",
+        "tee_title": "New Tee Tuesdays",
+        "tee_body": "One graphic tee, pulled from the pile and dropped at 15% off. Then it goes back and a new one takes its place.",
+        "tee_cta": "See this week's tee",
+        "tee_link": "/pages/tee-of-the-week",
+        "daily_kicker": "Everyday",
+        "daily_title": "Yoink of the Day",
+        "daily_body": "One genuinely good thing, dug out and dropped at a price that feels like a mistake. Gone in 24 hours, and tomorrow it's something else.",
+        "daily_cta": "Today's Yoink",
+        "daily_link": "/",
+        "bin_title": "Bargain Bin Thursdays",
+        "bin_body": "A whole new batch tipped into the bin, every item at 25% off. It empties out again next Thursday.",
+        "bin_cta": "Have a dig",
+        "bin_link": "/collections/bargain-bin",
+        "today_label": "Today",
+        "footnote": "Everything lands at 9am.",
+        "band": "yellow",
+        "color_scheme": "scheme-1",
+        "padding-block-start": 32,
+        "padding-block-end": 32
+      }
+    },
     "aj_bargain_bin": {
       "type": "aj-bargain-bin",
       "settings": {
@@ -135,6 +164,7 @@
   "order": [
     "aj_daily_deal",
     "aj_how",
+    "aj_cadence",
     "aj_bargain_bin",
     "aj_tee_week",
     "aj_shop_by_price",
