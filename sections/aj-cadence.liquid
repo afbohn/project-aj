@@ -219,6 +219,22 @@
     color: var(--aj-brand-ink, #282828);
 
     /*
+      NOTHING IN THIS SECTION MAY WIDEN THE PAGE.
+
+      The phone fan is a horizontal scroller holding rotated, overlapping cards.
+      Any one of those — the scroller's own width, a card leaning 8 degrees past
+      its box, the centred card scaling up — can push past the viewport, and on
+      iOS the result is not a clipped edge but a PAGE that drags sideways and
+      then sits crooked with black gutters down both sides. It shipped that way
+      on 6 Aug.
+
+      `clip` rather than `hidden` on purpose: `hidden` would make this element a
+      scroll container, which changes how `position: sticky` and scroll-anchoring
+      behave for everything inside it. `clip` just refuses to let anything out.
+    */
+    overflow-x: clip;
+
+    /*
       The pages. Warm rather than #ffffff: a pure white card on the yellow band
       looks like a hole punched in the section, and a few degrees of warmth make
       it read as paper sitting on the colour. Still 19.6:1 under ink, so nothing
@@ -339,8 +355,17 @@
     .aj-cadence__cards {
       display: flex;
       gap: 0;
-      /* Bleeds to the viewport edge so the deck reads as continuing past it. */
-      margin-inline: calc(-1 * var(--page-margin, 1.25rem));
+      /*
+        NO NEGATIVE MARGIN BLEED. This used to pull the scroller out to the
+        viewport edge with `margin-inline: calc(-1 * var(--page-margin))`, which
+        is only correct if that variable happens to equal the real page padding.
+        Where it did not, the scroller ended up WIDER THAN THE VIEWPORT — and a
+        scroll container wider than the screen does not scroll internally, it
+        drags the whole document sideways. The deck still reads as continuing
+        past the edge because the cards overlap and the last one is cut by the
+        scrollport; it did not need the extra width to say so.
+      */
+      max-width: 100%;
       /*
         Block padding sized to the rotation, not guessed. A 17rem card turned
         8deg overhangs its box by about (272px / 2) x sin(8deg) ~ 19px at each
