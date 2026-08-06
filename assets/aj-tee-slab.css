@@ -29,23 +29,53 @@
   THE GROUND. On the homepage the slab sits on the section's purple, and the
   case is translucent white read against it. A product page is white, so the
   glass and the outer shadow would both wash out and the card would read as a
-  flat sticker. `--standalone` paints the slab its own patch of purple: a small
-  display case rather than a whole band.
+  flat sticker. `--standalone` gives it its own strip of purple to sit on.
 
   IT IS A WRAPPER THE HOMEPAGE NEVER RENDERS. `.aj-teew__stage` is a direct grid
   child of `.aj-teew__inner`, so an unconditional wrapper here would have become
   the grid item and taken the two-column desktop layout with it. The snippet
   emits this element only when asked, which leaves the homepage DOM untouched.
+
+  A BAND THE CARD BREAKS OUT OF, not a purple box around it. The first version
+  padded the ground out past the card on all four sides, and at the width of a
+  product page's media column that is a 900px purple panel with a 350px card
+  floating in the middle of it — heavier than the product, and it shoved the buy
+  column down the page. The homepage does the opposite: a thin strip with the
+  card hanging out of it top and bottom, and the overhang is the whole effect.
+  Same trick here, same numbers.
 */
 .aj-teeslab--standalone {
-  /* Clearance for the discount roundel, which sits at -1.7rem outside the slab's
-     top-right corner. Less than this and it hangs off the purple. */
-  padding: 2.5rem 2rem;
+  /* Room for the card to hang into. Without it the overhang lands on the
+     eyebrow above and the disclosure below. */
+  margin-block: 3.75rem 1.25rem;
+  padding-inline: 1rem;
   background: var(--aj-brand-purple, #7a3fa0);
   /* The same cyan hairline that edges the homepage band, and the same rule as
      there: cyan is legal as a line on this ground, never as type. */
   border-block: 3px solid var(--aj-brand-cyan, #5cd8f8);
   color: #ffffff;
+  /* The overhang IS the design, so it must not be clipped. */
+  overflow: visible;
+}
+
+/*
+  Negative block margins rather than a transform, for the reason the section
+  documents: a translate would move the card without shortening the row, so the
+  band would stay tall and the card would simply sit high inside it.
+*/
+.aj-teeslab--standalone .aj-teew__stage {
+  margin-block: -3.25rem;
+}
+
+@media screen and (max-width: 749px) {
+  .aj-teeslab--standalone {
+    margin-block: 3rem 1rem;
+  }
+
+  .aj-teeslab--standalone .aj-teew__stage {
+    max-width: 19rem;
+    margin-block: -2.5rem;
+  }
 }
 
 /* ---- the slab ---------------------------------------------------------- */
