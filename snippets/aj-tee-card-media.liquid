@@ -1,0 +1,71 @@
+{% doc %}
+  Shows the collector card at the top of the media column, for the Tee of the
+  Week only.
+
+  WHY IT IS NOT THE PRODUCT IMAGE. The obvious version of this is to add the
+  rendered card to the product's media in Shopify so it simply becomes the first
+  photo. That would also push it into the Google and Meta feeds — and Merchant
+  Center prohibits promotional overlays on product images. The card has "15% OFF
+  ALL WEEK" and a struck price burned into it, so making it product media would
+  inject a policy violation into the feed of an account that has already been
+  suspended once for misrepresentation.
+
+  So it renders here, on the page, and never enters the catalogue.
+
+  THE URL COMES FROM A PRODUCT METAFIELD, not the tee_week metaobject. That
+  metaobject is `storefront: NONE` and opening it up would expose the whole
+  queue — including which tees are coming in later weeks. `enrich.tee_card_url`
+  carries only the current card, attached to the product it belongs to.
+
+  GUARDED TWICE. The metafield must be present AND the product must still be the
+  first in the tee-of-the-week collection. A metafield left behind after a
+  rotation would otherwise show last week's card above this week's tee, which is
+  worse than showing no card at all.
+{% enddoc %}
+
+{%- liquid
+  assign card = product.metafields.enrich.tee_card_url.value
+  assign is_current = false
+  if card != blank
+    assign tee_collection = collections['tee-of-the-week']
+    if tee_collection != blank and tee_collection.products.first.id == product.id
+      assign is_current = true
+    endif
+  endif
+-%}
+
+{%- if is_current -%}
+  <figure class="aj-teecard">
+    <img
+      src="{{ card }}"
+      alt="Tee of the Week collector card for {{ product.title | escape }}"
+      width="1080"
+      height="1350"
+      loading="eager"
+      fetchpriority="high"
+      class="aj-teecard__img"
+    >
+  </figure>
+{%- endif -%}
+
+{% stylesheet %}
+  /*
+    Sits above the gallery rather than replacing it. Someone deciding whether to
+    buy a t-shirt still wants the supplier's photographs — the card is the
+    framing, the photos are the evidence.
+
+    fetchpriority high and loading eager because this is now the largest element
+    in the viewport on this page, and lazy-loading your own LCP image is a
+    self-inflicted wound.
+  */
+  .aj-teecard {
+    margin: 0 0 var(--padding-md, 1rem);
+  }
+
+  .aj-teecard__img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--aj-cats-radius, 8px);
+  }
+{% endstylesheet %}

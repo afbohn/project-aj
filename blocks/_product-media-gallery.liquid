@@ -1,3 +1,11 @@
+{%- comment -%}
+  The Tee of the Week's collector card, above the supplier's photographs. Only
+  renders on the one product that is currently the tee — see the snippet for why
+  it is not product media, which is the more obvious way to do this and would
+  put a promotional overlay into the Merchant Center feed.
+{%- endcomment -%}
+{% render 'aj-tee-card-media' %}
+
 {% render 'product-media-gallery-content',
   media_presentation: block.settings.media_presentation,
   block_settings: block.settings,
