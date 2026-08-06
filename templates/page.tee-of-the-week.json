@@ -1,15 +1,36 @@
 {
   "sections": {
+    "current": {
+      "type": "aj-tee-week",
+      "settings": {
+        "tee_product": "",
+        "tee_collection": "tee-of-the-week",
+        "window_style": "photo",
+        "kicker": "This week",
+        "heading": "Tee of the Week",
+        "body": "One graphic tee, pulled from the pile and sealed up for seven days. Then it goes back and a new one takes its place. A new one drops every Tuesday at 9am.",
+        "cta_label": "Yoink it",
+        "archive_label": "",
+        "archive_link": "",
+        "sold_out_label": "Gone — back Tuesday with a new one",
+        "card_series": "The Yoink",
+        "card_subset": "Tee of the Week",
+        "series_start": "2026-08-04",
+        "color_scheme": "scheme-1",
+        "padding-block-start": 48,
+        "padding-block-end": 24
+      }
+    },
     "main": {
       "type": "aj-tee-archive",
       "settings": {
         "archive_handle": "tee-past",
         "color_scheme": "scheme-1",
         "empty_slots": 3,
-        "padding-block-start": 64,
+        "padding-block-start": 40,
         "padding-block-end": 72
       }
     }
   },
-  "order": ["main"]
+  "order": ["current", "main"]
 }
