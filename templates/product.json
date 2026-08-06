@@ -127,12 +127,12 @@
               },
               "blocks": {
                 "aj_eyebrow": {
-              "type": "custom-liquid",
-              "settings": {
-                "custom_liquid": "{% render 'aj-deal-eyebrow' %}"
-              }
-            },
-            "text_xpVMaM": {
+                  "type": "custom-liquid",
+                  "settings": {
+                    "custom_liquid": "{% render 'aj-deal-eyebrow' %}"
+                  }
+                },
+                "text_xpVMaM": {
                   "type": "text",
                   "name": "t:names.title",
                   "settings": {
@@ -225,7 +225,6 @@
                 "show_countdown": true,
                 "countdown_heading": "Deal ends in",
                 "show_claimed": true,
-                "show_tomorrow": true,
                 "padding-block-start": 0,
                 "padding-block-end": 8
               },

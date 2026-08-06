@@ -22,6 +22,56 @@
         "padding-block-end": 48
       }
     },
+    "aj_how": {
+      "type": "aj-how",
+      "settings": {
+        "definition_term": "Yoink",
+        "definition_pos": "(v.)",
+        "definition_gloss": "to grab something great half a second before the person next to you.",
+        "label_1": "Yoink of the day",
+        "body_1": "We dig up one genuinely good thing and drop it at a price that feels like a mistake.",
+        "label_2": "Tee of the Week",
+        "body_2": "A new cool graphic t-shirt every week, 15% off. Start your collection today!",
+        "label_3": "The Bargain Bin",
+        "body_3": "A bin of items marked 25% off that rotates weekly.",
+        "color_scheme": "scheme-1",
+        "padding-block-start": 40,
+        "padding-block-end": 40
+      }
+    },
+    "aj_bargain_bin": {
+      "type": "aj-bargain-bin",
+      "settings": {
+        "heading": "The Bargain Bin",
+        "subheading": "Everything at least 25% off. New picks every week.",
+        "collection_handle": "bargain-bin",
+        "products_shown": 8,
+        "color_scheme": "scheme-1",
+        "padding-block-start": 32,
+        "padding-block-end": 32
+      }
+    },
+    "aj_tee_week": {
+      "type": "aj-tee-week",
+      "settings": {
+        "tee_product": "",
+        "tee_collection": "tee-of-the-week",
+        "window_style": "photo",
+        "kicker": "One a week",
+        "heading": "Tee of the Week",
+        "body": "One graphic tee, pulled from the pile and sealed up for seven days. Then it goes back and a new one takes its place.",
+        "cta_label": "Yoink it",
+        "archive_label": "See the whole set",
+        "archive_link": "/collections/tee-past",
+        "sold_out_label": "Gone — back next week with a new one",
+        "card_series": "The Yoink",
+        "card_subset": "Tee of the Week",
+        "series_start": "2026-08-04",
+        "color_scheme": "scheme-1",
+        "padding-block-start": 24,
+        "padding-block-end": 24
+      }
+    },
     "aj_shop_by_price": {
       "type": "aj-shop-by-price",
       "settings": {
@@ -40,24 +90,12 @@
         "padding-block-end": 32
       }
     },
-    "aj_past_deals": {
-      "type": "aj-past-deals",
-      "settings": {
-        "heading": "Recent Yoinks",
-        "subheading": "A new one every day. Here's what you missed.",
-        "max_deals": 4,
-        "color_scheme": "scheme-1",
-        "padding-block-start": 32,
-        "padding-block-end": 48,
-        "show_bring_back": true,
-        "bring_back_label": "Bring back this deal"
-      }
-    },
     "aj_shop_by_category": {
       "type": "aj-shop-by-category",
       "settings": {
         "heading": "Shop by category",
         "subheading": "A bit of everything. Have a dig.",
+        "image_fit": "fit",
         "max_cats": 10,
         "min_products": 3,
         "color_scheme": "scheme-1",
@@ -65,53 +103,32 @@
         "padding-block-end": 32
       }
     },
-    "aj_tee_week": {
-      "type": "aj-tee-week",
+    "aj_past_deals": {
+      "type": "aj-past-deals",
       "settings": {
-        "tee_collection": "tee-of-the-week",
-        "window_style": "photo",
-        "kicker": "One a week",
-        "heading": "Tee of the Week",
-        "body": "One graphic tee, pulled from the pile and sealed up for seven days. Then it goes back and a new one takes its place.",
-        "cta_label": "Yoink it",
-        "archive_label": "See the whole set",
-        "archive_link": "/collections/tee-past",
-        "sold_out_label": "Gone \u2014 back next week with a new one",
-        "card_series": "The Yoink",
-        "card_subset": "Tee of the Week",
-        "series_start": "2026-08-04",
-        "color_scheme": "scheme-1",
-        "padding-block-start": 24,
-        "padding-block-end": 24
-      }
-    },
-    "aj_bargain_bin": {
-      "type": "aj-bargain-bin",
-      "settings": {
-        "heading": "The Bargain Bin",
-        "subheading": "Everything at least 25% off. New picks every week.",
-        "collection_handle": "bargain-bin",
-        "products_shown": 8,
+        "heading": "Recent Yoinks",
+        "subheading": "A new one every day. Here's what you missed.",
+        "max_deals": 4,
+        "show_bring_back": true,
+        "bring_back_label": "Bring back this deal",
         "color_scheme": "scheme-1",
         "padding-block-start": 32,
-        "padding-block-end": 32
+        "padding-block-end": 48
       }
     },
     "aj_story": {
       "type": "aj-story",
       "settings": {
+        "eyebrow": "Our story",
+        "image_alt": "A beige 1990s desktop computer",
+        "screen_lines": "C:\\> WHOAREWE.EXE\nTwo guys.\nOne deal a day.",
+        "phosphor": "#5cf08a",
+        "teaser": "We missed the dot-com boom by a decade. So we started this instead.",
+        "cta_text": "Read our story",
         "cta_link": "/pages/about-us",
         "color_scheme": "scheme-1",
         "padding-block-start": 40,
         "padding-block-end": 60
-      }
-    },
-    "aj_how": {
-      "type": "aj-how",
-      "settings": {
-        "color_scheme": "scheme-1",
-        "padding-block-start": 40,
-        "padding-block-end": 40
       }
     }
   },
