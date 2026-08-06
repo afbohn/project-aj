@@ -232,10 +232,38 @@
       margin-block: 0;
     }
 
+    /*
+      THE MEASURE COMES OFF ENTIRELY HERE, and that is the fix rather than a
+      bigger number. A max-width on a flex item does not make the line shorter,
+      it makes the item NARROWER THAN THE TEXT — so a 44ch cap on a 60-character
+      gloss wrapped it to two lines while the headword stayed on one, and the
+      whole entry sat lopsided with a short second line hanging under it. The
+      cap exists for the stacked layout, where the gloss is its own centred
+      block and needs a comfortable measure. In a row it is the row that decides.
+    */
     .aj-how__gloss {
-      max-width: 44ch;
+      max-width: none;
       margin-inline: 0;
       text-align: left;
+      /* Keeps "half a second" from breaking across the wrap when it does. */
+      text-wrap: balance;
+    }
+  }
+
+  /*
+    ONE LINE ONCE THERE IS ROOM FOR ONE. The gloss is ~60 characters, so at
+    1.125rem it needs roughly 480px beside a 3.25rem headword — about 780px of
+    entry in a 992px column. Below this it is allowed to wrap onto a second
+    line, which is a dictionary's own behaviour and still reads correctly
+    because the headword sits on the FIRST line's baseline.
+  */
+  @media screen and (min-width: 1000px) {
+    .aj-how__def {
+      flex-wrap: nowrap;
+    }
+
+    .aj-how__gloss {
+      text-wrap: nowrap;
     }
   }
 
