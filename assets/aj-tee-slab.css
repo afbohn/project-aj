@@ -58,8 +58,13 @@
 
 @media screen and (max-width: 749px) {
   .aj-teeslab--standalone {
-    /* Room for the card to hang out of the band, top and bottom. */
-    margin-block: 3rem 1rem;
+    /*
+      Room for the card to hang out of the band AND clear what is on either side
+      of it. The overhang is about 2.5rem at each end and the roundel adds
+      another 1.7rem at the top, so anything less than this puts the card on the
+      eyebrow above and the "View more" control below.
+    */
+    margin-block: 5rem 3rem;
     padding-inline: 1rem;
     background: var(--aj-brand-purple, #7a3fa0);
     /* The same cyan hairline that edges the homepage band, and the same rule as
