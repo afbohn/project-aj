@@ -9,6 +9,10 @@
  */
 {
   "sections": {
+    "aj_spotlight": {
+      "type": "aj-pdp-spotlight",
+      "settings": {}
+    },
     "main": {
       "type": "product-information",
       "blocks": {
@@ -546,6 +550,7 @@
     }
   },
   "order": [
+    "aj_spotlight",
     "main",
     "product_recommendations_qggXJq",
     "1785584938b4fd49ae"
