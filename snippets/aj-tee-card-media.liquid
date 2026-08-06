@@ -1,65 +1,46 @@
 {% doc %}
   The collector card, at the top of the media column on the Tee of the Week.
 
-  @param {string} card_url - The rendered card image. The caller decides whether
-    to show it; this snippet does not re-test, because the block needs the same
-    answer to collapse the gallery and Liquid cannot read a variable back out of
-    a render.
-  @param {object} product - The product, for the alt text.
+  @param {object} product - The tee. The caller decides whether to show it; this
+    snippet does not re-test, because the block needs the same answer to collapse
+    the gallery and Liquid cannot read a variable back out of a render.
 
-  WHY IT IS NOT THE PRODUCT IMAGE. The obvious version is to add the rendered
-  card to the product's media so it simply becomes the first photo. That would
-  also push it into the Google and Meta feeds — and Merchant Center prohibits
-  promotional overlays on product images. The card has "15% OFF ALL WEEK" and a
-  struck price burned into it, so that route would inject a policy violation
-  into the feed of an account already suspended once for misrepresentation.
+  IT IS THE LIVE SLAB, NOT A PICTURE OF ONE. This showed the PNG that
+  `enrich.tee_card_url` points at — the image the app renders for ad creative —
+  and it was a flat sticker next to a homepage card that leans, straightens under
+  the cursor and catches the light. Same card, two experiences, and the PDP got
+  the lesser one. It now renders `aj-tee-slab`, the same snippet the homepage
+  section uses, so there is one card and it behaves the same everywhere.
 
-  So it renders here, on the page, and never enters the catalogue.
+  THAT ALSO CLOSED A SEAM. The old gate needed the metafield to be populated, and
+  nothing wrote it on rotation — it was set by hand for week 001. Every following
+  week would have shown a bare gallery with no error anywhere. The test is now
+  the same one `aj-deal-eyebrow` uses, so the eyebrow and the card cannot
+  disagree about which product is this week's tee, and neither needs maintenance.
 
-  The URL arrives from `enrich.tee_card_url`, a storefront-readable product
-  metafield, rather than the tee_week metaobject — that one is
-  `storefront: NONE`, and opening it up would expose the queue, including which
-  tees are coming in later weeks.
+  The PNG is still rendered and still used — by the ads, which need a flat image.
+  It is simply no longer what the product page shows.
+
+  WHY IT IS NOT THE PRODUCT IMAGE, which is the more obvious way to do all this.
+  Adding the card to the product's media would push it into the Google and Meta
+  feeds, and Merchant Center prohibits promotional overlays on product images.
+  The card has a struck price and a discount roundel on it, so that route would
+  inject a policy violation into the feed of an account already suspended once
+  for misrepresentation. So it renders here, on the page, and never enters the
+  catalogue.
 {% enddoc %}
 
-{%- if card_url != blank -%}
-  <figure class="aj-teecard">
-    <img
-      src="{{ card_url }}"
-      alt="Tee of the Week collector card for {{ product.title | escape }}"
-      width="1080"
-      height="1350"
-      loading="eager"
-      fetchpriority="high"
-      class="aj-teecard__img"
-    >
-  </figure>
-{%- endif -%}
+<div class="aj-teecard">
+  {% render 'aj-tee-slab', tee: product, standalone: true, linked: false %}
+</div>
 
 {% stylesheet %}
   /*
-    IT IS A CARD, SO IT SHOULD BE CARD-SIZED. At full column width the thing
-    read as a billboard — on desktop it filled half the page, on a phone it took
-    the whole screen before anyone reached the price. The object it is imitating
-    is something you hold in one hand, and the proportions have to say that or
-    the whole conceit collapses.
-
-    Capped and centred instead. 22rem keeps it comfortably shorter than the
-    viewport at 4:5, so the card and the beginning of the buy column are visible
-    together.
+    The slab sizes itself — 22rem capped and centred, the same as the homepage.
+    All this wrapper does is hold it off the disclosure below.
   */
   .aj-teecard {
-    margin: 0 auto var(--padding-md, 1rem);
-    max-width: min(100%, 22rem);
-  }
-
-  .aj-teecard__img {
-    display: block;
-    width: 100%;
-    height: auto;
-    /* A soft drop rather than a border: the card already draws its own frame,
-       and a second edge around it looked like a mistake. */
-    filter: drop-shadow(0 6px 18px rgb(0 0 0 / 0.18));
+    margin-block-end: var(--padding-md, 1rem);
   }
 
   /* ---- the disclosure holding the supplier photographs ------------------- */

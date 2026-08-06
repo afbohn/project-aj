@@ -8,20 +8,24 @@
   card renders, AND the gallery below collapses behind a disclosure. Liquid
   scopes `assign` to the render, so a variable set inside the snippet cannot be
   read back out — computing it once here keeps the two in step.
+
+  IT IS THE COLLECTION, NOT A METAFIELD. This used to require
+  `enrich.tee_card_url` to be populated as well, back when the card was that
+  PNG. Nothing wrote that field on rotation, so from week 002 onward the page
+  would have quietly reverted to a plain gallery. `tee-of-the-week` is maintained
+  by the app every week and is the same test `aj-deal-eyebrow` runs, so the
+  eyebrow and the card can never disagree.
 {%- endcomment -%}
 {%- liquid
-  assign tee_card = ''
-  assign card_url = product.metafields.enrich.tee_card_url.value
-  if card_url != blank
-    assign tee_collection = collections['tee-of-the-week']
-    if tee_collection != blank and tee_collection.products.first.id == product.id
-      assign tee_card = card_url
-    endif
+  assign is_tee = false
+  assign tee_collection = collections['tee-of-the-week']
+  if tee_collection != blank and tee_collection.products.first.id == product.id
+    assign is_tee = true
   endif
 -%}
 
-{%- if tee_card != blank -%}
-  {% render 'aj-tee-card-media', card_url: tee_card, product: product %}
+{%- if is_tee -%}
+  {% render 'aj-tee-card-media', product: product %}
 
   {%- comment -%}
     THE PHOTOGRAPHS COLLAPSE ONLY HERE. On the tee the card is the hero and the
@@ -49,7 +53,7 @@
   section: section
 %}
 
-{%- if tee_card != blank -%}
+{%- if is_tee -%}
   </details>
 {%- endif -%}
 

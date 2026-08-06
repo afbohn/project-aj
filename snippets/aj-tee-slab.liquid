@@ -1,0 +1,245 @@
+{% doc %}
+  The Tee of the Week collector slab — the sealed, graded, tilting card.
+
+  @param {object} tee - The product the card describes. Everything printed on the
+    card is read off it; nothing on the slab is typed in.
+  @param {string} [series] - Set name, top-left of the grading label.
+  @param {string} [subset] - Subset line, under the set name and on the plate.
+  @param {string} [window_style] - photo | cutout | white.
+  @param {object} [art] - Image override for the window. Falls back to the
+    product's featured image.
+  @param {string} [series_start] - Anchor date the week number counts from.
+  @param {boolean} [standalone] - True when there is no purple band behind the
+    slab already, i.e. everywhere except the homepage section. Paints the slab
+    its own ground; see the note in aj-tee-slab.css.
+  @param {boolean} [linked] - Whether the window links to the product. Off on the
+    product page, where the link would point at the page you are already on.
+
+  ONE IMPLEMENTATION, TWO PAGES. This was inline in `sections/aj-tee-week.liquid`
+  until the product page needed the same card. Copying it would have meant every
+  future change to the card landing on one page and not the other — and the
+  divergence would only show up when somebody happened to look at both.
+
+  THE DEFAULTS MATCH THE SECTION SCHEMA, so a caller that passes nothing gets the
+  homepage card. If a default here and a default there ever disagree the product
+  page silently drifts, which is exactly the seam this extraction was meant to
+  close — they are listed together so the pairing is visible.
+{% enddoc %}
+
+{%- liquid
+  assign v = tee.selected_or_first_available_variant
+
+  assign off_pct = 0
+  if v.compare_at_price > v.price
+    assign off_pct = v.compare_at_price | minus: v.price | times: 100 | divided_by: v.compare_at_price
+  endif
+
+  # THE SERIES NUMBER IS DERIVED FROM THE CALENDAR, not a field somebody has to
+  # remember to bump. A number that silently stops incrementing is worse than no
+  # number, because it makes a weekly thing look abandoned. 604800 is a week in
+  # seconds.
+  assign anchor = series_start | default: '2026-08-04'
+  assign anchor_s = anchor | date: '%s' | plus: 0
+  assign now_s = 'now' | date: '%s' | plus: 0
+  assign week_no = now_s | minus: anchor_s | divided_by: 604800 | plus: 1
+  if week_no < 1
+    assign week_no = 1
+  endif
+
+  # Zero-padded to three digits, applied cumulatively — testing `week_no` against
+  # both bounds while re-deriving from the raw number each time would give single
+  # digits only one zero.
+  assign week_label = week_no | append: ''
+  if week_no < 100
+    assign week_label = week_label | prepend: '0'
+  endif
+  if week_no < 10
+    assign week_label = week_label | prepend: '0'
+  endif
+
+  # Size range off whichever option is actually named size. Suppliers in this
+  # catalogue are not consistent about option ORDER, so matching on the name is
+  # the only reliable read.
+  assign size_first = ''
+  assign size_last = ''
+  for opt in tee.options_with_values
+    assign opt_name = opt.name | downcase
+    if opt_name contains 'size'
+      assign size_first = opt.values | first
+      assign size_last = opt.values | last
+    endif
+  endfor
+
+  # The slab serial. A real one, not a random string: the variant's SKU if the
+  # supplier set one, otherwise the product id, which is stable and unique.
+  assign serial = v.sku
+  if serial == blank
+    assign serial = tee.id
+  endif
+
+  assign set_name = series | default: 'The Yoink'
+  assign subset_name = subset | default: 'Tee of the Week'
+  assign window = window_style | default: 'photo'
+
+  assign card_art = art
+  if card_art == blank
+    assign card_art = tee.featured_image
+  endif
+
+-%}
+
+{%- if tee != blank -%}
+  {%- comment -%}
+    THE SNIPPET LOADS ITS OWN ASSETS so a caller cannot render the card and
+    forget the CSS — which would leave a stack of unstyled text where a sealed
+    card should be, and only on whichever page was added last. Two pages use this
+    now; the third will not have to remember anything.
+
+    The script is progressive enhancement, never a dependency: the slab leans,
+    lifts, straightens and catches the light in pure CSS. What the file adds is
+    cursor tracking, which is the difference between a card that reacts and a
+    card that feels held.
+  {%- endcomment -%}
+  {{ 'aj-tee-slab.css' | asset_url | stylesheet_tag }}
+  <script src="{{ 'aj-tee-slab.js' | asset_url }}" defer></script>
+
+  {%- comment -%}
+    THE WRAPPER IS CONDITIONAL, and that is load-bearing rather than tidy. On the
+    homepage `.aj-teew__stage` is a direct grid child of `.aj-teew__inner` and the
+    desktop layout puts it in the left column; wrapping it unconditionally would
+    have made the wrapper the grid item and collapsed that layout. Emitting it
+    only for standalone callers leaves the homepage DOM exactly as it was.
+  {%- endcomment -%}
+  {%- if standalone -%}<div class="aj-teeslab aj-teeslab--standalone">{%- endif -%}
+    <div class="aj-teew__stage">
+      <div class="aj-teew__slab" data-aj-tilt>
+        {%- comment -%}
+          The case itself: one element for the plastic, one for the light running
+          across it. Both inert.
+        {%- endcomment -%}
+        <span class="aj-teew__glass" aria-hidden="true"></span>
+
+        {%- comment -%}
+          The grading label. Set name on the left, week number where a grade
+          would sit, serial and barcode beneath — the barcode is drawn with a
+          repeating gradient, so it encodes nothing and claims nothing.
+        {%- endcomment -%}
+        <div class="aj-teew__label">
+          <div class="aj-teew__label-l">
+            <span class="aj-teew__label-set">{{ set_name | escape }}</span>
+            <span class="aj-teew__label-sub">{{ subset_name | escape }}</span>
+          </div>
+          <div class="aj-teew__label-r">
+            <span class="aj-teew__label-wk">Wk</span>
+            <span class="aj-teew__label-no">{{ week_label }}</span>
+          </div>
+          <span class="aj-teew__barcode" aria-hidden="true"></span>
+          <span class="aj-teew__serial">{{ serial | escape }}</span>
+        </div>
+
+        <article class="aj-teew__card">
+          <span class="aj-teew__bands" aria-hidden="true"></span>
+
+          <div class="aj-teew__cardin">
+            <span class="aj-teew__roundel" aria-hidden="true">Y</span>
+
+            {%- comment -%}
+              The window is decorative in both cases — the card repeats a title
+              and a price that are already on the page, so it is hidden from
+              assistive technology rather than read out twice.
+            {%- endcomment -%}
+            {%- capture card_window -%}
+              {%- if card_art != blank -%}
+                {{
+                  card_art
+                  | image_url: width: 900
+                  | image_tag:
+                    loading: 'lazy',
+                    widths: '360, 540, 720, 900',
+                    sizes: '(min-width: 750px) 32vw, 72vw',
+                    class: 'aj-teew__art',
+                    alt: ''
+                }}
+              {%- endif -%}
+            {%- endcapture -%}
+
+            {%- if linked == false -%}
+              <span class="aj-teew__window aj-teew__window--{{ window }}" aria-hidden="true">
+                {{- card_window -}}
+              </span>
+            {%- else -%}
+              <a
+                class="aj-teew__window aj-teew__window--{{ window }}"
+                href="{{ tee.url }}"
+                tabindex="-1"
+                aria-hidden="true"
+              >
+                {{- card_window -}}
+              </a>
+            {%- endif -%}
+
+            {%- comment -%}
+              The name plate, which on a real card is the only place the subject
+              is named — so the product title goes here and nowhere else on the
+              slab.
+            {%- endcomment -%}
+            <div class="aj-teew__plate">
+              <h3 class="aj-teew__name">{{ tee.title | escape }}</h3>
+              <p class="aj-teew__plate-sub">
+                <span aria-hidden="true">&#9733;</span>
+                {{ subset_name | escape }}
+                <span aria-hidden="true">&#9733;</span>
+              </p>
+            </div>
+
+            {%- comment -%}
+              Every figure here is read off the product. Nothing in this strip is
+              typed into the editor, so it cannot drift away from the thing it
+              describes.
+            {%- endcomment -%}
+            <dl class="aj-teew__strip">
+              <div class="aj-teew__stat">
+                <dt>Price</dt>
+                <dd class="aj-teew__stat-price">{{ v.price | money }}</dd>
+              </div>
+              {%- if off_pct > 0 -%}
+                <div class="aj-teew__stat">
+                  <dt>Was</dt>
+                  <dd><s>{{ v.compare_at_price | money }}</s></dd>
+                </div>
+              {%- endif -%}
+              {%- if size_first != blank -%}
+                <div class="aj-teew__stat">
+                  <dt>Sizes</dt>
+                  <dd>
+                    {{- size_first | escape -}}
+                    {%- if size_last != size_first %}&ndash;{{ size_last | escape }}{% endif -%}
+                  </dd>
+                </div>
+              {%- endif -%}
+            </dl>
+
+            <span class="aj-teew__sheen" aria-hidden="true"></span>
+          </div>
+        </article>
+
+        {%- comment -%}
+          THE SAVING, AT THE SIZE IT DESERVES. It was a small corner sticker while
+          the concern was that 15% would be read against the Bargain Bin's 25%. On
+          the page that fear was misplaced — the card frames it as a perk on a
+          curated pick rather than as a competing deal, so the number can be loud
+          without inviting the comparison.
+
+          Still computed, never typed: this whole block is inside `off_pct > 0`
+          and prints whatever the real gap is.
+        {%- endcomment -%}
+        {%- if off_pct > 0 -%}
+          <span class="aj-teew__flag">
+            <span class="aj-teew__flag-n">{{ off_pct }}%</span>
+            <span class="aj-teew__flag-t">off</span>
+          </span>
+        {%- endif -%}
+      </div>
+    </div>
+  {%- if standalone -%}</div>{%- endif -%}
+{%- endif -%}

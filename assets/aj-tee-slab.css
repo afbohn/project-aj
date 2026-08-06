@@ -1,0 +1,586 @@
+/*
+  THE COLLECTOR SLAB — the graded-card case that carries the Tee of the Week.
+
+  IT LIVES IN AN ASSET RATHER THAN IN A SECTION because two pages need it now:
+  `sections/aj-tee-week.liquid` on the homepage, and the tee's own product page
+  via `snippets/aj-tee-card-media.liquid`. Snippets cannot carry
+  `{% stylesheet %}`, so the moment the markup became a snippet the CSS had to
+  come out with it. One copy, and a change to the card lands on both pages.
+
+  CLASS NAMES ARE UNCHANGED — still `aj-teew__*` rather than a fresh prefix.
+  Renaming would have touched every one of these 500 lines to buy nothing, and
+  the homepage was the thing at risk in this move.
+
+  LOAD ORDER, AND WHY IT DOES NOT DECIDE ANYTHING. The snippet emits the <link>
+  where it renders, so this file lands in the body — after the compiled section
+  stylesheet, meaning it would win every tie on source order. That is the wrong
+  way round: the section owns where the slab sits, this file owns what the slab
+  is. So the section scopes its stage rules as `.aj-teew .aj-teew__stage` and
+  wins by specificity regardless of order. The tie that actually existed was
+  `max-width` — 22rem here against the section's 19rem phone override.
+
+  WHAT STAYED BEHIND, deliberately: the desktop and mobile breakout margins on
+  `.aj-teew__stage`, and the `.aj-teew__side` / `.aj-teew__cta2` rules that share
+  those media queries. All of them describe the slab's relationship to the purple
+  band, and the product page has no purple band.
+*/
+
+/*
+  THE GROUND. On the homepage the slab sits on the section's purple, and the
+  case is translucent white read against it. A product page is white, so the
+  glass and the outer shadow would both wash out and the card would read as a
+  flat sticker. `--standalone` paints the slab its own patch of purple: a small
+  display case rather than a whole band.
+
+  IT IS A WRAPPER THE HOMEPAGE NEVER RENDERS. `.aj-teew__stage` is a direct grid
+  child of `.aj-teew__inner`, so an unconditional wrapper here would have become
+  the grid item and taken the two-column desktop layout with it. The snippet
+  emits this element only when asked, which leaves the homepage DOM untouched.
+*/
+.aj-teeslab--standalone {
+  /* Clearance for the discount roundel, which sits at -1.7rem outside the slab's
+     top-right corner. Less than this and it hangs off the purple. */
+  padding: 2.5rem 2rem;
+  background: var(--aj-brand-purple, #7a3fa0);
+  /* The same cyan hairline that edges the homepage band, and the same rule as
+     there: cyan is legal as a line on this ground, never as type. */
+  border-block: 3px solid var(--aj-brand-cyan, #5cd8f8);
+  color: #ffffff;
+}
+
+/* ---- the slab ---------------------------------------------------------- */
+
+/*
+  The perspective lives on the stage rather than the slab, because an element
+  that owns its own perspective rotates around its own centre and reads flat.
+  On the parent, the vanishing point stays put and the slab turns inside it.
+
+  THE CREAM PAIR IS DEFINED HERE, not on a wrapper, because the wrapper above is
+  conditional and the stage is the one element present in every rendering. The
+  section still declares the same two values on `.aj-teew`; the stage is nested
+  inside it, so the nearer declaration simply wins with an identical value.
+*/
+.aj-teew__stage {
+  --aj-teew-cream: #f2ead9;
+  --aj-teew-cream-2: #e4d8c0;
+  perspective: 1400px;
+  width: 100%;
+  max-width: 22rem;
+  justify-self: center;
+  margin-inline: auto;
+}
+/*
+  THE RIGID CASE. Translucent white over the purple ground with a bright inner
+  top edge and a dark bottom one — two inset shadows are what make a flat
+  panel read as a moulded bevel, and they cost nothing.
+
+  It rests at a slight lean and straightens when you reach for it, which is
+  the whole gesture the mockup's leaning card was doing.
+*/
+.aj-teew__slab {
+  position: relative;
+  padding: 0.55rem 0.55rem 0.7rem;
+  border-radius: 14px;
+  background: linear-gradient(160deg, rgb(255 255 255 / 0.34), rgb(255 255 255 / 0.12));
+  border: 1px solid rgb(255 255 255 / 0.5);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    inset 0 -1px 0 rgb(0 0 0 / 0.18),
+    0 22px 44px rgb(0 0 0 / 0.42);
+
+  /*
+    TWO TRANSFORM SYSTEMS, DELIBERATELY SEPARATED — the same rule aj-how
+    documents. The pointer tilt owns `transform`; the resting lean owns
+    `rotate` and the hover lift owns `translate` and `scale`, which are
+    independent properties applied before it. Written as one `transform`, a
+    pointermove would overwrite the lift on its next frame and the slab would
+    drop mid-hover.
+  */
+  transform: rotateX(var(--aj-teew-rx, 0deg)) rotateY(var(--aj-teew-ry, 0deg));
+  rotate: -2.5deg;
+  transition: translate 0.25s ease, scale 0.25s ease, rotate 0.25s ease, box-shadow 0.25s ease;
+  will-change: transform;
+}
+
+@media (hover: hover) {
+  .aj-teew__stage:hover .aj-teew__slab {
+    translate: 0 -8px;
+    scale: 1.02;
+    rotate: 0deg;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.8),
+      inset 0 -1px 0 rgb(0 0 0 / 0.2),
+      0 32px 60px rgb(0 0 0 / 0.5);
+  }
+}
+
+/* The one highlight that says "there is plastic in front of this". */
+.aj-teew__glass {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: 14px;
+  background: linear-gradient(
+    118deg,
+    rgb(255 255 255 / 0) 34%,
+    rgb(255 255 255 / 0.16) 44%,
+    rgb(255 255 255 / 0.04) 52%,
+    rgb(255 255 255 / 0) 62%
+  );
+}
+
+/* ---- the grading label -------------------------------------------------- */
+
+.aj-teew__label {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 0.4rem 0.6rem;
+  /*
+    Extra room on the right for the saving disc, which sits on this corner.
+    Without it the disc covers the week number and the serial — the two values
+    that make the slab read as a numbered collectible rather than a photo in a
+    frame.
+  */
+  padding: 0.5rem 4rem 0.45rem 0.6rem;
+  margin-block-end: 0.5rem;
+  border-radius: 5px;
+  background: var(--aj-teew-cream, #f2ead9);
+  color: var(--aj-brand-ink, #282828);
+  /* The label is a separate printed insert, so it gets its own edge. */
+  box-shadow: 0 1px 0 rgb(0 0 0 / 0.25), inset 0 0 0 1px rgb(0 0 0 / 0.1);
+}
+
+.aj-teew__label-l {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.aj-teew__label-set {
+  font-family: "Ohpixel", var(--font-heading--family);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
+.aj-teew__label-sub {
+  font-family: "Ohpixel", var(--font-heading--family);
+  font-size: 0.5625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.1;
+  opacity: 0.62;
+}
+
+/*
+  Where a graded card carries its grade. It carries the week instead — see the
+  note at the top of this file. Set at the same weight a grade would be,
+  because the slot's job is to be the loudest number on the label.
+*/
+.aj-teew__label-r {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  justify-self: end;
+}
+
+.aj-teew__label-wk {
+  font-family: "Ohpixel", var(--font-heading--family);
+  font-size: 0.5625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.aj-teew__label-no {
+  font-family: "Flashy", var(--font-heading--family);
+  font-weight: 400;
+  font-size: 1.5rem;
+  line-height: 0.85;
+}
+
+/*
+  Drawn, not encoded. Irregular bar widths from a repeating gradient with four
+  stops — an even comb reads as a texture, uneven bars read as a barcode.
+*/
+.aj-teew__barcode {
+  grid-column: 1;
+  height: 0.85rem;
+  align-self: end;
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--aj-brand-ink, #282828) 0 1px,
+    transparent 1px 3px,
+    var(--aj-brand-ink, #282828) 3px 5px,
+    transparent 5px 6px,
+    var(--aj-brand-ink, #282828) 6px 7px,
+    transparent 7px 10px
+  );
+  opacity: 0.85;
+}
+
+.aj-teew__serial {
+  grid-column: 2;
+  align-self: end;
+  justify-self: end;
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: "Ohpixel", var(--font-heading--family);
+  font-size: 0.5625rem;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+}
+
+/* ---- the card ---------------------------------------------------------- */
+
+/*
+  Cream stock with everything printed on it in brand colour, which is how a
+  real card works: the paper is neutral and the team owns the ink. A card in
+  brand purple on a brand purple band would simply disappear.
+*/
+.aj-teew__card {
+  position: relative;
+  border-radius: 8px;
+  padding: 0.4rem;
+  background: linear-gradient(180deg, var(--aj-teew-cream, #f2ead9), var(--aj-teew-cream-2, #e4d8c0));
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.16);
+}
+
+/* Team colours, four hard stops. The one element that is purely brand. */
+.aj-teew__bands {
+  display: block;
+  height: 5px;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--aj-brand-cyan, #5cd8f8) 0 25%,
+    var(--aj-brand-yellow, #ffe000) 25% 50%,
+    var(--aj-brand-purple, #7a3fa0) 50% 75%,
+    var(--aj-brand-teal, #30aac6) 75% 100%
+  );
+}
+
+.aj-teew__cardin {
+  position: relative;
+  overflow: hidden;
+  margin-block-start: 0.4rem;
+  border-radius: 5px;
+}
+
+/*
+  The roundel a card puts its league mark in. A Flashy "Y" rather than a star,
+  because a star belongs to every card ever printed and the Y belongs to this
+  shop.
+*/
+.aj-teew__roundel {
+  position: absolute;
+  top: 0.4rem;
+  left: 0.4rem;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--aj-brand-yellow, #ffe000);
+  color: var(--aj-brand-ink, #282828);
+  font-family: "Flashy", var(--font-heading--family);
+  font-weight: 400;
+  font-size: 1.15rem;
+  line-height: 1;
+  /* Flashy's caps sit high in the em box, so centring on the box leaves the
+     glyph visibly above the circle's middle. Nudged down by eye. */
+  padding-block-start: 0.14em;
+  box-shadow: 0 0 0 2px var(--aj-brand-ink, #282828), 0 2px 5px rgb(0 0 0 / 0.3);
+}
+
+/*
+  THREE WINDOW MODES, BECAUSE THE CATALOGUE IS NOT ONE THING. Checked against
+  live product images on 4 August: Parallel, who supply 87 of the 145 eligible
+  tees, shoot flat-lay on CONCRETE. Obsessed With Graphic Tees shoot on white.
+  A single treatment flatters one and ruins the other.
+
+  Photo is the default and it is the one the graded-card reference actually
+  uses — that mockup's window holds a full-bleed action shot, not a cut-out.
+  A concrete-backed tee cropped to fill reads exactly like card photography,
+  so the supplier's least convenient habit turns out to be the right asset.
+
+  Cut-out is for later: a background-free PNG floating on a halftone field.
+  White is the honest fallback for stock already shot on white, where cover
+  would crop the tee and contain would at least sit on matching ground.
+*/
+.aj-teew__window {
+  display: block;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 2px var(--aj-brand-ink, #282828);
+}
+
+.aj-teew__window--cutout {
+  background-color: var(--aj-brand-teal, #30aac6);
+  background-image: radial-gradient(rgb(255 255 255 / 0.3) 1.5px, transparent 1.6px);
+  background-size: 9px 9px;
+}
+
+.aj-teew__window--white {
+  background: #ffffff;
+}
+
+.aj-teew__art {
+  width: 100%;
+  height: 100%;
+}
+
+/*
+  Cover for the photo mode, so the shot fills the frame the way card
+  photography does. Contain everywhere else, so a cut-out is never cropped.
+*/
+.aj-teew__window--photo .aj-teew__art {
+  object-fit: cover;
+}
+
+.aj-teew__window--cutout .aj-teew__art,
+.aj-teew__window--white .aj-teew__art {
+  object-fit: contain;
+}
+
+/* Lifts a cut-out off the field so it reads as an object on the card. */
+.aj-teew__window--cutout .aj-teew__art {
+  filter: drop-shadow(0 6px 10px rgb(0 0 0 / 0.28));
+}
+
+/* ---- the name plate ----------------------------------------------------- */
+
+.aj-teew__plate {
+  padding: 0.6rem 0.7rem 0.5rem;
+  text-align: center;
+  background: var(--aj-brand-ink, #282828);
+  color: var(--aj-teew-cream, #f2ead9);
+}
+
+.aj-teew__name {
+  margin: 0;
+  font-family: "Flashy", var(--font-heading--family);
+  font-weight: 400;
+  font-size: clamp(1.1rem, 4.2vw, 1.45rem);
+  line-height: 1.02;
+  text-wrap: balance;
+}
+
+.aj-teew__plate-sub {
+  margin: 0.25rem 0 0;
+  font-family: "Ohpixel", var(--font-heading--family);
+  font-size: 0.5625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--aj-brand-yellow, #ffe000);
+}
+
+/* ---- the stat strip ----------------------------------------------------- */
+
+.aj-teew__strip {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.45rem 0.55rem;
+  background: var(--aj-teew-cream, #f2ead9);
+  color: var(--aj-brand-ink, #282828);
+  font-family: "Ohpixel", var(--font-heading--family);
+  font-size: 0.5625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-block-start: 2px solid rgb(0 0 0 / 0.14);
+}
+
+.aj-teew__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.aj-teew__stat + .aj-teew__stat {
+  padding-inline-start: 0.5rem;
+  border-inline-start: 1px dotted rgb(0 0 0 / 0.22);
+}
+
+.aj-teew__stat dt {
+  opacity: 0.55;
+}
+
+.aj-teew__stat dd {
+  margin: 0;
+  font-size: 0.6875rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aj-teew__stat-price {
+  color: var(--aj-brand-purple, #7a3fa0);
+}
+
+.aj-teew__stat s {
+  opacity: 0.55;
+}
+
+/* ---- the sticker -------------------------------------------------------- */
+
+/*
+  Cocked at an angle on the corner of the case, like something applied after
+  sealing. Small on purpose: the week number is the headline, not this.
+*/
+/*
+  A DISC, NOT A LABEL. At this size a rectangle reads as a UI chip; a circle
+  cocked off the corner reads as something stuck onto the case, which is the
+  same logic as the rest of the slab. The ink ring keeps it legible where it
+  crosses from the cream label onto the purple.
+*/
+/*
+  PUSHED OFF THE CORNER, not laid over it. Sitting closer in, the disc covered
+  the week number and half the serial — the two things that make the slab read
+  as a numbered collectible rather than a photo in a frame. Overlapping only
+  the corner keeps every printed value legible.
+*/
+.aj-teew__flag {
+  position: absolute;
+  top: -1.7rem;
+  right: -1.7rem;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: 50%;
+  rotate: -9deg;
+  background: var(--aj-brand-yellow, #ffe000);
+  color: var(--aj-brand-ink, #282828);
+  box-shadow: 0 0 0 3px var(--aj-brand-ink, #282828), 0 6px 16px rgb(0 0 0 / 0.4);
+}
+
+.aj-teew__flag-n {
+  font-family: "Flashy", var(--font-heading--family);
+  font-weight: 400;
+  font-size: 1.75rem;
+  line-height: 0.9;
+}
+
+.aj-teew__flag-t {
+  margin-block-start: 0.15rem;
+  font-family: "Ohpixel", var(--font-heading--family);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+@media screen and (max-width: 749px) {
+  .aj-teew__flag {
+    width: 4.75rem;
+    height: 4.75rem;
+    top: -1.4rem;
+    right: -1.2rem;
+  }
+
+  .aj-teew__flag-n {
+    font-size: 1.5rem;
+  }
+}
+
+/* ---- the sheen ---------------------------------------------------------- */
+
+/*
+  Clipped by the card's inner box, never interactive, and it owns `translate`
+  alone so it cannot collide with the slab's tilt.
+*/
+.aj-teew__sheen {
+  position: absolute;
+  inset-block: -30%;
+  inset-inline-start: 0;
+  z-index: 2;
+  width: 55%;
+  pointer-events: none;
+  translate: -190% 0;
+  rotate: 8deg;
+  background: linear-gradient(
+    90deg,
+    rgb(255 255 255 / 0) 0%,
+    rgb(255 255 255 / 0.2) 40%,
+    rgb(255 255 255 / 0.55) 50%,
+    rgb(255 255 255 / 0.2) 60%,
+    rgb(255 255 255 / 0) 100%
+  );
+}
+
+@media (hover: hover) {
+  .aj-teew__sheen {
+    transition: translate 0.8s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  .aj-teew__stage:hover .aj-teew__sheen {
+    translate: 320% 0;
+  }
+}
+/* ---- motion on touch ---------------------------------------------------- */
+
+/*
+  A PHONE HAS NO HOVER, so the two effects that carry this section on desktop
+  are unreachable there. Scroll position substitutes for the pointer: the card
+  rises into place and the sheen sweeps once as it arrives. Same approach and
+  the same two guards as aj-how — @supports for browsers with no view
+  timeline, which simply see the finished state, and reduced-motion for people
+  who asked not to have any of it.
+
+  THE RISE IS ON THE CARD AND THE LIFT IS ON THE SLAB, which is not tidiness.
+  An animation with `both` holds its end state and wins over a plain
+  declaration, so a hover rule setting `translate` on the same element the
+  entrance animates would simply never apply. Different elements, no contest.
+*/
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .aj-teew__card {
+      animation: aj-teew-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 5% cover 32%;
+    }
+
+    @keyframes aj-teew-rise {
+      from {
+        opacity: 0;
+        translate: 0 26px;
+      }
+
+      to {
+        opacity: 1;
+        translate: 0 0;
+      }
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) and (hover: none) {
+    .aj-teew__sheen {
+      animation: aj-teew-sweep linear both;
+      animation-timeline: view();
+      animation-range: entry 40% cover 55%;
+    }
+
+    @keyframes aj-teew-sweep {
+      from {
+        translate: -190% 0;
+      }
+
+      to {
+        translate: 320% 0;
+      }
+    }
+  }
+}
