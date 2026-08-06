@@ -1,43 +1,31 @@
 {% doc %}
-  Shows the collector card at the top of the media column, for the Tee of the
-  Week only.
+  The collector card, at the top of the media column on the Tee of the Week.
 
-  WHY IT IS NOT THE PRODUCT IMAGE. The obvious version of this is to add the
-  rendered card to the product's media in Shopify so it simply becomes the first
-  photo. That would also push it into the Google and Meta feeds — and Merchant
-  Center prohibits promotional overlays on product images. The card has "15% OFF
-  ALL WEEK" and a struck price burned into it, so making it product media would
-  inject a policy violation into the feed of an account that has already been
-  suspended once for misrepresentation.
+  @param {string} card_url - The rendered card image. The caller decides whether
+    to show it; this snippet does not re-test, because the block needs the same
+    answer to collapse the gallery and Liquid cannot read a variable back out of
+    a render.
+  @param {object} product - The product, for the alt text.
+
+  WHY IT IS NOT THE PRODUCT IMAGE. The obvious version is to add the rendered
+  card to the product's media so it simply becomes the first photo. That would
+  also push it into the Google and Meta feeds — and Merchant Center prohibits
+  promotional overlays on product images. The card has "15% OFF ALL WEEK" and a
+  struck price burned into it, so that route would inject a policy violation
+  into the feed of an account already suspended once for misrepresentation.
 
   So it renders here, on the page, and never enters the catalogue.
 
-  THE URL COMES FROM A PRODUCT METAFIELD, not the tee_week metaobject. That
-  metaobject is `storefront: NONE` and opening it up would expose the whole
-  queue — including which tees are coming in later weeks. `enrich.tee_card_url`
-  carries only the current card, attached to the product it belongs to.
-
-  GUARDED TWICE. The metafield must be present AND the product must still be the
-  first in the tee-of-the-week collection. A metafield left behind after a
-  rotation would otherwise show last week's card above this week's tee, which is
-  worse than showing no card at all.
+  The URL arrives from `enrich.tee_card_url`, a storefront-readable product
+  metafield, rather than the tee_week metaobject — that one is
+  `storefront: NONE`, and opening it up would expose the queue, including which
+  tees are coming in later weeks.
 {% enddoc %}
 
-{%- liquid
-  assign card = product.metafields.enrich.tee_card_url.value
-  assign is_current = false
-  if card != blank
-    assign tee_collection = collections['tee-of-the-week']
-    if tee_collection != blank and tee_collection.products.first.id == product.id
-      assign is_current = true
-    endif
-  endif
--%}
-
-{%- if is_current -%}
+{%- if card_url != blank -%}
   <figure class="aj-teecard">
     <img
-      src="{{ card }}"
+      src="{{ card_url }}"
       alt="Tee of the Week collector card for {{ product.title | escape }}"
       width="1080"
       height="1350"
@@ -50,22 +38,88 @@
 
 {% stylesheet %}
   /*
-    Sits above the gallery rather than replacing it. Someone deciding whether to
-    buy a t-shirt still wants the supplier's photographs — the card is the
-    framing, the photos are the evidence.
+    IT IS A CARD, SO IT SHOULD BE CARD-SIZED. At full column width the thing
+    read as a billboard — on desktop it filled half the page, on a phone it took
+    the whole screen before anyone reached the price. The object it is imitating
+    is something you hold in one hand, and the proportions have to say that or
+    the whole conceit collapses.
 
-    fetchpriority high and loading eager because this is now the largest element
-    in the viewport on this page, and lazy-loading your own LCP image is a
-    self-inflicted wound.
+    Capped and centred instead. 22rem keeps it comfortably shorter than the
+    viewport at 4:5, so the card and the beginning of the buy column are visible
+    together.
   */
   .aj-teecard {
-    margin: 0 0 var(--padding-md, 1rem);
+    margin: 0 auto var(--padding-md, 1rem);
+    max-width: min(100%, 22rem);
   }
 
   .aj-teecard__img {
     display: block;
     width: 100%;
     height: auto;
-    border-radius: var(--aj-cats-radius, 8px);
+    /* A soft drop rather than a border: the card already draws its own frame,
+       and a second edge around it looked like a mistake. */
+    filter: drop-shadow(0 6px 18px rgb(0 0 0 / 0.18));
+  }
+
+  /* ---- the disclosure holding the supplier photographs ------------------- */
+
+  .aj-teecard__more {
+    margin-block-start: 0.5rem;
+  }
+
+  /*
+    Same purple uppercase label as the mega menu, the category drill-down and
+    the footer contact block. A control that looks like every other label on the
+    site does not need explaining.
+  */
+  .aj-teecard__more-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    list-style: none;
+    padding-block: 0.4rem;
+    color: var(--aj-brand-purple, #7a3fa0);
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  /* Safari still paints its own triangle without this. */
+  .aj-teecard__more-label::-webkit-details-marker {
+    display: none;
+  }
+
+  .aj-teecard__more-label::after {
+    content: "";
+    width: 0.45rem;
+    height: 0.45rem;
+    border-right: 2px solid currentcolor;
+    border-bottom: 2px solid currentcolor;
+    transform: rotate(45deg) translate(-0.1em, -0.1em);
+    transition: transform 0.15s ease;
+  }
+
+  .aj-teecard__more[open] .aj-teecard__more-label::after {
+    transform: rotate(-135deg) translate(-0.15em, -0.15em);
+  }
+
+  .aj-teecard__more-label:hover {
+    color: var(--aj-brand-ink, #282828);
+  }
+
+  /* One label, two states, no JavaScript. */
+  .aj-teecard__more [data-when-open] {
+    display: none;
+  }
+
+  .aj-teecard__more[open] [data-when-open] {
+    display: inline;
+  }
+
+  .aj-teecard__more[open] [data-when-closed] {
+    display: none;
   }
 {% endstylesheet %}

@@ -1,10 +1,44 @@
 {%- comment -%}
   The Tee of the Week's collector card, above the supplier's photographs. Only
-  renders on the one product that is currently the tee — see the snippet for why
-  it is not product media, which is the more obvious way to do this and would
-  put a promotional overlay into the Merchant Center feed.
+  on the one product that is currently the tee — see the snippet for why it is
+  not product media, which is the more obvious way to do this and would put a
+  promotional overlay into the Merchant Center feed.
+
+  THE TEST LIVES HERE, not in the snippet, because two things depend on it: the
+  card renders, AND the gallery below collapses behind a disclosure. Liquid
+  scopes `assign` to the render, so a variable set inside the snippet cannot be
+  read back out — computing it once here keeps the two in step.
 {%- endcomment -%}
-{% render 'aj-tee-card-media' %}
+{%- liquid
+  assign tee_card = ''
+  assign card_url = product.metafields.enrich.tee_card_url.value
+  if card_url != blank
+    assign tee_collection = collections['tee-of-the-week']
+    if tee_collection != blank and tee_collection.products.first.id == product.id
+      assign tee_card = card_url
+    endif
+  endif
+-%}
+
+{%- if tee_card != blank -%}
+  {% render 'aj-tee-card-media', card_url: tee_card, product: product %}
+
+  {%- comment -%}
+    THE PHOTOGRAPHS COLLAPSE ONLY HERE. On the tee the card is the hero and the
+    supplier's shots are supporting evidence, so they fold away until asked for.
+    On the other 2,700 products the gallery IS the page and hiding it would be
+    vandalism — which is why this wrapper is inside the conditional rather than
+    around the render unconditionally.
+
+    A native <details>: no JavaScript, keyboard-operable and open-by-default for
+    anything that cannot run script.
+  {%- endcomment -%}
+  <details class="aj-teecard__more">
+    <summary class="aj-teecard__more-label">
+      <span data-when-closed>See the photos</span>
+      <span data-when-open>Hide the photos</span>
+    </summary>
+{%- endif -%}
 
 {% render 'product-media-gallery-content',
   media_presentation: block.settings.media_presentation,
@@ -14,6 +48,10 @@
   block: block,
   section: section
 %}
+
+{%- if tee_card != blank -%}
+  </details>
+{%- endif -%}
 
 {% schema %}
 {
