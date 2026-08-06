@@ -28,17 +28,25 @@
   "When something's worth your time" is true whatever the schedule turns out to
   be, and it can tighten later once a real cadence exists. Never loosen a promise
   after making it; only ever make one you already keep.
+
+  NEVER PUT A LIQUID COMMENT BETWEEN THE ATTRIBUTES BELOW. `{%- ... -%}` strips
+  the whitespace on BOTH sides of itself, so a comment sitting between `hidden`
+  and `data-delay` does not leave a gap where it was — it welds them into one
+  junk attribute, `hiddendata-delay="10"`. The element then has no `hidden`, so
+  the popup renders instantly on page load instead of after the delay, and no
+  `data-delay` either. It shipped exactly once, on 6 Aug, and the symptom was
+  "comes up immediately and won't close". Notes about these attributes go up
+  here, where they cannot touch the markup.
+
+  DATA-DELAY IS 10 SECONDS. The floor on that number is the Yoink: the deal
+  should be the first thing a visitor sees, and reading a product, a price, a
+  saving and a countdown takes a few seconds. Much under ten and the popup lands
+  on somebody mid-sentence, which is how a capture teaches people to close
+  things without reading them.
 {%- endcomment -%}
 <aj-email-popup
     class="aj-pop"
     hidden
-    {%- comment -%}
-      10s, down from 12. The floor on this number is the Yoink: the deal is what
-      a visitor should see first, and it takes a few seconds to read a product,
-      a price, a saving and a countdown. Ten still clears that; much under it and
-      the popup lands on someone mid-sentence, which is how a capture teaches
-      people to close things without reading them.
-    {%- endcomment -%}
     data-delay="10"
     data-remember-days="30"
     data-exit-intent="true"
