@@ -1,0 +1,129 @@
+{%- comment -%}
+  Business identity in the footer, on every page.
+
+  WHY IT EXISTS. Google Merchant Center suspended the account for
+  Misrepresentation on 6 Aug 2026. The policy requires a merchant to "describe
+  your business on your website" with "updated contact information and a clear
+  explanation of what your company does". The About page did the second half
+  well and the first half was missing entirely: the address, the phone number
+  and hello@theyoink.com appeared ZERO times on the homepage, the About page and
+  the contact page. The contact page was a bare form — name, email, comment,
+  submit — with no way to tell who you were writing to.
+
+  A shopper could not reach this business except by filling in a form and hoping.
+  That is what an automated check sees as a store with no verifiable identity.
+
+  IN THE LAYOUT, NOT THE FOOTER SECTION GROUP. `sections/footer-group.json` is
+  owned by the theme editor and repo edits to it are silently ignored — a block
+  added there works until someone opens the editor. Rendered from theme.liquid
+  it is repo-controlled and cannot be lost, which is the same reason
+  `aj-email-popup` lives there. See the comment above it.
+
+  VALUES COME FROM THE SHOP RECORD, never hardcoded, so the footer cannot drift
+  from what Shopify tells payment processors and Google.
+
+  NO STREET ADDRESS. `shop.address` holds a residential address; city, province
+  and country give Google a verifiable location without putting a home on the
+  public web. A postal address still has to appear in MARKETING EMAIL under
+  CAN-SPAM — that is a separate gap, and it needs a business or mailbox address
+  rather than this one.
+{%- endcomment -%}
+
+<div class="aj-contact">
+  <div class="page-width">
+    <p class="aj-contact__label">Contact us</p>
+    <ul class="aj-contact__list">
+      {%- if shop.email != blank -%}
+        <li>
+          <a href="mailto:{{ shop.email }}">{{ shop.email }}</a>
+        </li>
+      {%- endif -%}
+      {%- if shop.phone != blank -%}
+        <li>
+          {%- comment -%}
+            `tel:` needs the digits unpunctuated; the label keeps the spacing a
+            person reads.
+          {%- endcomment -%}
+          {%- assign tel = shop.phone | remove: ' ' | remove: '-' | remove: '(' | remove: ')' -%}
+          <a href="tel:{{ tel }}">{{ shop.phone }}</a>
+        </li>
+      {%- endif -%}
+      {%- if shop.address.city != blank -%}
+        <li class="aj-contact__where">
+          {{- shop.address.city }}, {{ shop.address.province }}, {{ shop.address.country -}}
+        </li>
+      {%- endif -%}
+      <li>
+        <a href="{{ routes.root_url }}pages/contact">Contact form</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+{% stylesheet %}
+  /*
+    A band above the footer's own content, not inside it — the footer section is
+    editor-owned and its internals can be rearranged at any time, so this cannot
+    depend on where its columns sit.
+  */
+  .aj-contact {
+    border-block-start: 1px solid rgb(var(--color-foreground-rgb) / 0.12);
+    padding-block: 1.25rem;
+  }
+
+  .aj-contact__label {
+    position: relative;
+    display: inline-block;
+    margin: 0 0 0.6rem;
+    padding-block-end: 0.3rem;
+    color: var(--aj-brand-purple, #7a3fa0);
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  /* Same purple label with a yellow rule as the mega menu and the category
+     drill-down. One section-label vocabulary across the site. */
+  .aj-contact__label::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 2px;
+    background: var(--aj-brand-yellow, #ffe000);
+  }
+
+  .aj-contact__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.9375rem;
+  }
+
+  .aj-contact__list a {
+    color: inherit;
+    text-decoration: none;
+    border-block-end: 1px solid rgb(var(--color-foreground-rgb) / 0.25);
+  }
+
+  .aj-contact__list a:hover {
+    border-block-end-color: currentcolor;
+  }
+
+  .aj-contact__where {
+    opacity: 0.7;
+  }
+
+  /* On a phone the row becomes a short stack rather than a wrapped line, so the
+     email and the phone number each get their own tap target. */
+  @media screen and (max-width: 749px) {
+    .aj-contact__list {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+  }
+{% endstylesheet %}

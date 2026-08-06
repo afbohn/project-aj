@@ -207,6 +207,14 @@
           theme-editor settings.
         {%- endcomment -%}
         {% render 'aj-email-popup' %}
+
+        {%- comment -%}
+          Business identity on every page. Same reason it is here rather than in
+          the footer section group as the popup above: repo edits to
+          section-group JSON are silently ignored. See the snippet for why
+          Merchant Center needed it.
+        {%- endcomment -%}
+        {% render 'aj-contact-block' %}
       </footer>
     </div>
 
