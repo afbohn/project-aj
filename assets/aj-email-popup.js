@@ -26,6 +26,17 @@
 const SEEN_KEY = "aj_pop_dismissed_until";
 const JOINED_KEY = "aj_pop_joined";
 
+/**
+ * Set on THIS form's submit, read after the reload, then cleared.
+ *
+ * Every signup on the store returns to `?customer_posted=true` — footer, join
+ * page and the deal panel all use the same Shopify form. The deal panel's people
+ * get tomorrow's preview and no discount code, so the success copy here would be
+ * false for them. This marker is the only thing that survives the round trip and
+ * says the popup itself was the form that was used.
+ */
+const FROM_POPUP_KEY = "aj_pop_submitted";
+
 class AjEmailPopup extends HTMLElement {
   connectedCallback() {
     this.panel = this.querySelector(".aj-pop__panel");
@@ -36,6 +47,12 @@ class AjEmailPopup extends HTMLElement {
     // the footer-driven one on the next page.
     if (location.search.includes("customer_posted=true")) {
       this.remember(JOINED_KEY, "1");
+      let mine = false;
+      try {
+        mine = localStorage.getItem(FROM_POPUP_KEY) === "1";
+        localStorage.removeItem(FROM_POPUP_KEY);
+      } catch { /* storage disabled: fall through and stay shut, as before */ }
+      if (mine) this.confirm();
       return;
     }
 
@@ -48,7 +65,10 @@ class AjEmailPopup extends HTMLElement {
 
     // A submit is consent to be asked never again, whether or not the round trip
     // succeeds — a validation error should not resurrect the popup later.
-    this.form?.addEventListener("submit", () => this.remember(JOINED_KEY, "1"));
+    this.form?.addEventListener("submit", () => {
+      this.remember(JOINED_KEY, "1");
+      this.remember(FROM_POPUP_KEY, "1");
+    });
 
     const delay = Number(this.dataset.delay || 12) * 1000;
     this.timer = setTimeout(() => this.open(), delay);
@@ -77,6 +97,46 @@ class AjEmailPopup extends HTMLElement {
       return false;
     }
     return true;
+  }
+
+  /**
+   * Reopen on the success state after the round trip.
+   *
+   * SCROLLING TO THE TOP IS THE POINT, not a flourish. Shopify's form posts to
+   * `#contact_form`, so the browser lands you at the FOOTER — which is why a
+   * popup signup used to dump people at the bottom of the homepage looking at a
+   * menu. The anchor is also stripped from the URL so a refresh does not repeat
+   * the jump.
+   */
+  confirm() {
+    const done = this.querySelector('[data-state="success"]');
+    const form = this.querySelector('[data-state="form"]');
+    // No success block means an older theme copy is live; the old silent
+    // behaviour is the correct fallback, never a half-rendered dialog.
+    if (!done) return;
+
+    if (form) form.hidden = true;
+    done.hidden = false;
+    this.panel?.setAttribute("aria-labelledby", "aj-pop-done");
+    this.hidden = false;
+    this.opened = true;
+
+    try {
+      history.replaceState(null, "", location.pathname);
+    } catch { /* a stale URL is cosmetic */ }
+    window.scrollTo({ top: 0, behavior: "auto" });
+
+    this.onKey = (e) => { if (e.key === "Escape") this.close(); };
+    document.addEventListener("keydown", this.onKey);
+    for (const el of this.querySelectorAll("[data-close]")) {
+      el.addEventListener("click", () => this.close());
+    }
+  }
+
+  /** Shut without writing a dismissal window — they joined, not declined. */
+  close() {
+    this.hidden = true;
+    document.removeEventListener("keydown", this.onKey);
   }
 
   open() {

@@ -98,6 +98,31 @@
           No thanks
         </button>
       </div>
+
+      {%- comment -%}
+        THE SUCCESS STATE, which did not exist until 7 Aug 2026.
+
+        `data-state="form"` above implied a second state from the day it shipped
+        and there was never one. Shopify posts the form and reloads the page, the
+        script recorded the signup and returned, and the popup simply VANISHED —
+        so the only confirmation was the theme's own message rendering down in
+        the footer, which is also what the `#contact_form` anchor scrolls you to.
+        Somebody handed over an address and got a page jump for it.
+
+        ONLY SHOWN FOR THE POPUP'S OWN FORM. Every signup on the store comes back
+        to `?customer_posted=true`, including the deal panel's — and that one
+        receives tomorrow's preview, NOT a discount code. Promising 10% here
+        would be a lie on that path, so the script sets a marker on submit and
+        only this form's submissions land on this copy.
+      {%- endcomment -%}
+      <div data-state="success" hidden>
+        <p class="aj-pop__eyebrow" aria-hidden="true">You're in</p>
+        <h2 class="aj-pop__title" id="aj-pop-done">Check your <span class="aj-pop__pct">inbox</span></h2>
+        <p class="aj-pop__sub">
+          Your code is on its way &mdash; yours alone, good for one order on anything at full price.
+        </p>
+        <button class="aj-pop__submit" type="button" data-close>Start shopping</button>
+      </div>
     </div>
   </aj-email-popup>
 
