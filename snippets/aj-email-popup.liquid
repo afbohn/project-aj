@@ -70,7 +70,8 @@
       <button class="aj-pop__x" type="button" data-close aria-label="Close">&times;</button>
 
       <div data-state="form">
-        <h2 class="aj-pop__title" id="aj-pop-title">Take 10% off</h2>
+        <p class="aj-pop__eyebrow" aria-hidden="true">New here?</p>
+        <h2 class="aj-pop__title" id="aj-pop-title">Take <span class="aj-pop__pct">10%</span> off</h2>
 
           <p class="aj-pop__sub">Your own one-time code, on anything at full price. Plus a new deal every morning and a Bargain Bin that rotates weekly.</p>
 
@@ -112,17 +113,25 @@
     animation: aj-pop-fade 0.25s ease;
   }
 
+  /*
+    BRAND PURPLE, NOT THEME WHITE. Every other surface on this store is one of
+    the four brand colours — teal header, yellow story panel, purple footer —
+    and a plain white sheet was the only thing on the page that could have come
+    from any Shopify theme. The yellow top edge is the same 2px idiom the cart
+    upsell already uses.
+  */
   .aj-pop__panel {
     position: absolute;
     left: 50%; top: 50%;
     transform: translate(-50%, -50%);
     width: min(30rem, calc(100vw - 2rem));
     box-sizing: border-box;
-    padding: 2rem;
+    padding: 2.25rem 2rem 2rem;
     border-radius: 14px;
-    background: rgb(var(--color-background-rgb, 255 255 255));
-    color: rgb(var(--color-foreground-rgb, 17 17 17));
-    box-shadow: 0 24px 60px rgb(0 0 0 / 0.28);
+    border-top: 4px solid var(--aj-brand-yellow, #ffe000);
+    background: var(--aj-brand-purple, #7a3fa0);
+    color: #fff;
+    box-shadow: 0 24px 60px rgb(0 0 0 / 0.42);
     animation: aj-pop-rise 0.28s cubic-bezier(0.2, 0.8, 0.3, 1);
   }
 
@@ -144,8 +153,31 @@
   }
   .aj-pop__x:hover { opacity: 1; }
 
-  .aj-pop__title { margin: 0 0 0.5rem; font-size: 1.5rem; line-height: 1.2; }
-  .aj-pop__sub { margin: 0 0 1.25rem; opacity: 0.75; }
+  /*
+    SCALE IS WHAT MAKES THE DISPLAY FACE WORK. `.aj-pop__title` was already
+    getting Flashy from aj-brand.css, but at 1.5rem — which is precisely the
+    size that file records as rendering "thin and cramped" when the deal price
+    was tried in it. The face was there and starved. Same fix as the price:
+    give it room rather than reaching for more decoration.
+  */
+  .aj-pop__title {
+    margin: 0 0 0.6rem;
+    font-size: clamp(2.25rem, 7vw, 3rem);
+    line-height: 1.02;
+    letter-spacing: 0.01em;
+  }
+
+  /* The number is the offer, so it is the one thing in brand yellow. */
+  .aj-pop__pct { color: var(--aj-brand-yellow, #ffe000); }
+
+  .aj-pop__eyebrow {
+    margin: 0 0 0.4rem;
+    font-size: 0.75rem;
+    color: var(--aj-brand-yellow, #ffe000);
+    text-transform: uppercase;
+  }
+
+  .aj-pop__sub { margin: 0 0 1.25rem; opacity: 0.85; line-height: 1.45; }
 
   .aj-pop__form { display: grid; gap: 0.7rem; }
 
@@ -153,19 +185,30 @@
     box-sizing: border-box; width: 100%;
     padding: 0.9rem 1rem; font-size: 1rem;
     border-radius: 8px;
-    border: 1px solid rgb(var(--color-foreground-rgb) / 0.25);
-    background: rgb(var(--color-background-rgb, 255 255 255));
-    color: inherit;
+    border: 2px solid transparent;
+    background: #fff;
+    color: var(--aj-brand-ink, #282828);
+  }
+  .aj-pop__input:focus {
+    outline: none;
+    border-color: var(--aj-brand-yellow, #ffe000);
   }
 
+  /*
+    YELLOW ON PURPLE IS THE LOUDEST PAIR THE BRAND OWNS, which is what the one
+    action in here should be. Deliberately NOT in the display face: at button
+    size Flashy cramps, exactly as it did on the price — weight in the text face
+    carries a call to action better than personality does.
+  */
   .aj-pop__submit {
-    padding: 0.95rem 1rem; font-size: 1rem; font-weight: 700;
+    padding: 0.95rem 1rem; font-size: 1.05rem; font-weight: 800;
     border: 0; border-radius: 8px; cursor: pointer;
-    background: rgb(var(--color-foreground-rgb)); color: rgb(var(--color-background-rgb, 255 255 255));
+    background: var(--aj-brand-yellow, #ffe000);
+    color: var(--aj-brand-ink, #282828);
   }
-  .aj-pop__submit:hover { opacity: 0.9; }
+  .aj-pop__submit:hover { filter: brightness(1.08); }
 
-  .aj-pop__fine { margin: 0; font-size: 0.78rem; opacity: 0.6; }
+  .aj-pop__fine { margin: 0; font-size: 0.78rem; opacity: 0.7; line-height: 1.4; }
 
   /* A plain, low-contrast decline rather than a guilt-tripped "no thanks, I hate
      savings". Dark patterns buy one signup and cost the brand. */
