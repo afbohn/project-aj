@@ -69,6 +69,14 @@
       inside the visit rather than after it.
     {%- endcomment -%}
     data-delay="7"
+    {%- comment -%}
+      Both must hold before the popup opens on a phone: five seconds on the
+      page AND 30% of the way down it. Tunable here rather than in the script,
+      because these are judgement calls about how pushy to be and they will be
+      revisited — the first attempt used depth alone and fired instantly.
+    {%- endcomment -%}
+    data-scroll-after="5"
+    data-scroll-depth="30"
     data-remember-days="30"
     data-exit-intent="true"
   >
@@ -153,11 +161,27 @@
     from any Shopify theme. The yellow top edge is the same 2px idiom the cart
     upsell already uses.
   */
+  /*
+    CENTRED, BUT NEVER TALLER THAN THE SCREEN. With `top: 50%` and a -50%
+    translate, a panel taller than the viewport overflows in BOTH directions —
+    and the half that goes off the top takes the close button with it. On a
+    short phone in landscape, or with large text, the × was simply unreachable
+    and the only way out was the back button.
+
+    `max-height` plus `overflow-y` keeps the panel inside the screen and lets
+    its own content scroll instead. `100dvh` because mobile browser chrome makes
+    `100vh` taller than the space actually visible, which is the exact error
+    this is correcting; `100vh` stays as the fallback for anything that does not
+    know `dvh`.
+  */
   .aj-pop__panel {
     position: absolute;
     left: 50%; top: 50%;
     transform: translate(-50%, -50%);
     width: min(30rem, calc(100vw - 2rem));
+    max-height: calc(100vh - 2rem);
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
     box-sizing: border-box;
     padding: 2.25rem 2rem 2rem;
     border-radius: 14px;
@@ -178,13 +202,30 @@
     .aj-pop__backdrop, .aj-pop__panel { animation: none; }
   }
 
+  /*
+    A REAL TAP TARGET. This was a bare glyph with no padding — about 18x28px of
+    hittable area, against the 44x44 minimum a thumb needs, at 0.5 opacity on a
+    dark purple panel. Small, faint, and the primary way out of a dialog.
+
+    `position: sticky` rather than absolute now that the panel can scroll: an
+    absolutely-positioned × sits at the top of the CONTENT, so scrolling down
+    inside a long panel would leave it behind. Sticky keeps it in the corner
+    wherever the content is.
+  */
   .aj-pop__x {
-    position: absolute; top: 0.5rem; right: 0.75rem;
+    position: sticky;
+    top: 0;
+    float: right;
+    margin: -1.5rem -1rem 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px; height: 44px;
     background: none; border: 0; cursor: pointer;
-    font-size: 1.75rem; line-height: 1; opacity: 0.5;
+    font-size: 1.75rem; line-height: 1; opacity: 0.75;
     color: inherit;
   }
-  .aj-pop__x:hover { opacity: 1; }
+  .aj-pop__x:hover, .aj-pop__x:focus-visible { opacity: 1; }
 
   /*
     SCALE IS WHAT MAKES THE DISPLAY FACE WORK. `.aj-pop__title` was already

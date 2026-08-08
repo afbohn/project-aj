@@ -101,12 +101,28 @@ class AjEmailPopup extends HTMLElement {
       reason.
     */
     if (!window.matchMedia("(hover: hover)").matches) {
+      /*
+        A FLOOR UNDER IT, BECAUSE DEPTH ALONE IS NOT DWELL. The first version
+        fired on depth only and popped almost immediately: a quick flick down a
+        long page clears 25% in under a second, and someone arriving on a footer
+        anchor is already past it before they have scrolled at all. Alex saw it
+        appear instantly, which is the most hostile version of this pattern and
+        worse than the miss it was fixing.
+
+        Both conditions now have to hold — the visitor has been here a few
+        seconds AND has read some way down. Depth says "interested", time says
+        "still here"; neither is sufficient alone. The scroll listener stays
+        attached after an early scroll rather than being spent, so someone who
+        scrolls at second one still gets asked when the dwell arrives.
+      */
+      const after = Number(this.dataset.scrollAfter || 5) * 1000;
+      const depth = Number(this.dataset.scrollDepth || 30) / 100;
+      const landed = Date.now();
+
       this.onScroll = () => {
+        if (Date.now() - landed < after) return;
         const max = document.documentElement.scrollHeight - window.innerHeight;
-        if (max > 0 && window.scrollY / max >= 0.25) {
-          window.removeEventListener("scroll", this.onScroll);
-          this.open();
-        }
+        if (max > 0 && window.scrollY / max >= depth) this.open();
       };
       window.addEventListener("scroll", this.onScroll, { passive: true });
     }
