@@ -206,6 +206,28 @@
           {%- endif -%}
         </div>
 
+        {%- comment -%}
+          SHIPS FREE, ON THE ONE PAGE THAT DID NOT SAY IT.
+
+          The pill already exists and already renders on the Bargain Bin, Past
+          Deals and Shop by Price. The daily deal — the page the whole store
+          points at, and the one carrying paid traffic — was the only place
+          missing it. Today's Yoink ships free and said nothing.
+
+          Shipping is the last number a shopper sees and the one most likely to
+          kill a cheap deal. When it is zero that is the strongest thing on the
+          page after the price, and it was being withheld by accident.
+
+          THE EXACT TEST THE OTHER SECTIONS USE, deliberately identical: a real
+          `draftOrderCalculate` quote of zero, never the vendor's general shape —
+          a supplier who ships most things free can still charge on a heavy one.
+          Blank means unmeasured and renders nothing. Silence is not "free".
+        {%- endcomment -%}
+        {%- assign deal_ship = product.metafields.ship.cost.value -%}
+        {%- if deal_ship != blank and deal_ship == 0 -%}
+          <p class="aj-card-free aj-deal__ship">Ships free</p>
+        {%- endif -%}
+
         {%- if section.settings.show_countdown and deal.ends_at.value != blank -%}
           {% render 'aj-deal-countdown',
             ends_at: deal.ends_at.value,
@@ -351,6 +373,8 @@
 {%- endif -%}
 
 <script src="{{ 'aj-deal-gallery.js' | asset_url }}" type="module" fetchpriority="low"></script>
+{{ 'aj-ships-free.css' | asset_url | stylesheet_tag }}
+
 {% stylesheet %}
   /*
     NOT 50/50, AND NOT CENTRED. Both were wrong for what this section is.
@@ -625,6 +649,10 @@
     margin-block-start: 0.9rem;
     margin-block-end: 1.1rem;
   }
+
+  /* Its own line under the price: inline with the saving it would compete with
+     the number the page exists for. */
+  .aj-deal__ship { margin: 0.6rem 0 0; font-size: 0.85rem; }
 
   .aj-deal__price {
     font-size: 1.75rem;
