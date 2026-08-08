@@ -68,6 +68,20 @@
         "padding-block-end": 32
       }
     },
+    "aj_merch_J4pF7K": {
+      "type": "aj-merch",
+      "name": "AJ Merch",
+      "settings": {
+        "eyebrow": "Ours, not theirs",
+        "heading": "Yoink merch",
+        "blurb": "Wear it and people will ask. How much you explain is up to you.",
+        "collection": "",
+        "count": 4,
+        "cta_text": "See all the merch",
+        "padding-block-start": 40,
+        "padding-block-end": 40
+      }
+    },
     "aj_bargain_bin": {
       "type": "aj-bargain-bin",
       "settings": {
@@ -165,6 +179,7 @@
     "aj_daily_deal",
     "aj_how",
     "aj_cadence",
+    "aj_merch_J4pF7K",
     "aj_bargain_bin",
     "aj_tee_week",
     "aj_shop_by_price",
