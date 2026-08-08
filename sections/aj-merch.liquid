@@ -1,0 +1,214 @@
+{%- comment -%}
+  AJ Merch — the stuff that is actually ours.
+
+  EVERY OTHER SHELF ON THIS STORE IS SOMEBODY ELSE'S PRODUCT. The Yoink, the
+  Bin, the Tee are all sourced; merch is the only thing the store makes, and it
+  is the only surface where the margin is ours rather than a supplier's. That is
+  the reason it gets a loud treatment rather than another polite product grid:
+  it is the one shelf worth pointing traffic at.
+
+  READS THE COLLECTION, NOT THE TAG. Liquid cannot filter all products by tag,
+  which is exactly why `aj-cart-merch.liquid` rendered nothing for as long as it
+  has existed — it looked up `collections['yoink-merch']` and the products only
+  carried the tag. With the smart collection in place both surfaces work from
+  one source, and adding merch stays a single act of tagging.
+
+  DISAPPEARS WHEN EMPTY, like the deal section. A homepage advertising an empty
+  shelf is worse than a homepage with one fewer row.
+
+  THE COLOUR PAIR SITS ON `.aj-merch__inner`, an element this file owns. Setting
+  a background on the section and a text colour with it is how the join page
+  shipped unreadable on 7 Aug: the theme won the background, the colour applied,
+  and every line went white on white. Both properties live together here, on a
+  class nothing else targets, so they cannot be separated.
+{%- endcomment -%}
+
+{%- liquid
+  assign merch = collections[section.settings.collection | default: 'yoink-merch']
+  assign items = merch.products
+  assign shown = section.settings.count | default: 4 | plus: 0
+-%}
+
+{%- if items.size > 0 -%}
+  <div
+    class="aj-merch section spacing-style"
+    style="{% render 'spacing-style', settings: section.settings %}"
+  >
+    <div class="page-width">
+      <div class="aj-merch__inner">
+        <div class="aj-merch__head">
+          {%- if section.settings.eyebrow != blank -%}
+            <p class="aj-merch__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+          {%- endif -%}
+          <h2 class="aj-merch__heading">{{ section.settings.heading | escape }}</h2>
+          {%- if section.settings.blurb != blank -%}
+            <p class="aj-merch__blurb">{{ section.settings.blurb | escape }}</p>
+          {%- endif -%}
+        </div>
+
+        <ul class="aj-merch__grid" role="list">
+          {%- for product in items limit: shown -%}
+            {%- assign v = product.selected_or_first_available_variant -%}
+            <li class="aj-merch__item">
+              <a class="aj-merch__link" href="{{ product.url }}">
+                <div class="aj-merch__shot">
+                  {%- if product.featured_image -%}
+                    <img
+                      src="{{ product.featured_image | image_url: width: 600 }}"
+                      alt="{{ product.featured_image.alt | escape }}"
+                      width="300" height="300" loading="lazy"
+                    >
+                  {%- endif -%}
+                </div>
+                <p class="aj-merch__name">{{ product.title | escape }}</p>
+                {%- comment -%}
+                  The price is a tag, not a line of text — the one piece of
+                  decoration that is also information. Yellow carrying ink, which
+                  is the only arrangement of that colour aj-brand.css permits.
+                {%- endcomment -%}
+                <span class="aj-merch__tag">{{ v.price | money }}</span>
+              </a>
+            </li>
+          {%- endfor -%}
+        </ul>
+
+        {%- if section.settings.cta_text != blank -%}
+          <a class="aj-merch__cta" href="{{ merch.url }}">{{ section.settings.cta_text | escape }}</a>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+{%- endif -%}
+
+{% stylesheet %}
+  .aj-merch__inner {
+    background-color: #30aac6;
+    color: #282828;
+    border-radius: 16px;
+    padding: clamp(1.75rem, 4vw, 2.75rem);
+  }
+
+  /*
+    INK ON TEAL, NEVER WHITE. aj-brand.css measures white on teal at 2.73:1 and
+    rules it out; ink is 8.87:1. This is the pairing the file calls "the mistake
+    that looks fine on a good monitor".
+  */
+  .aj-merch__eyebrow {
+    font-family: "Ohpixel", var(--font-heading--family);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.8125rem;
+    margin: 0 0 0.4rem;
+    color: #282828;
+  }
+
+  .aj-merch__heading {
+    font-family: "Flashy", var(--font-heading--family);
+    font-weight: 400;
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1.02;
+    margin: 0;
+    color: #282828;
+  }
+
+  .aj-merch__blurb { margin: 0.6rem 0 0; max-width: 42ch; }
+
+  .aj-merch__grid {
+    list-style: none;
+    margin: 1.75rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media screen and (min-width: 750px) {
+    .aj-merch__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.25rem; }
+  }
+
+  .aj-merch__link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: #fff;
+    border-radius: 12px;
+    padding: 0.85rem;
+    /*
+      HARD SHADOW, NO BLUR. A soft drop shadow is the detail that makes a pixel
+      brand look accidental — the same call the join page's form card makes.
+    */
+    box-shadow: 6px 6px 0 rgba(40, 40, 40, 0.35);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+
+  .aj-merch__link:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0 rgba(40, 40, 40, 0.45);
+  }
+
+  .aj-merch__shot { aspect-ratio: 1 / 1; overflow: hidden; border-radius: 8px; }
+  .aj-merch__shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .aj-merch__name {
+    margin: 0.6rem 0 0.5rem;
+    font-size: 0.9rem;
+    line-height: 1.3;
+    /* Two lines then ellipsis: merch names are ours and short, but a long one
+       must not push the price tag out of line with its neighbours. */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .aj-merch__tag {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: #ffe000;
+    color: #282828;
+    font-weight: 800;
+    font-size: 0.85rem;
+  }
+
+  .aj-merch__cta {
+    display: inline-block;
+    margin-top: 1.5rem;
+    padding: 0.8rem 1.4rem;
+    border-radius: 999px;
+    background: #7a3fa0;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 800;
+  }
+
+  .aj-merch__cta:hover { filter: brightness(1.1); }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "AJ Merch",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Ours, not theirs" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Yoink merch" },
+    {
+      "type": "text",
+      "id": "blurb",
+      "label": "Blurb",
+      "default": "Wear it and people will ask. How much you explain is up to you."
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection",
+      "info": "Defaults to the yoink-merch collection, which is tag-driven."
+    },
+    { "type": "range", "id": "count", "label": "How many", "min": 2, "max": 8, "step": 1, "default": 4 },
+    { "type": "text", "id": "cta_text", "label": "Button", "default": "See all the merch" },
+    { "type": "range", "id": "padding-block-start", "label": "Top", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 40 },
+    { "type": "range", "id": "padding-block-end", "label": "Bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 40 }
+  ],
+  "presets": [{ "name": "AJ Merch" }]
+}
+{% endschema %}
