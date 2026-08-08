@@ -338,19 +338,34 @@
 
   .aj-join__art {
     display: block;
-    width: 150px;
+    width: 170px;
     height: auto;
-    margin: 0 0 -14px auto;
-    margin-right: 2rem;
+    /*
+      LEFT, NOT RIGHT. Parked in the right corner it read as decoration dropped
+      into whitespace; over the card's leading edge it reads as a bird that has
+      landed on the thing you are being asked to use. Same reason the overlap is
+      generous rather than a touch — a 2px kiss looks like a mistake, an obvious
+      overlap looks deliberate.
+    */
+    margin: 0 auto -22px 1.25rem;
     image-rendering: pixelated;
-    /* Above the card, so the overlap reads as standing on it. */
     position: relative;
     z-index: 1;
     pointer-events: none;
   }
 
   @media screen and (min-width: 750px) {
-    .aj-join__art { width: 190px; margin-bottom: -18px; }
+    .aj-join__art { width: 210px; margin-bottom: -28px; margin-left: 2rem; }
+  }
+
+  /*
+    A HARD SHADOW, NOT A SOFT ONE. A blurred drop shadow under pixel art is the
+    detail that makes the whole thing look accidental — the art has hard edges
+    and the frame around it should too. Offset in ink, no blur, which is the
+    same trick the 8-bit cards use.
+  */
+  .aj-join__inner .aj-join__form-card {
+    box-shadow: 8px 8px 0 rgba(40, 40, 40, 0.35);
   }
 
 {% endstylesheet %}
