@@ -84,9 +84,10 @@
       "type": "aj-merch",
       "name": "AJ Merch",
       "settings": {
-        "eyebrow": "Ours, not theirs",
+        "eyebrow": "Stuff with our name on it",
         "heading": "Yoink merch",
         "blurb": "Wear it and people will ask. How much you explain is up to you.",
+        "ship_badge": "Always ships free",
         "collection": "",
         "count": 4,
         "cta_text": "See all the merch",

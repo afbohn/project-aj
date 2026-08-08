@@ -3,9 +3,10 @@
     "main": {
       "type": "aj-merch",
       "settings": {
-        "eyebrow": "Ours, not theirs",
+        "eyebrow": "Stuff with our name on it",
         "heading": "Yoink merch",
-        "blurb": "Everything else here came from somebody else's warehouse. This didn't. Wear it and people will ask; how much you explain is up to you.",
+        "blurb": "Printed when you order it, so there is no clearance rack. Wear it and people will ask; how much you explain is up to you.",
+        "ship_badge": "Always ships free",
         "count": 24,
         "cta_text": "",
         "padding-block-start": 48,

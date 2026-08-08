@@ -47,12 +47,31 @@
     <div class="page-width">
       <div class="aj-merch__inner">
         <div class="aj-merch__head">
-          {%- if section.settings.eyebrow != blank -%}
-            <p class="aj-merch__eyebrow">{{ section.settings.eyebrow | escape }}</p>
-          {%- endif -%}
-          <h2 class="aj-merch__heading">{{ section.settings.heading | escape }}</h2>
-          {%- if section.settings.blurb != blank -%}
-            <p class="aj-merch__blurb">{{ section.settings.blurb | escape }}</p>
+          <div class="aj-merch__words">
+            {%- if section.settings.eyebrow != blank -%}
+              <p class="aj-merch__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+            {%- endif -%}
+            <h2 class="aj-merch__heading">{{ section.settings.heading | escape }}</h2>
+            {%- if section.settings.blurb != blank -%}
+              <p class="aj-merch__blurb">{{ section.settings.blurb | escape }}</p>
+            {%- endif -%}
+          </div>
+
+          {%- comment -%}
+            THE SHIPPING CLAIM IS BACKED BY AN AGENT, NOT BY THIS LINE. Merch is
+            free to ship because the `merch` agent prices every `yoink-merch`
+            product to carry its own measured shipping and attaches it to the
+            free-shipping delivery profile — and it EXCLUDES anything the
+            shipping agent has not measured. If that agent is paused, a newly
+            tagged item can sit in this grid still charging shipping while this
+            badge says otherwise, which is the one way this promise breaks.
+
+            It occupies the space to the right of the heading, which was empty.
+            The most valuable sentence on the shelf was missing from the widest
+            gap on it.
+          {%- endcomment -%}
+          {%- if section.settings.ship_badge != blank -%}
+            <p class="aj-merch__free">{{ section.settings.ship_badge | escape }}</p>
           {%- endif -%}
         </div>
 
@@ -69,14 +88,17 @@
                       width="300" height="300" loading="lazy"
                     >
                   {%- endif -%}
+                  {%- comment -%}
+                    The price is a sticker slapped on the shot, not a line of
+                    text under it — the one piece of decoration that is also
+                    information. Yellow carrying ink, the only arrangement of
+                    that colour aj-brand.css permits. Moving it onto the image
+                    also ends the alignment problem it used to have: it can no
+                    longer be pushed out of line by a long product name.
+                  {%- endcomment -%}
+                  <span class="aj-merch__tag">{{ v.price | money }}</span>
                 </div>
                 <p class="aj-merch__name">{{ product.title | escape }}</p>
-                {%- comment -%}
-                  The price is a tag, not a line of text — the one piece of
-                  decoration that is also information. Yellow carrying ink, which
-                  is the only arrangement of that colour aj-brand.css permits.
-                {%- endcomment -%}
-                <span class="aj-merch__tag">{{ v.price | money }}</span>
               </a>
             </li>
           {%- endfor -%}
@@ -121,7 +143,48 @@
     color: #282828;
   }
 
-  .aj-merch__blurb { margin: 0.6rem 0 0; max-width: 42ch; }
+  .aj-merch__blurb { margin: 0.6rem 0 0; max-width: 46ch; }
+
+  /*
+    The heading block and the shipping badge share a row on desktop and stack on
+    mobile. `align-items: flex-end` so the badge sits on the blurb's baseline
+    rather than floating at the top of a two-line heading.
+  */
+  .aj-merch__head { display: flex; flex-direction: column; gap: 1.25rem; }
+
+  @media screen and (min-width: 750px) {
+    .aj-merch__head {
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 2rem;
+    }
+    .aj-merch__free { margin-bottom: 0.25rem; }
+  }
+
+  /*
+    A STICKER, NOT A BANNER. Straight yellow bar across the top reads like a
+    promo strip and gets ignored; a hand-slapped tilt is the same brand gesture
+    as the price tags and the join card's hard shadow.
+  */
+  .aj-merch__free {
+    margin: 0;
+    flex: none;
+    align-self: flex-start;
+    background: #ffe000;
+    color: #282828;
+    font-family: "Ohpixel", var(--font-heading--family);
+    font-size: clamp(0.9rem, 2.2vw, 1.05rem);
+    line-height: 1.15;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    text-align: center;
+    padding: 0.7rem 1.1rem;
+    border-radius: 10px;
+    max-width: 15ch;
+    transform: rotate(-2.5deg);
+    box-shadow: 5px 5px 0 rgba(40, 40, 40, 0.35);
+  }
 
   .aj-merch__grid {
     list-style: none;
@@ -176,12 +239,24 @@
     box-shadow: 8px 8px 0 rgba(40, 40, 40, 0.45);
   }
 
-  .aj-merch__shot { aspect-ratio: 1 / 1; overflow: hidden; border-radius: 8px; }
+  /*
+    A FAINT TINT BEHIND THE SHOT. Printify mockups are shot on white, so a white
+    hoodie on a white card had no edge and read as a hole in the layout. The
+    tint is barely there on purpose — enough to bound the product, not enough to
+    look like a coloured tile.
+  */
+  .aj-merch__shot {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #f4f6f7;
+  }
   .aj-merch__shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
   .aj-merch__name {
     flex: 1 0 auto;
-    margin: 0.6rem 0 0.5rem;
+    margin: 0.7rem 0 0.15rem;
     font-size: 0.9rem;
     line-height: 1.3;
     /* Two lines then ellipsis: merch names are ours and short, but a long one
@@ -193,14 +268,17 @@
   }
 
   .aj-merch__tag {
-    display: inline-block;
-    align-self: flex-start;
-    padding: 0.2rem 0.6rem;
+    position: absolute;
+    right: 0.5rem;
+    bottom: 0.5rem;
+    padding: 0.25rem 0.65rem;
     border-radius: 999px;
     background: #ffe000;
     color: #282828;
     font-weight: 800;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
+    transform: rotate(-3deg);
+    box-shadow: 3px 3px 0 rgba(40, 40, 40, 0.3);
   }
 
   .aj-merch__cta {
@@ -222,7 +300,13 @@
   "name": "AJ Merch",
   "tag": "section",
   "settings": [
-    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Ours, not theirs" },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Stuff with our name on it",
+      "info": "Says what it is, not where it came from. These are printed on demand, so 'ours' was a claim we can't make."
+    },
     { "type": "text", "id": "heading", "label": "Heading", "default": "Yoink merch" },
     {
       "type": "text",
@@ -235,6 +319,13 @@
       "id": "collection",
       "label": "Collection",
       "info": "Defaults to the yoink-merch collection, which is tag-driven."
+    },
+    {
+      "type": "text",
+      "id": "ship_badge",
+      "label": "Shipping badge",
+      "default": "Always ships free",
+      "info": "Only true while the Merch agent is running — it is what prices merch to carry its own shipping. Clear this box if that agent is paused."
     },
     { "type": "range", "id": "count", "label": "How many", "min": 2, "max": 24, "step": 1, "default": 4 },
     { "type": "text", "id": "cta_text", "label": "Button", "default": "See all the merch" },
