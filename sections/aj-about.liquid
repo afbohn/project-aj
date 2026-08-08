@@ -125,6 +125,30 @@
       <div class="aj-crt-page__body rte">{{ s.body_2 }}</div>
     {%- endif -%}
 
+    {%- comment -%}
+      THE PART A NERVOUS SHOPPER CAME FOR.
+
+      Everything above says who we are, which is the best writing on the site and
+      is not being touched. It says nothing about whether BUYING is safe — where
+      the products come from, whether they are real, what happens when one is
+      wrong. Shoppers were observed opening this page specifically to decide
+      whether to trust the store, and leaving without the answer.
+
+      Same voice, not a different register: concrete, exact numbers, and it
+      concedes the unflattering part rather than selling past it. The concession
+      is what makes the rest believable — see the brand voice notes.
+    {%- endcomment -%}
+    {%- if s.cmd_provenance != blank -%}
+      <p class="aj-crt-page__cmd">
+        <span class="aj-crt-page__prompt">C:\&gt;</span>
+        {{- s.cmd_provenance | escape -}}
+      </p>
+    {%- endif -%}
+
+    {%- if s.body_provenance != blank -%}
+      <div class="aj-crt-page__body rte">{{ s.body_provenance }}</div>
+    {%- endif -%}
+
     {%- if s.cmd_3 != blank -%}
       <p class="aj-crt-page__step" aria-hidden="true">
         <span class="aj-crt-page__prompt">{{ s.prompt | default: 'C:\>' }}</span>
@@ -620,6 +644,13 @@
       "id": "body_2",
       "label": "Body — after the pull quote",
       "default": "<p>We call it the Yoink of the Day, because yoink is the sound of grabbing something great half a second before the person next to you.</p><p>Nature's already full of professionals at this. Raccoons yoink the dog food. Seagulls yoink the fries. Bears yoink the whole picnic basket and don't even say thank you. We're just doing it with better taste and free-ish shipping — a little retail Robin Hood move where somehow everybody wins: you get the score, the good stuff finds its people, and we get to keep the lights on.</p><p>To be clear, we are not out here trying to buy a yacht. A canoe, maybe. We're just making the most of the hand we've been dealt — and, conveniently, dealing is kind of our whole thing. Mostly we like tracking down cool stuff for cheap and handing you the deal like it's a dare. Some days the Yoink is exactly what you didn't know you needed. Some days it's a penguin-shaped thing that is very much Not For You — no notes, there's a new one tomorrow.</p><p>So stick around. Watch the drops. Rummage the Bargain Bin between yoinks. And when the good one hits — you know what to do.</p>"
+    },
+    { "type": "text", "id": "cmd_provenance", "label": "Command before the trust section", "default": "type where-this-comes-from.txt" },
+    {
+      "type": "richtext",
+      "id": "body_provenance",
+      "label": "Where the stuff comes from",
+      "default": "<p>Fair question: what is this stuff, actually?</p><p>Every product here comes straight from the brand that makes it — real companies with real names, shipped from their warehouse to your door. Nothing is refurbished, nothing is open-box, nothing fell off a truck. We are not a middleman with a garage full of mystery boxes; we are two guys with a spreadsheet and strong opinions about what is worth your money.</p><p>The catch, stated plainly: because each brand ships its own things, shipping is worked out per brand at checkout, and an order from two brands arrives in two parcels. Returns are 30 days. Change your mind and it costs $6.95; if we got it wrong, it costs you nothing. Earrings, swimwear and intimates cannot come back, for reasons we hope are obvious.</p><p>Something wrong with an order? Email hello@theyoink.com. A person reads it. That person is one of us.</p>"
     },
     { "type": "text", "id": "cmd_3", "label": "Command before sign-off", "default": "echo %welcome%" },
     {
