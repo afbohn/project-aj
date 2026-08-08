@@ -35,6 +35,9 @@
 >
   <div class="page-width aj-join__inner">
     <div class="aj-join__copy">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="aj-join__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+      {%- endif -%}
       <h1 class="aj-join__heading">{{ heading | escape }}</h1>
 
       {%- if section.settings.subheading != blank -%}
@@ -50,6 +53,17 @@
           {%- endif -%}
         {%- endfor -%}
       </ul>
+
+      {%- if section.settings.art != blank -%}
+        <img
+          class="aj-join__art"
+          src="{{ section.settings.art | image_url: width: 760 }}"
+          alt=""
+          width="380"
+          height="380"
+          loading="lazy"
+        >
+      {%- endif -%}
     </div>
 
     <div class="aj-join__form-card">
@@ -180,6 +194,85 @@
     background: rgb(var(--color-foreground-rgb));
     color: rgb(var(--color-background-rgb, 255 255 255));
   }
+
+  /*
+    ON BRAND, 7 AUG 2026. This page was the only surface on the store that could
+    have come from any Shopify theme — a white sheet, a black button, a system
+    heading — while every other surface is teal, yellow or purple. It is also the
+    page paid traffic points at, so it was the worst one to leave generic.
+
+    THE PURPLE IS THE FOOTER'S PURPLE and the yellow is the price badge's yellow;
+    nothing new is invented here. The heading takes Flashy at real scale for the
+    reason aj-brand.css already documents — a display face needs room or it reads
+    thin — and the eyebrow takes Ohpixel, which is the face this brand uses for
+    short uppercase labels and the one that carries the 8-bit feel.
+  */
+  /* Doubled class: `color-{{ scheme }}` sets a background too, and a single class
+     loses that tie on source order. Same trick aj-brand.css uses on the price. */
+  .aj-join.aj-join { background: var(--aj-brand-purple, #7a3fa0); color: #fff; }
+
+  .aj-join__eyebrow {
+    font-family: "Ohpixel", var(--font-heading--family);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.8125rem;
+    color: var(--aj-brand-yellow, #ffe000);
+    margin: 0 0 0.6rem;
+  }
+
+  .aj-join .aj-join__heading {
+    font-family: "Flashy", var(--font-heading--family);
+    font-weight: 400;
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    line-height: 1.02;
+    color: #fff;
+  }
+
+  .aj-join .aj-join__subheading { color: #fff; opacity: 0.9; }
+  .aj-join .aj-join__point { color: #fff; }
+  .aj-join .aj-join__point::before { opacity: 1; color: var(--aj-brand-yellow, #ffe000); }
+
+  /* The card stays light: a form is the one thing here that should look like a
+     form, and white on purple is the strongest contrast the palette offers. */
+  .aj-join .aj-join__form-card {
+    background: #fff;
+    color: var(--aj-brand-ink, #282828);
+    border: 0;
+    border-top: 4px solid var(--aj-brand-yellow, #ffe000);
+    border-radius: 14px;
+  }
+
+  .aj-join .aj-join__submit,
+  .aj-join .aj-join__cta {
+    background: var(--aj-brand-yellow, #ffe000);
+    color: var(--aj-brand-ink, #282828);
+    border: 0;
+    font-weight: 800;
+  }
+  .aj-join .aj-join__submit:hover,
+  .aj-join .aj-join__cta:hover { filter: brightness(1.08); }
+
+  /*
+    THE CROW, AS A SETTING RATHER THAN A HARDCODED ASSET. The pixel art lives in
+    Shopify Files, not in the theme, and a theme asset url carries a version hash
+    that changes on every deploy. A picker also means the art can be swapped
+    seasonally without a code change.
+
+    `image-rendering: pixelated` is the whole point: without it the browser
+    smooths 8-bit art on a high-DPI screen and it stops reading as pixel art.
+  */
+  .aj-join__art {
+    display: block;
+    width: min(320px, 60%);
+    height: auto;
+    margin: 1.5rem auto 0;
+    image-rendering: pixelated;
+  }
+
+  @media screen and (min-width: 750px) {
+    .aj-join__art { margin: 0; width: 100%; max-width: 380px; }
+  }
+
 {% endstylesheet %}
 
 {% schema %}
@@ -187,6 +280,19 @@
   "name": "AJ Join",
   "tag": "section",
   "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "One a day, gone in 24 hours",
+      "info": "Small pixel-face line above the heading. Uppercased automatically."
+    },
+    {
+      "type": "image_picker",
+      "id": "art",
+      "label": "Pixel art",
+      "info": "The crow. Lives in Files rather than the theme so it can be swapped without a deploy."
+    },
     {
       "type": "paragraph",
       "content": "The capture page for ads and link-in-bio. Submissions create a customer subscribed to email marketing, which Shopify Email sends to."
