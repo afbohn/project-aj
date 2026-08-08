@@ -24,7 +24,17 @@
 {%- endcomment -%}
 
 {%- liquid
-  assign merch = collections[section.settings.collection | default: 'yoink-merch']
+  comment
+    TWO STEPS, NOT ONE EXPRESSION. `collections[section.settings.collection |
+    default: 'yoink-merch']` is invalid Liquid twice over: a filter cannot be
+    applied inside a bracket lookup, and a `collection` setting resolves to a
+    Collection OBJECT rather than a handle, so it cannot index `collections`
+    either. The section failed to parse and never appeared in the editor.
+  endcomment
+  assign merch = section.settings.collection
+  if merch == blank
+    assign merch = collections['yoink-merch']
+  endif
   assign items = merch.products
   assign shown = section.settings.count | default: 4 | plus: 0
 -%}
