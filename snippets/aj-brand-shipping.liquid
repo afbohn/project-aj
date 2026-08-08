@@ -123,7 +123,32 @@
 {%- endcomment -%}
 {%- unless no_rate -%}
   {%- liquid
-    if measured and own_cost == 0
+    # ── MERCH IS THE EXCEPTION, AND IT HAS TO BE FIRST ────────────────────────
+    #
+    # `ship.cost` on a merch product is what Printify charges, and since 8 Aug
+    # that number is BAKED INTO THE PRICE and the product sits in a delivery
+    # profile with a $0 rate. The measurement is still true and still useful —
+    # it is what the price was built from — but it is no longer what the
+    # customer pays, so the generic branch below printed "Shipping from $8.49"
+    # on a hoodie that ships free. The delivery profile changed and this snippet
+    # went on reading the old fact.
+    #
+    # THE CONDITION MIRRORS THE AGENT'S. `cron/merch` prices and free-ships
+    # exactly those merch products with a measured `ship.cost`, and deliberately
+    # leaves unmeasured ones out. So this claims free on exactly the same set:
+    # tagged AND measured. An unmeasured merch item falls through to the normal
+    # branches and, having no measurement, says nothing — which is correct,
+    # because it really is still charged.
+    assign is_merch = false
+    if product.tags contains 'yoink-merch'
+      assign is_merch = true
+    endif
+
+    if is_merch and measured
+      assign msg = 'Free shipping. Always.'
+      assign tone = 'free'
+
+    elsif measured and own_cost == 0
       assign msg = 'Free shipping.'
       assign tone = 'free'
 

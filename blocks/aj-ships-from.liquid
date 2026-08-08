@@ -34,9 +34,26 @@
   if product_resource.tags contains 'Shopify Collective'
     assign is_collective = true
   endif
+
+  comment
+    MERCH NAMES NOBODY. Both jobs above assume the vendor is a maker worth
+    knowing: TRUST, because nobody has heard of "prodigalpottery" and a name
+    turns an anonymous listing into someone's product; and EXPECTATION, because
+    a cart mixing Collective suppliers arrives as separate parcels.
+
+    Neither holds for our own merch. Printify is a printer we hired, not the
+    brand behind the hoodie — "Ships from Printify" hands our one owned shelf to
+    a contractor's name, and it tells the shopper nothing they can use. The
+    vendor field stays as it is because the shipping agent groups by it; it
+    simply is not customer-facing here.
+  endcomment
+  assign is_merch = false
+  if product_resource.tags contains 'yoink-merch'
+    assign is_merch = true
+  endif
 -%}
 
-{%- if vendor != blank -%}
+{%- if vendor != blank and is_merch == false -%}
   <div
     class="aj-ships-from spacing-style"
     style="{% render 'spacing-style', settings: block.settings %}"
