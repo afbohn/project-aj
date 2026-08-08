@@ -207,9 +207,29 @@
     thin — and the eyebrow takes Ohpixel, which is the face this brand uses for
     short uppercase labels and the one that carries the 8-bit feel.
   */
-  /* Doubled class: `color-{{ scheme }}` sets a background too, and a single class
-     loses that tie on source order. Same trick aj-brand.css uses on the price. */
-  .aj-join.aj-join { background: var(--aj-brand-purple, #7a3fa0); color: #fff; }
+  /*
+    THE COLOUR GOES ON A CLASS THIS FILE OWNS, not on the section.
+
+    The first attempt set it on `.aj-join` and shipped an UNREADABLE page: the
+    background computed to `transparent` — the theme wins that property on the
+    section element — while `color: #fff` applied fine, so every line of copy was
+    white on white. Only the yellow eyebrow and ticks survived.
+
+    Measured on the live page: `class="aj-join color- section"` — the colour
+    scheme setting is EMPTY, so the theme's own scheme classes are malformed here
+    and there is nothing to coordinate with. `.aj-join__inner` is defined in this
+    file and targeted by nothing else, which makes it the one element whose
+    background cannot be taken away.
+
+    Background and text colour now live on the SAME element. They can no longer
+    be separated, which is the actual bug — not the shade.
+  */
+  .aj-join__inner {
+    background-color: #7a3fa0;
+    color: #ffffff;
+    border-radius: 16px;
+    padding: clamp(1.75rem, 4vw, 3rem);
+  }
 
   .aj-join__eyebrow {
     font-family: "Ohpixel", var(--font-heading--family);
@@ -220,7 +240,7 @@
     margin: 0 0 0.6rem;
   }
 
-  .aj-join .aj-join__heading {
+  .aj-join__inner .aj-join__heading {
     font-family: "Flashy", var(--font-heading--family);
     font-weight: 400;
     font-size: clamp(2.5rem, 6vw, 4rem);
@@ -228,13 +248,13 @@
     color: #fff;
   }
 
-  .aj-join .aj-join__subheading { color: #fff; opacity: 0.9; }
-  .aj-join .aj-join__point { color: #fff; }
-  .aj-join .aj-join__point::before { opacity: 1; color: var(--aj-brand-yellow, #ffe000); }
+  .aj-join__inner .aj-join__subheading { color: #ffffff; opacity: 0.92; }
+  .aj-join__inner .aj-join__point { color: #ffffff; }
+  .aj-join__inner .aj-join__point::before { opacity: 1; color: var(--aj-brand-yellow, #ffe000); }
 
   /* The card stays light: a form is the one thing here that should look like a
      form, and white on purple is the strongest contrast the palette offers. */
-  .aj-join .aj-join__form-card {
+  .aj-join__inner .aj-join__form-card {
     background: #fff;
     color: var(--aj-brand-ink, #282828);
     border: 0;
@@ -242,15 +262,15 @@
     border-radius: 14px;
   }
 
-  .aj-join .aj-join__submit,
-  .aj-join .aj-join__cta {
+  .aj-join__inner .aj-join__submit,
+  .aj-join__inner .aj-join__cta {
     background: var(--aj-brand-yellow, #ffe000);
     color: var(--aj-brand-ink, #282828);
     border: 0;
     font-weight: 800;
   }
-  .aj-join .aj-join__submit:hover,
-  .aj-join .aj-join__cta:hover { filter: brightness(1.08); }
+  .aj-join__inner .aj-join__submit:hover,
+  .aj-join__inner .aj-join__cta:hover { filter: brightness(1.08); }
 
   /*
     THE CROW, AS A SETTING RATHER THAN A HARDCODED ASSET. The pixel art lives in
