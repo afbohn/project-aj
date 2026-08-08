@@ -40,6 +40,22 @@
       {%- endif -%}
       <h1 class="aj-join__heading">{{ heading | escape }}</h1>
 
+      {%- comment -%}
+        THE OFFER, NAMED ON THE PAGE THE AD PROMISES IT ON.
+
+        A new setting rather than edited copy, because heading and subheading are
+        theme-editor values this file cannot reach — a default only renders while
+        the setting is absent from the template JSON, which is exactly the case
+        for a setting that did not exist until now.
+
+        THE QUALIFIER IS NOT OPTIONAL. The signup code excludes
+        `yoink-of-the-day`, `bargain-bin` and `tee-of-the-week` by tag, so "10%
+        off" unqualified is false on the very products this store leads with.
+      {%- endcomment -%}
+      {%- if section.settings.offer != blank -%}
+        <p class="aj-join__offer">{{ section.settings.offer | escape }}</p>
+      {%- endif -%}
+
       {%- if section.settings.subheading != blank -%}
         <p class="aj-join__subheading">{{ section.settings.subheading | escape }}</p>
       {%- endif -%}
@@ -281,6 +297,19 @@
     `image-rendering: pixelated` is the whole point: without it the browser
     smooths 8-bit art on a high-DPI screen and it stops reading as pixel art.
   */
+  /* The offer is the reason someone clicked, so it sits above the fold and
+     takes the yellow — the same badge colour the storefront uses for a saving. */
+  .aj-join__inner .aj-join__offer {
+    display: inline-block;
+    margin: 0 0 1rem;
+    padding: 0.55rem 1rem;
+    background: var(--aj-brand-yellow, #ffe000);
+    color: var(--aj-brand-ink, #282828);
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 1rem;
+  }
+
   .aj-join__art {
     display: block;
     width: min(320px, 60%);
@@ -306,6 +335,13 @@
       "label": "Eyebrow",
       "default": "One a day, gone in 24 hours",
       "info": "Small pixel-face line above the heading. Uppercased automatically."
+    },
+    {
+      "type": "text",
+      "id": "offer",
+      "label": "Offer line",
+      "default": "Take 10% off your first order — full-price items, one use.",
+      "info": "Must match what any ad pointing here promises. Leave blank to hide."
     },
     {
       "type": "image_picker",
