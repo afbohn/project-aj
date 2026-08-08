@@ -472,3 +472,90 @@
   font-size: 1.15em;
   line-height: 1;
 }
+
+/* ===========================================================================
+   POLICY AND CONTACT PAGES
+   ===========================================================================
+
+   THE BRIEF WAS "NOTHING CRAZY, JUST INTENTIONAL", and for these pages that is
+   also the correct design. A returns policy and a contact form are read by
+   somebody who wants an answer, often an annoyed somebody. Long legal text on a
+   saturated purple ground is harder to read, and hard-to-read terms are their
+   own kind of bad faith.
+
+   So these stay light and take the brand at the EDGES: the display face on the
+   title, a yellow rule under it, brand purple on links, and a comfortable
+   measure. Recognisably The Yoink, still legible at 400 words.
+
+   NO BACKGROUND-PLUS-COLOUR PAIRS ON ELEMENTS THIS FILE DOES NOT OWN. The join
+   page shipped unreadable on 7 Aug because a background and a text colour were
+   set together on a section the theme also styles: the background lost, the
+   colour won, and the copy went white on white. Below, nothing sets a page
+   background at all — so there is no state where that can happen again.
+   ------------------------------------------------------------------------- */
+
+/* Shopify renders every /policies/* page with this markup. Styling it here
+   brands all of them at once, and there is no template to keep in sync. */
+.shopify-policy__container {
+  max-width: 46rem;
+  padding-block: clamp(2rem, 5vw, 3.5rem);
+}
+
+.shopify-policy__title h1,
+.shopify-policy__title {
+  font-family: "Flashy", var(--font-heading--family);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  text-align: left;
+}
+
+/* The rule is the whole brand gesture here: one yellow line, the same yellow
+   the price badge uses, doing the job a coloured panel would do too loudly. */
+.shopify-policy__title {
+  padding-bottom: 0.75rem;
+  border-bottom: 4px solid var(--aj-brand-yellow, #ffe000);
+  margin-bottom: 2rem;
+}
+
+.shopify-policy__body {
+  line-height: 1.65;
+}
+
+.shopify-policy__body h2,
+.shopify-policy__body h3 {
+  font-family: "Flashy", var(--font-heading--family);
+  font-weight: 400;
+  margin-top: 2rem;
+}
+
+.shopify-policy__body a {
+  color: var(--aj-brand-purple, #7a3fa0);
+  text-underline-offset: 0.15em;
+}
+
+/* Contact form: the submit takes the same yellow as every other primary action
+   on the store, so "send" looks like "count me in" and "add to cart". */
+.contact-form__input:focus {
+  outline: 2px solid var(--aj-brand-yellow, #ffe000);
+  outline-offset: 1px;
+}
+
+.contact-form button[type="submit"] {
+  background: var(--aj-brand-yellow, #ffe000);
+  color: var(--aj-brand-ink, #282828);
+  border: 0;
+  font-weight: 800;
+}
+
+.contact-form button[type="submit"]:hover { filter: brightness(1.08); }
+
+/* The standing contact block in the footer of every page. Its label is a short
+   uppercase string, which is the shape Ohpixel is drawn for. */
+.aj-contact__label {
+  font-family: "Ohpixel", var(--font-heading--family);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.aj-contact__list a { color: var(--aj-brand-purple, #7a3fa0); }
+
