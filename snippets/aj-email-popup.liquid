@@ -56,26 +56,35 @@
   saving and a countdown takes a few seconds. Much under ten and the popup lands
   on somebody mid-sentence, which is how a capture teaches people to close
   things without reading them.
+
+  It was briefly cut to seven on 8 Aug, on the argument that 95% of paid traffic
+  leaves before viewing a product so the timer was firing into an empty room.
+  True, and not the whole picture: a popup arriving before anyone has read
+  anything is not capture, it is an interruption. Restored to Alex's ten.
+
+  DATA-SCROLL-AFTER IS 10 TOO, so ten seconds is a real floor rather than a
+  claim about one trigger. It gates BOTH the mobile scroll trigger and desktop
+  exit intent — set it lower than the delay and the popup appears sooner than
+  ten to anyone who scrolls or moves their mouse, which makes restoring the
+  timer a setting change with no behaviour change. Drop it below the delay only
+  if engaged readers should deliberately be asked sooner than everyone else.
+
+  DATA-SCROLL-DEPTH IS 30 PERCENT of the page, and it is the mobile half of the
+  same rule: a phone has no cursor, so scroll depth is the only available
+  evidence that somebody is reading rather than bouncing. Both conditions have
+  to hold.
+
+  AND THE PARAGRAPH ABOVE IS NOT A HISTORICAL NOTE. On 8 Aug I wrote exactly
+  these explanations as `{%- comment -%}` blocks between the attributes, three
+  paragraphs below the warning telling me not to, and shipped
+  `hiddendata-delay="7"data-scroll-after="5"` to live traffic. Same symptom as
+  6 Aug, same cause, same file. The attribute list stays bare.
 {%- endcomment -%}
 <aj-email-popup
     class="aj-pop"
     hidden
-    {%- comment -%}
-      SEVEN, DOWN FROM TEN. Measured 8 Aug: 123 paid landing page views, zero
-      signups, and 95% of visitors left without viewing a product. Ten seconds
-      is longer than most of that traffic stayed, so the timer was firing into
-      an empty room. Scroll depth is now the primary trigger on a phone; this is
-      the fallback for someone reading without scrolling, and it should land
-      inside the visit rather than after it.
-    {%- endcomment -%}
-    data-delay="7"
-    {%- comment -%}
-      Both must hold before the popup opens on a phone: five seconds on the
-      page AND 30% of the way down it. Tunable here rather than in the script,
-      because these are judgement calls about how pushy to be and they will be
-      revisited — the first attempt used depth alone and fired instantly.
-    {%- endcomment -%}
-    data-scroll-after="5"
+    data-delay="10"
+    data-scroll-after="10"
     data-scroll-depth="30"
     data-remember-days="30"
     data-exit-intent="true"
