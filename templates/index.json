@@ -68,6 +68,18 @@
         "padding-block-end": 32
       }
     },
+    "aj_bargain_bin": {
+      "type": "aj-bargain-bin",
+      "settings": {
+        "heading": "The Bargain Bin",
+        "subheading": "Everything at least 25% off. New picks every week.",
+        "collection_handle": "bargain-bin",
+        "products_shown": 8,
+        "color_scheme": "scheme-1",
+        "padding-block-start": 32,
+        "padding-block-end": 32
+      }
+    },
     "aj_merch_J4pF7K": {
       "type": "aj-merch",
       "name": "AJ Merch",
@@ -80,18 +92,6 @@
         "cta_text": "See all the merch",
         "padding-block-start": 40,
         "padding-block-end": 40
-      }
-    },
-    "aj_bargain_bin": {
-      "type": "aj-bargain-bin",
-      "settings": {
-        "heading": "The Bargain Bin",
-        "subheading": "Everything at least 25% off. New picks every week.",
-        "collection_handle": "bargain-bin",
-        "products_shown": 8,
-        "color_scheme": "scheme-1",
-        "padding-block-start": 32,
-        "padding-block-end": 32
       }
     },
     "aj_tee_week": {
