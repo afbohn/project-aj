@@ -133,6 +133,32 @@
           the week's card is gone. So the archive link sits outside the
           availability branch and renders either way.
         {%- endcomment -%}
+        {%- comment -%}
+          SHIPS FREE, WHEN IT DOES. The pill the Yoink, the Bin and Shop by
+          Price all render; the Tee of the Week was the last section without it.
+          Free shipping on a $27 tee is worth more than another adjective, and
+          it was being withheld by accident.
+
+          THE EXACT TEST THE OTHER SECTIONS USE, and it must stay exact: a real
+          `draftOrderCalculate` quote of zero, never the vendor's general shape.
+          A supplier who ships most things free can still charge on one item.
+
+          `| plus: 0` because `ship.cost` is a `number_decimal` and arrives as a
+          STRING — "0.0" == 0 is false in Liquid, which is why the deal section's
+          first attempt rendered nothing on a product that did ship free.
+
+          The blank check stays on the METAFIELD rather than the coerced number:
+          `blank | plus: 0` is 0, so testing the coerced value would announce
+          free shipping on every tee nobody has measured.
+        {%- endcomment -%}
+        {%- assign tee_ship_mf = tee.metafields.ship.cost -%}
+        {%- if tee_ship_mf != blank -%}
+          {%- assign tee_ship = tee_ship_mf.value | plus: 0 -%}
+          {%- if tee_ship == 0 -%}
+            <p class="aj-card-free aj-teew__ship">Ships free</p>
+          {%- endif -%}
+        {%- endif -%}
+
         <div class="aj-teew__actions">
           {%- if tee.available -%}
             <a class="aj-teew__cta" href="{{ tee.url }}">
@@ -170,7 +196,21 @@
   {%- endcomment -%}
 {%- endif -%}
 
+{{ 'aj-ships-free.css' | asset_url | stylesheet_tag }}
+
 {% stylesheet %}
+  /*
+    The band is purple and the pill is drawn for a light ground, so it gets its
+    own pairing here rather than inheriting one that would put cyan on purple.
+    Yellow carrying ink is the arrangement aj-brand.css permits, and it matches
+    the price stickers on the merch cards.
+  */
+  .aj-teew__ship {
+    margin: 0 0 0.9rem;
+    --aj-ships-free-bg: #ffe000;
+    --aj-ships-free-ink: #282828;
+  }
+
   /*
     A PURPLE BAND, and the choice was made by what the homepage had already
     spent. `aj-how` runs cyan and `aj-story` runs yellow, so a third section in
