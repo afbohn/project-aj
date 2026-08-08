@@ -40,6 +40,15 @@
 -%}
 
 {%- if items.size > 0 -%}
+  {%- comment -%}
+    The quick-add component brings no CSS of its own — `aj-cross-sell` renders
+    these two alongside it for the same reason. Without them the button renders
+    as unstyled markup and the modal has no layout at all. Inside the emptiness
+    guard so a hidden section still ships nothing.
+  {%- endcomment -%}
+  {% render 'quick-add-styles' %}
+  {% render 'quick-add-modal-styles' %}
+
   <div
     class="aj-merch section spacing-style"
     style="{% render 'spacing-style', settings: section.settings %}"
@@ -100,6 +109,23 @@
                 </div>
                 <p class="aj-merch__name">{{ product.title | escape }}</p>
               </a>
+
+              {%- comment -%}
+                QUICK ADD SITS OUTSIDE THE LINK, NOT INSIDE IT. The card is an
+                <a>, and a <form> nested in an anchor is invalid HTML that
+                browsers silently unnest — the add button would end up outside
+                the card it belongs to, or swallowed by the link so that
+                clicking "Add" navigated to the product instead.
+
+                The theme's own `quick-add` is used rather than a hand-rolled
+                /cart/add form: it already resolves single-variant products to a
+                direct add, sends multi-variant ones to the chooser modal, and
+                opens the cart drawer afterwards. A bespoke form would post and
+                navigate away, losing the drawer.
+              {%- endcomment -%}
+              <div class="aj-merch__add">
+                {% render 'quick-add', product: product, section_id: section.id %}
+              </div>
             </li>
           {%- endfor -%}
         </ul>
@@ -184,6 +210,10 @@
     max-width: 15ch;
     transform: rotate(-2.5deg);
     box-shadow: 5px 5px 0 rgba(40, 40, 40, 0.35);
+    /* A rotated element's corners reach past its box, and this one sits at the
+       very top of the section — the tilt pushed the top-left corner outside and
+       it rendered clipped. The margin is the room the rotation needs. */
+    margin-block: 0.5rem;
   }
 
   .aj-merch__grid {
@@ -217,12 +247,13 @@
   */
   .aj-merch__item { display: flex; }
 
-  .aj-merch__link {
-    display: flex;
+  /*
+    The white card moved from the link to a wrapper once quick add had to sit
+    outside the anchor. The link keeps the image and the name; the button is its
+    sibling, and the two share one background and one shadow.
+  */
+  .aj-merch__item {
     flex-direction: column;
-    height: 100%;
-    text-decoration: none;
-    color: inherit;
     background: #fff;
     border-radius: 12px;
     padding: 0.85rem;
@@ -234,10 +265,25 @@
     transition: transform 0.12s ease, box-shadow 0.12s ease;
   }
 
-  .aj-merch__link:hover {
+  .aj-merch__item:hover {
     transform: translate(-2px, -2px);
     box-shadow: 8px 8px 0 rgba(40, 40, 40, 0.45);
   }
+
+  .aj-merch__link {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  /* The button is the card's last row and spans it, so every card ends on the
+     same element regardless of how long its name ran. */
+  .aj-merch__add { margin-top: 0.5rem; }
+  .aj-merch__add .quick-add__button,
+  .aj-merch__add button,
+  .aj-merch__add a { width: 100%; }
 
   /*
     A FAINT TINT BEHIND THE SHOT. Printify mockups are shot on white, so a white
