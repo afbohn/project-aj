@@ -75,10 +75,15 @@
   to hold.
 
   AND THE PARAGRAPH ABOVE IS NOT A HISTORICAL NOTE. On 8 Aug I wrote exactly
-  these explanations as `{%- comment -%}` blocks between the attributes, three
+  these explanations as Liquid comment blocks between the attributes, three
   paragraphs below the warning telling me not to, and shipped
   `hiddendata-delay="7"data-scroll-after="5"` to live traffic. Same symptom as
   6 Aug, same cause, same file. The attribute list stays bare.
+
+  Nor can the comment TAG be written out literally anywhere in this block, not
+  even inside backticks: Liquid does not nest them, so the first endcomment
+  closes the outer one and the rest of the file becomes markup inside a comment
+  that never ends. That is the second thing I broke writing this note.
 {%- endcomment -%}
 <aj-email-popup
     class="aj-pop"
