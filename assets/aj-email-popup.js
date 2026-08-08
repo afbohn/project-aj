@@ -9,7 +9,8 @@
  *   - never after a signup, permanently — asking again after someone said yes
  *     is the fastest way to make them regret it
  *   - never inside the dismissal window
- *   - never before the delay, so the Yoink is what a visitor sees first
+ *   - never before the delay OR a quarter-page scroll, so the Yoink is what a
+ *     visitor sees first, but an engaged phone visitor is not missed entirely
  *
  * State lives in localStorage, which means it is per-device and a shopper on a
  * new phone will be asked again. That is the correct trade: the alternative is
@@ -79,6 +80,49 @@ class AjEmailPopup extends HTMLElement {
       this.onLeave = (e) => { if (e.clientY <= 0) this.open(); };
       document.addEventListener("mouseout", this.onLeave);
     }
+
+    /*
+      SCROLL DEPTH, AND IT IS THE ONLY REAL TRIGGER ON A PHONE.
+      Measured 8 Aug: 123 landing page views from paid traffic produced ZERO
+      signups. The popup was not broken — most visitors never saw it. Desktop
+      has two chances to fire, the timer and exit intent; a phone had exactly
+      one, a 10-second timer, against traffic where 95% left before viewing a
+      single product. The people most likely to join were gone at second four.
+
+      Scroll is the honest mobile equivalent of exit intent: it is the first
+      evidence a visitor is actually reading rather than bouncing, and it
+      arrives seconds before the timer would. Asking someone who is engaged is
+      the whole point; asking someone who already left is not possible.
+
+      A QUARTER OF THE PAGE, not a fixed pixel count. This homepage is long and
+      a phone viewport is short, so any pixel threshold is a different fraction
+      of the page on every device. `{ once: true }` because a trigger that
+      re-fires on every scroll frame would fight `open()`'s own guard for no
+      reason.
+    */
+    if (!window.matchMedia("(hover: hover)").matches) {
+      this.onScroll = () => {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        if (max > 0 && window.scrollY / max >= 0.25) {
+          window.removeEventListener("scroll", this.onScroll);
+          this.open();
+        }
+      };
+      window.addEventListener("scroll", this.onScroll, { passive: true });
+    }
+  }
+
+  /* Every listener this element added, dropped in one place. Missing one here
+     is how a dismissed popup reopens on the next scroll. */
+  teardown() {
+    clearTimeout(this.timer);
+    document.removeEventListener("keydown", this.onKey);
+    if (this.onLeave) document.removeEventListener("mouseout", this.onLeave);
+    if (this.onScroll) window.removeEventListener("scroll", this.onScroll);
+  }
+
+  disconnectedCallback() {
+    this.teardown();
   }
 
   shouldOffer() {
@@ -142,7 +186,7 @@ class AjEmailPopup extends HTMLElement {
   open() {
     if (this.opened) return;
     this.opened = true;
-    clearTimeout(this.timer);
+    this.teardown();
     this.hidden = false;
     document.addEventListener("keydown", this.onKey);
     // Focus the input, not the panel: the next thing anyone does here is type.
@@ -153,9 +197,7 @@ class AjEmailPopup extends HTMLElement {
     const days = Number(this.dataset.rememberDays || 30);
     this.remember(SEEN_KEY, String(Date.now() + days * 86400000));
     this.hidden = true;
-    clearTimeout(this.timer);
-    document.removeEventListener("keydown", this.onKey);
-    if (this.onLeave) document.removeEventListener("mouseout", this.onLeave);
+    this.teardown();
   }
 
   remember(key, value) {

@@ -60,7 +60,15 @@
 <aj-email-popup
     class="aj-pop"
     hidden
-    data-delay="10"
+    {%- comment -%}
+      SEVEN, DOWN FROM TEN. Measured 8 Aug: 123 paid landing page views, zero
+      signups, and 95% of visitors left without viewing a product. Ten seconds
+      is longer than most of that traffic stayed, so the timer was firing into
+      an empty room. Scroll depth is now the primary trigger on a phone; this is
+      the fallback for someone reading without scrolling, and it should land
+      inside the visit rather than after it.
+    {%- endcomment -%}
+    data-delay="7"
     data-remember-days="30"
     data-exit-intent="true"
   >
