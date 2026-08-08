@@ -559,3 +559,35 @@
 
 .aj-contact__list a { color: var(--aj-brand-purple, #7a3fa0); }
 
+
+/* ── PRODUCT MEDIA ───────────────────────────────────────────────────────────
+   The gallery sat flush against the sticky header and ran to hard square
+   corners, so the first thing on a product page read as an image that had been
+   dropped on the layout rather than placed in it. The section's own top padding
+   went from 0 to 40 in templates/product.json; the rest is here.
+
+   A TINT AND A RADIUS, NOTHING MORE. Product shots on this store arrive from
+   dozens of suppliers on white or near-white backgrounds, so a white page gives
+   them no edge — the same problem the merch cards had. The tint is the neutral
+   already used there, deliberately faint: enough to bound the photo, not enough
+   to read as a coloured panel behind it.
+
+   `overflow: hidden` is what makes the radius apply to the image inside; the
+   corner is on the container, and without it the photo squares the corners off
+   again from the inside. */
+.product-media-container {
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--aj-media-bg, #f4f6f7);
+}
+
+/* The zoom button is positioned against the container; a radius on the parent
+   can clip it into a sliver at the corner. Nudged clear of the curve. */
+.product-media-container__zoom-button {
+  inset-block-start: 0.75rem;
+  inset-inline-end: 0.75rem;
+}
+
+/* Thumbnails follow the main image, at a smaller radius so the row still reads
+   as secondary. */
+.media-gallery__grid .product-media-container { border-radius: 8px; }
