@@ -77,7 +77,33 @@ class AjEmailPopup extends HTMLElement {
     // Desktop only: a phone has no cursor to leave the viewport with, so exit
     // intent there would mean the popup effectively never fires.
     if (this.dataset.exitIntent === "true" && window.matchMedia("(hover: hover)").matches) {
-      this.onLeave = (e) => { if (e.clientY <= 0) this.open(); };
+      /*
+        THREE GUARDS, AND THE FIRST TWO WERE MISSING.
+
+        `mouseout` fires on EVERY element boundary the cursor crosses, not only
+        when it leaves the window. With the pointer anywhere near the top of the
+        viewport — which is where it already is after clicking a link, a
+        bookmark or the URL bar — the very first mouseout satisfied
+        `clientY <= 0` and the popup opened instantly on desktop. That is the
+        bug Alex hit, and it predates the mobile work entirely.
+
+        `relatedTarget === null` is what actually distinguishes "left the
+        document" from "moved between two elements": crossing from a heading to
+        a paragraph sets relatedTarget to that paragraph, while leaving the
+        window sets it to null.
+
+        The dwell floor is the same rule the mobile trigger now has. Exit intent
+        in the first seconds is not exit intent — the visitor has not arrived
+        yet.
+      */
+      const after = Number(this.dataset.scrollAfter || 5) * 1000;
+      const landed = Date.now();
+      this.onLeave = (e) => {
+        if (Date.now() - landed < after) return;
+        if (e.relatedTarget || e.toElement) return;
+        if (e.clientY > 0) return;
+        this.open();
+      };
       document.addEventListener("mouseout", this.onLeave);
     }
 
