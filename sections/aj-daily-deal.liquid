@@ -223,9 +223,25 @@
           a supplier who ships most things free can still charge on a heavy one.
           Blank means unmeasured and renders nothing. Silence is not "free".
         {%- endcomment -%}
-        {%- assign deal_ship = product.metafields.ship.cost.value -%}
-        {%- if deal_ship != blank and deal_ship == 0 -%}
-          <p class="aj-card-free aj-deal__ship">Ships free</p>
+        {%- comment -%}
+          COERCED WITH `| plus: 0`, which is the whole reason the first attempt
+          rendered nothing. `ship.cost` is a `number_decimal`, and through a
+          metaobject reference its value arrives as a STRING — "0.0" == 0 is
+          false in Liquid, so the test silently failed on a product that does
+          ship free. The bin's copy of this works because it reads the product
+          from a collection loop, where the value is already numeric.
+
+          The blank check stays on the METAFIELD, not the coerced number:
+          `blank | plus: 0` is 0, so testing the coerced value would report every
+          unmeasured product as shipping free — the exact lie this guard exists
+          to prevent.
+        {%- endcomment -%}
+        {%- assign ship_mf = product.metafields.ship.cost -%}
+        {%- if ship_mf != blank -%}
+          {%- assign deal_ship = ship_mf.value | plus: 0 -%}
+          {%- if deal_ship == 0 -%}
+            <p class="aj-card-free aj-deal__ship">Ships free</p>
+          {%- endif -%}
         {%- endif -%}
 
         {%- if section.settings.show_countdown and deal.ends_at.value != blank -%}
