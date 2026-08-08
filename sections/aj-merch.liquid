@@ -132,8 +132,17 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  /*
+    AUTO-FILL RATHER THAN A FIXED FOUR. As a homepage teaser the count is capped
+    and four is right; on the collection page it shows everything, and a rigid
+    four-up strands the fifth item alone on a row. Auto-fill lets the same
+    section serve both without a variant.
+  */
   @media screen and (min-width: 750px) {
-    .aj-merch__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.25rem; }
+    .aj-merch__grid {
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 1.25rem;
+    }
   }
 
   .aj-merch__link {
@@ -214,7 +223,7 @@
       "label": "Collection",
       "info": "Defaults to the yoink-merch collection, which is tag-driven."
     },
-    { "type": "range", "id": "count", "label": "How many", "min": 2, "max": 8, "step": 1, "default": 4 },
+    { "type": "range", "id": "count", "label": "How many", "min": 2, "max": 24, "step": 1, "default": 4 },
     { "type": "text", "id": "cta_text", "label": "Button", "default": "See all the merch" },
     { "type": "range", "id": "padding-block-start", "label": "Top", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 40 },
     { "type": "range", "id": "padding-block-end", "label": "Bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 40 }
