@@ -70,17 +70,31 @@
         {%- endfor -%}
       </ul>
 
+    </div>
+
+    <div class="aj-join__form-col">
+      {%- comment -%}
+        THE CROW PERCHES ON THE CARD, which is why it sits in this column rather
+        than under the copy. Its feet want to land on the card's top edge, so it
+        is a sibling with a negative bottom margin rather than a background — a
+        background would crop on narrow screens and there would be no way to keep
+        the feet on the edge as the card grows.
+
+        `aria-hidden` and an empty alt: it is decoration. A screen reader
+        announcing "crow holding a diamond" before the email field would be
+        noise in front of the one thing this page asks for.
+      {%- endcomment -%}
       {%- if section.settings.art != blank -%}
         <img
           class="aj-join__art"
-          src="{{ section.settings.art | image_url: width: 760 }}"
+          src="{{ section.settings.art | image_url: width: 520 }}"
           alt=""
-          width="380"
-          height="380"
+          aria-hidden="true"
+          width="260"
+          height="260"
           loading="lazy"
         >
       {%- endif -%}
-    </div>
 
     <div class="aj-join__form-card">
       {%- if posted -%}
@@ -122,6 +136,7 @@
           {%- endif -%}
         {%- endform -%}
       {%- endif -%}
+    </div>
     </div>
   </div>
 </div>
@@ -310,16 +325,32 @@
     font-size: 1rem;
   }
 
+  /*
+    PERCHED, NOT PLACED. The negative bottom margin is what puts the crow's feet
+    on the card's top edge instead of leaving it hovering above a gap. It is
+    tuned to the art's own transparent footer, so a different image will need a
+    different number — which is the cost of a perch and worth it.
+
+    `image-rendering: pixelated` is load-bearing: without it a browser smooths
+    8-bit art on a high-DPI screen and it stops reading as pixel art.
+  */
+  .aj-join__form-col { position: relative; }
+
   .aj-join__art {
     display: block;
-    width: min(320px, 60%);
+    width: 150px;
     height: auto;
-    margin: 1.5rem auto 0;
+    margin: 0 0 -14px auto;
+    margin-right: 2rem;
     image-rendering: pixelated;
+    /* Above the card, so the overlap reads as standing on it. */
+    position: relative;
+    z-index: 1;
+    pointer-events: none;
   }
 
   @media screen and (min-width: 750px) {
-    .aj-join__art { margin: 0; width: 100%; max-width: 380px; }
+    .aj-join__art { width: 190px; margin-bottom: -18px; }
   }
 
 {% endstylesheet %}
