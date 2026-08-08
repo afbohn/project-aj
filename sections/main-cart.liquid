@@ -74,7 +74,7 @@
 
         {%- comment -%}
           AFTER the vendor upsell. That tier has the stronger reason — it adds
-          no parcel — and merch always adds one, so it goes second.
+          no parcel — where merch adds one and covers the postage itself.
         {%- endcomment -%}
         {%- if settings.merch_enabled and cart.item_count > 0 -%}
           {% render 'aj-cart-merch',

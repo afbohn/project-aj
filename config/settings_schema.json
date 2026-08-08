@@ -2249,8 +2249,8 @@
         "type": "text",
         "id": "merch_blurb",
         "label": "One line underneath",
-        "default": "Ours, not a supplier's. Posted separately, so it turns up on its own.",
-        "info": "Say it arrives on its own. A shopper told up front cannot be annoyed later."
+        "default": "If it has got our name on it, we pay the postage. Ships on its own, at no charge.",
+        "info": "Lead with free shipping, then say it arrives on its own. Both are true; a shopper told up front cannot be annoyed later. Only accurate while the Merch agent is running — it is what makes merch free to ship."
       },
       {
         "type": "range",

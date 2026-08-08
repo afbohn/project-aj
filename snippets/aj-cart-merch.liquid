@@ -2,22 +2,28 @@
   Our own merch, offered in the cart. A separate tier from the vendor upsell,
   deliberately.
 
-  WHY IT IS NOT PART OF THE VENDOR UPSELL. That tier's entire argument is
-  shipping: something from a supplier already in the cart adds no extra parcel,
-  which is a genuine reason to say yes. Merch is the opposite — we fulfil it
-  ourselves, from our own location, in our own envelope, so it ALWAYS adds a
-  shipment. Slotting it into a tier whose copy says "ships with what's already
-  in your cart" would make that line false.
+  WHY IT IS NOT PART OF THE VENDOR UPSELL. That tier's argument is that a
+  supplier already in the cart adds no extra parcel. Merch still adds a parcel —
+  it is printed and posted on its own — so it cannot borrow that line.
 
   It must also never be counted toward a free-shipping threshold. Those
   thresholds belong to suppliers and are cleared by adding more of THEIR items;
-  a sticker sheet we post ourselves moves a supplier's cart total without moving
+  a sticker we post separately moves a supplier's cart total without moving
   their shipping at all. Quoting it as progress toward free shipping would be a
   promise with nothing behind it, which is the failure the shipping work exists
   to prevent.
 
-  So this tier argues from margin and brand, not logistics, and says nothing
-  about shipping at all.
+  IT NOW HAS ITS OWN SHIPPING ARGUMENT, AND IT IS THE BETTER ONE. As of 8 Aug
+  every product in this collection carries its measured postage in its price and
+  sits in a delivery profile with a $0 rate, so merch adds a parcel at no cost
+  to the shopper. This tier used to say nothing about shipping because there was
+  nothing good to say; there is now, and it leads with it.
+
+  THAT CLAIM IS ONLY AS TRUE AS THE `merch` AGENT. That agent prices and
+  free-ships exactly the merch it has a measured shipping cost for, and
+  deliberately excludes the rest. A product tagged into this collection between
+  agent runs is in this list, and is not yet free to ship. The window is up to
+  six hours and the fix is to run the agent, not to soften the copy.
 
   RENDERS NOTHING UNTIL THE COLLECTION HAS SOMETHING IN IT. The collection can
   be created empty and this stays invisible; the moment a product is published
@@ -61,13 +67,22 @@
       {{ heading | default: 'Make it yours' | escape }}
     </h3>
 
-    {%- assign blurb_text = blurb | default: 'Ours, not a supplier’s. Posted separately, so it turns up on its own.' -%}
+    {%- assign blurb_text = blurb | default: 'If it has got our name on it, we pay the postage. Ships on its own, at no charge.' -%}
     {%- if blurb_text != blank -%}
       {%- comment -%}
-        Says outright that it arrives on its own. Every Collective order is
-        already multi-parcel and the storefront says so everywhere else; this
-        one genuinely is a separate envelope, and a shopper who is told that up
-        front cannot be annoyed by it later.
+        TWO FACTS, IN THE ORDER THEY MATTER. The offer first: merch ships free,
+        which since 8 Aug is true of everything in this collection — its price
+        carries the measured postage and it sits in a $0 delivery profile.
+
+        The old line led with provenance — "ours, not a supplier's" — which was
+        both the weaker fact and one this store cannot claim: merch is printed
+        on demand by Printify, and the same wording was removed from the
+        homepage and collection page for that reason.
+
+        The separate-parcel note stays, demoted to a clause. It is still true
+        and still worth saying, because being told up front costs nothing and
+        being surprised by it later is a support ticket. It is just no longer
+        the headline, now that arriving separately costs the shopper nothing.
       {%- endcomment -%}
       <p class="aj-cart-merch__blurb">{{ blurb_text | escape }}</p>
     {%- endif -%}

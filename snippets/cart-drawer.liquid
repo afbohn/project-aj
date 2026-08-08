@@ -134,8 +134,8 @@
                   {%- endif -%}
 
                   {%- comment -%}
-                    After the vendor upsell: that tier adds no parcel, merch
-                    always does, so it makes the weaker case and goes second.
+                    After the vendor upsell: that tier adds no parcel at all,
+                    merch adds one but pays for it, so it goes second.
                   {%- endcomment -%}
                   {%- if settings.merch_enabled -%}
                     {% render 'aj-cart-merch',
