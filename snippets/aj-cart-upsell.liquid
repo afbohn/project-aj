@@ -81,7 +81,18 @@
                 {%- endcomment -%}
                 {%- for candidate in vendor_collection.products limit: 50 -%}
       {%- assign probe = ',' | append: candidate.id | append: ',' -%}
-      {%- unless in_cart contains probe or candidate.available == false -%}
+      {%- comment -%}
+        MERCH IS EXCLUDED FROM THIS TIER, because it has its own directly below.
+        Merch is printed by Printify, so the moment any merch item is in the
+        cart this tier resolves the vendor "Printify" and offers the very same
+        products the merch tier is already showing — the cart listed the trucker
+        cap and the golf towel twice, in two blocks, one after the other.
+
+        The claim would be wrong as well as duplicated. This tier's promise is
+        "ships with what's already in your cart"; merch is printed to order and
+        posted on its own, which is exactly what the merch tier says instead.
+      {%- endcomment -%}
+      {%- unless in_cart contains probe or candidate.available == false or candidate.tags contains 'yoink-merch' -%}
         {{ candidate.id }},
       {%- endunless -%}
     {%- endfor -%}
