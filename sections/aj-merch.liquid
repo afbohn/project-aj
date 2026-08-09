@@ -286,6 +286,42 @@
   .aj-merch__add a { width: 100%; }
 
   /*
+    THE QUICK-ADD IS AN OVERLAY EVERYWHERE ELSE, AND A ROW HERE.
+
+    `quick-add-styles` positions `.quick-add` as `position: absolute; inset: 0`
+    — it is designed to float over a `product-card`, which is the element that
+    establishes its containing block. This section deliberately does not use
+    `product-card` (the card is an <a>, and the comment above the markup
+    explains why the form has to sit outside it), so there was no positioned
+    ancestor to resolve against and the absolute box escaped its cell entirely.
+
+    MEASURED, 9 AUG: at a 960px viewport the add button computed to
+    `left: 960px; width: 960px` — one whole viewport off the right edge — and
+    took the document to 1920px wide. That is the horizontal scroll on the
+    homepage: every section painted its background to the viewport and the page
+    dragged sideways into white space beyond it. Invisible above ~1000px, where
+    the button is display:none until a card is hovered, which is why it read as
+    a laptop-only bug.
+
+    Static positioning is the fix rather than a containing block, because in
+    this layout the button IS the last row of the card — not something hovering
+    over the photograph. It follows that it is always visible here, so the
+    overlay's hover-reveal opacity is neutralised too.
+  */
+  .aj-merch__add .quick-add {
+    position: static;
+    inset: auto;
+    pointer-events: auto;
+  }
+
+  .aj-merch__add .quick-add__button {
+    position: static;
+    display: flex;
+    justify-content: center;
+    opacity: 1;
+  }
+
+  /*
     A FAINT TINT BEHIND THE SHOT. Printify mockups are shot on white, so a white
     hoodie on a white card had no edge and read as a hole in the layout. The
     tint is barely there on purpose — enough to bound the product, not enough to

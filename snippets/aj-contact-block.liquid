@@ -38,6 +38,28 @@
           <a href="mailto:{{ shop.email }}">{{ shop.email }}</a>
         </li>
       {%- endif -%}
+      {%- if shop.address.city != blank -%}
+        <li class="aj-contact__where">
+          {{- shop.address.city }}, {{ shop.address.province }}, {{ shop.address.country -}}
+        </li>
+      {%- endif -%}
+      <li>
+        <a href="{{ routes.root_url }}pages/contact">Contact form</a>
+      </li>
+
+      {%- comment -%}
+        THE PHONE GOES LAST AND GOES QUIET, on purpose.
+
+        It is a personal number, and it was reading as the primary way to reach
+        this business: first in the row, underlined like the email beside it. It
+        stays on the page — the Merchant Center requirement documented at the top
+        of this file is contact information being PRESENT and verifiable, not
+        prominent — but the email and the contact form are the routes we would
+        rather somebody took, so they come first and this follows them.
+
+        Still a `tel:` link, because a phone number that cannot be tapped on a
+        phone is worse than useless, and still the punctuated label.
+      {%- endcomment -%}
       {%- if shop.phone != blank -%}
         {%- comment -%}
           THE SHOP RECORD STORES IT UNPUNCTUATED — "4794020530" — and printing
@@ -60,18 +82,10 @@
             assign phone_label = '(' | append: p1 | append: ') ' | append: p2 | append: '-' | append: p3
           endif
         -%}
-        <li>
+        <li class="aj-contact__phone">
           <a href="tel:{{ tel }}">{{ phone_label }}</a>
         </li>
       {%- endif -%}
-      {%- if shop.address.city != blank -%}
-        <li class="aj-contact__where">
-          {{- shop.address.city }}, {{ shop.address.province }}, {{ shop.address.country -}}
-        </li>
-      {%- endif -%}
-      <li>
-        <a href="{{ routes.root_url }}pages/contact">Contact form</a>
-      </li>
     </ul>
   </div>
 </div>
@@ -132,6 +146,16 @@
 
   .aj-contact__where {
     opacity: 0.7;
+  }
+
+  /* Present and reachable, not advertised: the same quiet the location takes,
+     and without the underline that made it read as the primary route. */
+  .aj-contact__phone {
+    opacity: 0.7;
+  }
+
+  .aj-contact__phone a {
+    border-block-end: 0;
   }
 
   /* On a phone the row becomes a short stack rather than a wrapped line, so the
