@@ -131,8 +131,13 @@
             <a class="aj-join__route-link" href="{{ bin_collection.url }}">
               <span class="aj-join__route-label">The Bargain Bin</span>
               <span class="aj-join__route-title">{{ bin_collection.products_count }} things, all 25% off</span>
+              {%- comment -%}
+                NOT the price class. The Bin has no single price, and "Refilled
+                every Thursday" set at price weight read as one — a $-sized
+                sentence sitting exactly where the other two cards put a number.
+              {%- endcomment -%}
               <span class="aj-join__route-fact">
-                <span class="aj-join__route-price">Refilled every Thursday</span>
+                <span class="aj-join__route-note">Refilled every Thursday</span>
               </span>
               <span class="aj-join__route-go">Have a dig &rarr;</span>
             </a>
@@ -472,6 +477,9 @@
   .aj-join__route-fact { display: flex; gap: 0.5rem; align-items: baseline; flex-wrap: wrap; }
   .aj-join__route-price { font-weight: 800; font-size: 1.25rem; }
   .aj-join__route-was { opacity: 0.55; font-size: 0.9375rem; }
+
+  /* The fact slot when what fills it is a sentence rather than a number. */
+  .aj-join__route-note { font-size: 0.9375rem; opacity: 0.75; }
 
   .aj-join__route-go {
     margin-top: auto;
