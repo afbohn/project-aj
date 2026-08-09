@@ -99,9 +99,14 @@
         This is the only line that says what the code is actually for, and it
         sat under three large cards at footnote size and 75% opacity — the
         cards take the clicks and the one instruction on the page gets skipped.
-        Read in order it is also the answer to the line above it: "here's what
-        it's for", then what it is for, then the three things that do not need
-        it. Below the cards that sequence was broken in half.
+
+        IT ALSO HAS TO ARRIVE BEFORE THE CARDS, not after them. The message
+        above used to end "here's what it's for" and was immediately followed by
+        three products — which says the code is for THOSE, and the code is the
+        one thing that does not work on any of them: they are the Yoink, the tee
+        and the Bin, all already discounted. The line now states the code and
+        stops; this one draws the distinction, and it has to be read before
+        somebody has already concluded the opposite from the cards.
 
         The setting id stays `success_fine` because the value is saved in
         page.join.json under that key; renaming it would orphan the copy.
@@ -673,14 +678,14 @@
       "id": "success_text",
       "label": "Confirmation message",
       "info": "Shown above the three routes. The 10% code arrives by email, so this is the place to say so.",
-      "default": "Your 10% code is in your inbox. Here's what it's for."
+      "default": "Your 10% code is in your inbox."
     },
     {
       "type": "text",
       "id": "success_fine",
       "label": "Confirmation small print",
       "info": "Sits under the three routes. Says what the code is good for, and that these three do not need it.",
-      "default": "Save your code for any full-price item you want. Or just shop the already-discounted stuff above."
+      "default": "Save it for any full-price item you want. Or just shop the already-discounted stuff below."
     },
     {
       "type": "text", "id": "tag", "label": "Customer tag", "default": "join-page",
