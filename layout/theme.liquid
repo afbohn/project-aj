@@ -104,6 +104,18 @@
       {%- render 'theme-editor' -%}
     {% endif %}
 
+    {%- comment -%}
+      IN THE HEAD SO IT IS FETCHED EARLY, DEFERRED SO IT COSTS NOTHING. It has
+      to stamp the click id while the visitor is still on the landing URL that
+      carries `fbclid`, but `defer` already runs before the page is interactive
+      — well before anybody can navigate away or submit a form — so blocking the
+      parser on every page of the store to buy a few milliseconds here would be
+      a bad trade on its most-cached pages.
+
+      See assets/aj-click-id.js for why the Meta pixel cannot do this itself.
+    {%- endcomment -%}
+    <script src="{{ 'aj-click-id.js' | asset_url }}" defer></script>
+
     {{ content_for_header }}
   </head>
 
