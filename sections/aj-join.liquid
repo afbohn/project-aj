@@ -21,18 +21,130 @@
   maintain and nothing to pay for.
 {%- endcomment -%}
 
+{%- comment -%}
+  `form` ONLY EXISTS INSIDE A `{% form %}` BLOCK, which is why the whole section
+  is wrapped in one.
+
+  It was read at the top of this file instead — outside any form — where it is
+  nil, so `form.posted_successfully?` was ALWAYS false and the confirmation this
+  section has carried since it was written had never once rendered. Signing up
+  returned you to the same page showing the same empty form, which reads exactly
+  like a submission that failed. Confirmed on the live page: requesting
+  `/pages/join?customer_posted=true` returned no success markup at all.
+
+  Wrapping is how Dawn does it and the only arrangement that works: the flag is
+  scoped to the block, so the branch that reads it has to live inside the block.
+{%- endcomment -%}
+
 {%- liquid
   assign heading = section.settings.heading | default: 'Get first look at the good stuff'
-  assign posted = false
-  if form.posted_successfully?
-    assign posted = true
-  endif
 -%}
 
 <div
   class="aj-join color-{{ section.settings.color_scheme }} section spacing-style"
   style="{% render 'spacing-style', settings: section.settings %}"
 >
+  {%- form 'customer', class: 'aj-join__wrap' -%}
+  {%- if form.posted_successfully? -%}
+    {%- comment -%}
+      THE CONFIRMATION IS ITS OWN PAGE, not a message where the form was.
+
+      What was here before was one line and one link, inside the narrow card the
+      email field had been sitting in — the layout still gave half the screen to
+      a pitch aimed at somebody who had already said yes. This person is the
+      most likely they will ever be to buy something: they have just handed over
+      an address, they are still on the site, and they are holding a code. The
+      page should spend its whole width on where to go next.
+
+      THREE ROUTES, NAMED. "Shop now" is a sentence about us. "$175.20, gone at
+      midnight" is a sentence about them, and each card carries the real product
+      it points at rather than a category. A route with nothing behind it today
+      renders nothing at all rather than a dead card promising a deal that is
+      not there.
+    {%- endcomment -%}
+    {%- liquid
+      # Resolved only once somebody has actually signed up, so the metaobject
+      # walk is not paid for on every view of the form. The three routes are
+      # named rather than generic — "shop now" is a sentence about us, "$175.20,
+      # gone at midnight" is a sentence about them — so each needs its real
+      # product. Same daily_deal walk as aj-daily-deal, aj-404, aj-cadence and
+      # header-announcements: there is one definition of "today's Yoink" on this
+      # store and this is not a second one.
+      assign now_ts = 'now' | date: '%s' | plus: 0
+      for entry in shop.metaobjects.daily_deal.values
+        assign deal_starts = entry.starts_at.value | date: '%s' | plus: 0
+        assign deal_ends = entry.ends_at.value | date: '%s' | plus: 0
+        if deal_starts <= now_ts and deal_ends > now_ts
+          assign deal_product = entry.product.value
+          break
+        endif
+      endfor
+      assign deal_variant = deal_product.selected_or_first_available_variant
+
+      assign tee_collection = collections['tee-of-the-week']
+      assign tee_product = tee_collection.products.first
+      assign bin_collection = collections['bargain-bin']
+    -%}
+
+    <div class="page-width aj-join__done">
+      <p class="aj-join__eyebrow">{{ section.settings.success_kicker | escape }}</p>
+      <h1 class="aj-join__heading aj-join__heading--done">
+        {{ section.settings.success_heading | escape }}
+      </h1>
+      <p class="aj-join__success">{{ section.settings.success_text | escape }}</p>
+
+      <ul class="aj-join__routes" role="list">
+        {%- if deal_product != blank -%}
+          <li class="aj-join__route">
+            <a class="aj-join__route-link" href="{{ deal_product.url }}">
+              <span class="aj-join__route-label">Yoink of the Day</span>
+              <span class="aj-join__route-title">{{ deal_product.title | escape }}</span>
+              <span class="aj-join__route-fact">
+                <span class="aj-join__route-price">{{ deal_variant.price | money }}</span>
+                {%- if deal_variant.compare_at_price > deal_variant.price -%}
+                  <s class="aj-join__route-was">{{ deal_variant.compare_at_price | money }}</s>
+                {%- endif -%}
+              </span>
+              <span class="aj-join__route-go">Today only &rarr;</span>
+            </a>
+          </li>
+        {%- endif -%}
+
+        {%- if tee_product != blank -%}
+          <li class="aj-join__route">
+            <a class="aj-join__route-link" href="{{ tee_product.url }}">
+              <span class="aj-join__route-label">Tee of the Week</span>
+              <span class="aj-join__route-title">{{ tee_product.title | escape }}</span>
+              <span class="aj-join__route-fact">
+                <span class="aj-join__route-price">{{ tee_product.price | money }}</span>
+                {%- if tee_product.compare_at_price > tee_product.price -%}
+                  <s class="aj-join__route-was">{{ tee_product.compare_at_price | money }}</s>
+                {%- endif -%}
+              </span>
+              <span class="aj-join__route-go">Until Tuesday &rarr;</span>
+            </a>
+          </li>
+        {%- endif -%}
+
+        {%- if bin_collection != blank and bin_collection.products_count > 0 -%}
+          <li class="aj-join__route">
+            <a class="aj-join__route-link" href="{{ bin_collection.url }}">
+              <span class="aj-join__route-label">The Bargain Bin</span>
+              <span class="aj-join__route-title">{{ bin_collection.products_count }} things, all 25% off</span>
+              <span class="aj-join__route-fact">
+                <span class="aj-join__route-price">Refilled every Thursday</span>
+              </span>
+              <span class="aj-join__route-go">Have a dig &rarr;</span>
+            </a>
+          </li>
+        {%- endif -%}
+      </ul>
+
+      {%- if section.settings.success_fine != blank -%}
+        <p class="aj-join__fine aj-join__fine--done">{{ section.settings.success_fine | escape }}</p>
+      {%- endif -%}
+    </div>
+  {%- else -%}
   <div class="page-width aj-join__inner">
     <div class="aj-join__copy">
       {%- if section.settings.eyebrow != blank -%}
@@ -97,16 +209,13 @@
       {%- endif -%}
 
     <div class="aj-join__form-card">
-      {%- if posted -%}
         {%- comment -%}
-          The confirmation has to do a job, not just say thanks: someone who has
-          just handed over an email is the most likely they will ever be to look
-          at today's deal, and the homepage is one tap away.
+          A div, not a nested `{% form %}`. The section is wrapped in one so the
+          confirmation can read `form.posted_successfully?`, and a form inside a
+          form is invalid HTML that browsers silently drop — the inner fields
+          would post to nothing.
         {%- endcomment -%}
-        <p class="aj-join__success">{{ section.settings.success_text | escape }}</p>
-        <a class="aj-join__cta" href="{{ routes.root_url }}">See today's Yoink</a>
-      {%- else -%}
-        {%- form 'customer', class: 'aj-join__form' -%}
+        <div class="aj-join__form">
           <input type="hidden" name="contact[tags]" value="{{ section.settings.tag | escape }}">
 
           {%- if form.errors -%}
@@ -134,11 +243,12 @@
           {%- if section.settings.fine_print != blank -%}
             <p class="aj-join__fine">{{ section.settings.fine_print | escape }}</p>
           {%- endif -%}
-        {%- endform -%}
-      {%- endif -%}
+        </div>
     </div>
     </div>
   </div>
+  {%- endif -%}
+  {%- endform -%}
 </div>
 
 {% stylesheet %}
@@ -270,6 +380,109 @@
     color: var(--aj-brand-yellow, #ffe000);
     margin: 0 0 0.6rem;
   }
+
+  /*
+    THE CONFIRMATION PANEL CARRIES ITS OWN COLOUR, for the reason documented
+    above `.aj-join__inner`: the theme wins `background` on the section element,
+    so background and text colour have to sit together on an element this file
+    owns. `.aj-join__done` replaces `.aj-join__inner` entirely in this state
+    rather than nesting inside it, so it has to repeat the pairing — splitting
+    them is what once shipped white text on a white page.
+  */
+  .aj-join__done {
+    background-color: #7a3fa0;
+    color: #ffffff;
+    border-radius: 16px;
+    padding: clamp(1.75rem, 4vw, 3rem);
+    text-align: center;
+  }
+
+  .aj-join__done .aj-join__heading--done {
+    font-family: "Flashy", var(--font-heading--family);
+    font-weight: 400;
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    line-height: 1.02;
+    color: #fff;
+    margin: 0 0 0.5rem;
+  }
+
+  .aj-join__done .aj-join__success {
+    margin: 0 auto 2rem;
+    max-width: 34ch;
+    font-size: 1.05rem;
+    font-weight: 400;
+    opacity: 0.92;
+  }
+
+  .aj-join__routes {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    text-align: left;
+  }
+
+  /*
+    AUTO-FIT RATHER THAN A FIXED THREE. Any of the three routes can be absent —
+    the Bin empties, the tee sells out, there is a gap between Yoinks — and a
+    hardcoded 3-column grid would leave a hole where the missing one was. This
+    centres whatever survives.
+  */
+  @media screen and (min-width: 750px) {
+    .aj-join__routes { grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
+  }
+
+  /* Same white slab as the form card, including the yellow top edge, because
+     this is the same object doing the next job. */
+  .aj-join__route-link {
+    display: grid;
+    gap: 0.35rem;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 1.25rem;
+    background: #fff;
+    color: var(--aj-brand-ink, #282828);
+    border-top: 4px solid var(--aj-brand-yellow, #ffe000);
+    border-radius: 14px;
+    text-decoration: none;
+    transition: transform 0.12s ease;
+  }
+
+  .aj-join__route-link:hover { transform: translateY(-2px); }
+
+  .aj-join__route-label {
+    font-family: "Ohpixel", var(--font-heading--family);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.75rem;
+    /* Purple on white, the same pairing the product page's eyebrow uses. */
+    color: var(--aj-brand-purple, #7a3fa0);
+  }
+
+  /* NOT Flashy. These are supplier product names — "Titan's Artisanal Mastery:
+     Blue Galaxy Damascus Steel 5-Piece Kitchen Knife Set" — and a display face
+     at that length stops being readable and starts being wallpaper. */
+  .aj-join__route-title {
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1.25;
+  }
+
+  .aj-join__route-fact { display: flex; gap: 0.5rem; align-items: baseline; flex-wrap: wrap; }
+  .aj-join__route-price { font-weight: 800; font-size: 1.25rem; }
+  .aj-join__route-was { opacity: 0.55; font-size: 0.9375rem; }
+
+  .aj-join__route-go {
+    margin-top: auto;
+    padding-top: 0.35rem;
+    font-family: "Ohpixel", var(--font-heading--family);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+  }
+
+  .aj-join__fine--done { margin-top: 1.5rem; opacity: 0.75; }
 
   .aj-join__inner .aj-join__heading {
     font-family: "Flashy", var(--font-heading--family);
@@ -412,9 +625,27 @@
       "type": "text", "id": "fine_print", "label": "Fine print",
       "default": "No spam. Unsubscribe in one click, whenever."
     },
+    { "type": "header", "content": "After they sign up" },
     {
-      "type": "text", "id": "success_text", "label": "Success message",
-      "default": "You're in. Check your inbox — we'll explain how this works."
+      "type": "text", "id": "success_kicker", "label": "Confirmation kicker",
+      "default": "That's it. You're on the list."
+    },
+    {
+      "type": "text", "id": "success_heading", "label": "Confirmation heading",
+      "default": "Now go and use it"
+    },
+    {
+      "type": "text",
+      "id": "success_text",
+      "label": "Confirmation message",
+      "info": "Shown above the three routes. The 10% code arrives by email, so this is the place to say so.",
+      "default": "Your 10% code is in your inbox. Here's what it's for."
+    },
+    {
+      "type": "text",
+      "id": "success_fine",
+      "label": "Confirmation small print",
+      "default": "The code is for full-price items — the three below are already discounted."
     },
     {
       "type": "text", "id": "tag", "label": "Customer tag", "default": "join-page",
