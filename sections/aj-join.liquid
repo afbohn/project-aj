@@ -93,6 +93,23 @@
       </h1>
       <p class="aj-join__success">{{ section.settings.success_text | escape }}</p>
 
+      {%- comment -%}
+        ABOVE THE CARDS, AND NOT STYLED AS SMALL PRINT.
+
+        This is the only line that says what the code is actually for, and it
+        sat under three large cards at footnote size and 75% opacity — the
+        cards take the clicks and the one instruction on the page gets skipped.
+        Read in order it is also the answer to the line above it: "here's what
+        it's for", then what it is for, then the three things that do not need
+        it. Below the cards that sequence was broken in half.
+
+        The setting id stays `success_fine` because the value is saved in
+        page.join.json under that key; renaming it would orphan the copy.
+      {%- endcomment -%}
+      {%- if section.settings.success_fine != blank -%}
+        <p class="aj-join__done-note">{{ section.settings.success_fine | escape }}</p>
+      {%- endif -%}
+
       <ul class="aj-join__routes" role="list">
         {%- if deal_product != blank -%}
           <li class="aj-join__route">
@@ -145,9 +162,6 @@
         {%- endif -%}
       </ul>
 
-      {%- if section.settings.success_fine != blank -%}
-        <p class="aj-join__fine aj-join__fine--done">{{ section.settings.success_fine | escape }}</p>
-      {%- endif -%}
     </div>
   {%- else -%}
   <div class="page-width aj-join__inner">
@@ -412,11 +426,24 @@
   }
 
   .aj-join__done .aj-join__success {
-    margin: 0 auto 2rem;
+    margin: 0 auto 0.5rem;
     max-width: 34ch;
     font-size: 1.05rem;
     font-weight: 400;
     opacity: 0.92;
+  }
+
+  /*
+    An instruction, not a disclaimer. Slightly quieter than the line above it
+    because that one is the headline of the pair, but readable at body size and
+    on the same measure — it is the sentence that tells somebody what they can
+    do with the thing they were just given.
+  */
+  .aj-join__done-note {
+    margin: 0 auto 2rem;
+    max-width: 46ch;
+    font-size: 0.9375rem;
+    opacity: 0.85;
   }
 
   .aj-join__routes {
@@ -490,7 +517,6 @@
     font-size: 0.75rem;
   }
 
-  .aj-join__fine--done { margin-top: 1.5rem; opacity: 0.75; }
 
   .aj-join__inner .aj-join__heading {
     font-family: "Flashy", var(--font-heading--family);
