@@ -189,7 +189,19 @@
       </div>
 
       <div class="aj-deal__content">
+        {%- comment -%}
+          AN EYEBROW THAT REPEATS THE TITLE IS NOT AN EYEBROW. The app writes the
+          product's own name into the entry's `headline` field when a deal is
+          queued, so the purple label rendered the product name and the <h2>
+          repeated it verbatim underneath — the same words twice in two faces.
+          Every queued entry carries the same value, so this is guarded here
+          rather than by editing one metaobject: the label falls back to the
+          section default whenever the headline is just the title again.
+        {%- endcomment -%}
         {%- assign eyebrow = deal.headline.value | default: section.settings.default_headline -%}
+        {%- if eyebrow == product.title -%}
+          {%- assign eyebrow = section.settings.default_headline -%}
+        {%- endif -%}
         {%- if eyebrow != blank -%}
           <p class="aj-deal__eyebrow">{{ eyebrow | escape }}</p>
         {%- endif -%}
@@ -766,8 +778,8 @@
       "type": "text",
       "id": "default_headline",
       "label": "Default headline",
-      "default": "Today's Yoink \u00b7 a new one every day",
-      "info": "Used when the metaobject entry has no headline of its own."
+      "default": "Yoink of the Day",
+      "info": "Used when the entry has no headline of its own, or when its headline is just the product name again. Matches the label on the product page."
     },
     {
       "type": "header",

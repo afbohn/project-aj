@@ -93,6 +93,26 @@
   assign bin_offset = bin_ahead | times: 86400
   assign tee_ts = noon_today | plus: tee_offset
   assign bin_ts = noon_today | plus: bin_offset
+
+  # THE DAILY CTA POINTS AT THE PRODUCT, NOT AT A PLACE ON THE PAGE. The setting
+  # held "/", which worked only while this section sat below the deal — reorder
+  # the homepage so the deal is above it and "Today's Yoink" links to the page
+  # it is already on. Resolving the live entry is the same walk aj-daily-deal,
+  # aj-404 and header-announcements already do, so this card can never name a
+  # different product than the one actually on sale, and it survives any further
+  # rearranging. The setting stays as the fallback for the gap between deals,
+  # where there is no product to point at.
+  assign daily_href = s.daily_link
+  for entry in shop.metaobjects.daily_deal.values
+    assign deal_starts = entry.starts_at.value | date: '%s' | plus: 0
+    assign deal_ends = entry.ends_at.value | date: '%s' | plus: 0
+    if deal_starts <= now_ts and deal_ends > now_ts
+      if entry.product.value.url != blank
+        assign daily_href = entry.product.value.url
+      endif
+      break
+    endif
+  endfor
 -%}
 
 <script src="{{ 'aj-cadence.js' | asset_url }}" type="module" fetchpriority="low"></script>
@@ -171,8 +191,8 @@
           <span class="aj-cadence__page">
             <span class="aj-cadence__title">{{ s.daily_title | escape }}</span>
             <span class="aj-cadence__body">{{ s.daily_body | escape }}</span>
-            {%- if s.daily_link != blank and s.daily_cta != blank -%}
-              <a class="aj-cadence__cta" href="{{ s.daily_link }}">{{ s.daily_cta | escape }}</a>
+            {%- if daily_href != blank and s.daily_cta != blank -%}
+              <a class="aj-cadence__cta" href="{{ daily_href }}">{{ s.daily_cta | escape }}</a>
             {%- endif -%}
           </span>
         </li>
@@ -771,7 +791,12 @@
       "default": "One genuinely good thing, dug out and dropped at a price that feels like a mistake. Gone in 24 hours, and tomorrow it's something else."
     },
     { "type": "text", "id": "daily_cta", "label": "Link text", "default": "Today's Yoink" },
-    { "type": "url", "id": "daily_link", "label": "Link" },
+    {
+      "type": "url",
+      "id": "daily_link",
+      "label": "Link",
+      "info": "Fallback only. While a Yoink is live the card links to that product, whatever this says."
+    },
     { "type": "header", "content": "Thursday card" },
     { "type": "text", "id": "bin_title", "label": "Title", "default": "Bargain Bin Thursdays" },
     {
