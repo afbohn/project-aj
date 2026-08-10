@@ -123,8 +123,28 @@
                 opens the cart drawer afterwards. A bespoke form would post and
                 navigate away, losing the drawer.
               {%- endcomment -%}
+              {%- comment -%}
+                MULTI-VARIANT MERCH GOES TO THE PRODUCT PAGE, it does not open
+                the chooser. The theme's quick-add resolves the product URL by
+                walking up to a `<product-card>` ancestor — and this section
+                deliberately has none, because the card is an <a> and a form
+                cannot nest inside one. So `productPageUrl` came back as an
+                empty string, the fetch was skipped, and the modal opened with
+                nothing in it: a white box over the homepage.
+
+                A mug with a size and a colour needs a real page anyway. The
+                single-variant path keeps quick-add, because a direct add is a
+                form post that never needs the URL — and that is the case where
+                staying on the page is actually worth something.
+              {%- endcomment -%}
               <div class="aj-merch__add">
-                {% render 'quick-add', product: product, section_id: section.id %}
+                {%- if product.variants.size > 1 -%}
+                  <a class="aj-merch__choose" href="{{ product.url }}">
+                    {{ section.settings.choose_text | default: 'Choose options' }}
+                  </a>
+                {%- else -%}
+                  {% render 'quick-add', product: product, section_id: section.id %}
+                {%- endif -%}
               </div>
             </li>
           {%- endfor -%}
@@ -335,6 +355,25 @@
     width: 100%;
   }
 
+  /* Matches the quick-add button it stands in for, so a row of four does not
+     advertise which two took a different code path. */
+  .aj-merch__choose {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: var(--button-size-md, 2.75rem);
+    padding: 0.55rem 1rem;
+    border-radius: 50px;
+    border: 2px solid rgb(0 0 0 / 0.15);
+    background: #fff;
+    color: #282828;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .aj-merch__choose:hover { filter: brightness(0.96); }
+
   .aj-merch__add .quick-add__button {
     position: static;
     display: flex;
@@ -436,6 +475,7 @@
       "info": "Only true while the Merch agent is running — it is what prices merch to carry its own shipping. Clear this box if that agent is paused."
     },
     { "type": "range", "id": "count", "label": "How many", "min": 2, "max": 24, "step": 1, "default": 4 },
+    { "type": "text", "id": "choose_text", "label": "Multi-option button", "default": "Choose options" },
     { "type": "text", "id": "cta_text", "label": "Button", "default": "See all the merch" },
     { "type": "range", "id": "padding-block-start", "label": "Top", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 40 },
     { "type": "range", "id": "padding-block-end", "label": "Bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 40 }
