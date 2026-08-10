@@ -314,11 +314,37 @@
     pointer-events: auto;
   }
 
+  /*
+    THE WIDTH WAS 100% OF NOTHING. `width: 100%` was already on the button and
+    it still rendered at 61px, because the chain above it is CUSTOM ELEMENTS —
+    `quick-add-component`, `product-form-component`, `add-to-cart-component` —
+    and an unknown element defaults to `display: inline`, which shrinks to its
+    content. So the button filled a 61px parent perfectly.
+
+    It showed up as two different button widths in one row: the single-variant
+    cards collapsed to a 61px pill while the multi-variant "Choose" card sat at
+    its natural 227px. Setting the wrappers to block is what makes the row
+    agree with itself.
+  */
+  .aj-merch__add .quick-add,
+  .aj-merch__add quick-add-component,
+  .aj-merch__add product-form-component,
+  .aj-merch__add add-to-cart-component,
+  .aj-merch__add form {
+    display: block;
+    width: 100%;
+  }
+
   .aj-merch__add .quick-add__button {
     position: static;
     display: flex;
     justify-content: center;
     opacity: 1;
+    /* The collapsed pill width is a custom property on the theme's own rule;
+       overriding the property as well as the width stops it reasserting
+       itself if that rule is ever reordered. */
+    --quick-add-collapsed-width: 100%;
+    --quick-add-expanded-width: 100%;
   }
 
   /*
