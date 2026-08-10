@@ -25,7 +25,7 @@
   assign s = section.settings
 -%}
 
-<div class="aj-grind" style="{% render 'spacing-style', settings: section.settings %}">
+<div class="aj-grind section spacing-style" style="{% render 'spacing-style', settings: section.settings %}">
 
   {%- comment -%} ---- hero ---- {%- endcomment -%}
   <div class="aj-grind__hero">
@@ -164,6 +164,20 @@
   .aj-grind {
     background: #0f0f11;
     color: #ffffff;
+  }
+
+  /*
+    THE SECTION OWNS ITS OWN GUTTER. `.page-width` computed to max-width: none
+    and zero padding inside this template — the theme's rule keys off a chain
+    this page does not reproduce, so content sat flush against both viewport
+    edges at 1920 and would have touched the text on a phone. Constraining it
+    here means the page cannot depend on where it is mounted, which is the whole
+    point of a landing page that will move.
+  */
+  .aj-grind .page-width {
+    max-width: var(--page-width, 87.5rem);
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3.5rem);
   }
 
   .aj-grind__hero { position: relative; padding: clamp(3rem, 9vw, 6rem) 0 clamp(2rem, 5vw, 3.5rem); overflow: hidden; }
