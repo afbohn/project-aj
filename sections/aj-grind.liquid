@@ -1,0 +1,407 @@
+{%- comment -%}
+  THE GRIND — a skate shop inside The Yoink. v1.
+
+  THE STORY IS THE SHOPS, NOT THE DECKS. Anyone can dropship a complete. What no
+  competitor can copy is "these came from real skate shops, and here is where
+  they are" — so the shops get their own section with names and towns rather
+  than a line in a paragraph. Until those are filled in the section renders
+  nothing, which is the honest state: a page that names no shops should not
+  claim any.
+
+  THE ERA WITHOUT THE MARKS. Tony Hawk, THPS, Powell Peralta and Element are all
+  live trademarks and this is a commercial page. What is free is the GRAMMAR of
+  1999 skate media: griptape black, a video-game HUD, warped display type, spray
+  stencils, VHS grain. The six categories are laid out as selectable levels
+  because that is the device everyone remembers, and it costs nothing to borrow.
+
+  IT DEGRADES TO NOTHING GRACEFULLY. Products come from Collective suppliers who
+  are not onboarded yet, so every product row checks its collection first and
+  the category tiles link out whether or not a collection exists behind them.
+  A v1 that only renders when the catalogue is finished is a v1 nobody can look
+  at.
+{%- endcomment -%}
+
+{%- liquid
+  assign s = section.settings
+-%}
+
+<div class="aj-grind" style="{% render 'spacing-style', settings: section.settings %}">
+
+  {%- comment -%} ---- hero ---- {%- endcomment -%}
+  <div class="aj-grind__hero">
+    <div class="aj-grind__tape" aria-hidden="true"></div>
+
+    <div class="page-width aj-grind__hero-inner">
+      <p class="aj-grind__kicker">{{ s.kicker | escape }}</p>
+      <h1 class="aj-grind__title">{{ s.heading | escape }}</h1>
+      {%- if s.subheading != blank -%}
+        <p class="aj-grind__sub">{{ s.subheading | escape }}</p>
+      {%- endif -%}
+
+      {%- comment -%}
+        THE HUD. A score counter is the one piece of 90s skate furniture that
+        can carry real information — so it does: what the shop is, not a number
+        invented to look busy.
+      {%- endcomment -%}
+      <ul class="aj-grind__hud" role="list">
+        <li><span class="aj-grind__hud-k">Shops</span><span class="aj-grind__hud-v">{{ s.hud_shops | escape }}</span></li>
+        <li><span class="aj-grind__hud-k">Deal</span><span class="aj-grind__hud-v">{{ s.hud_deal | escape }}</span></li>
+        <li><span class="aj-grind__hud-k">Ships</span><span class="aj-grind__hud-v">{{ s.hud_ships | escape }}</span></li>
+      </ul>
+    </div>
+  </div>
+
+  {%- comment -%} ---- the six categories, as levels ---- {%- endcomment -%}
+  <div class="page-width aj-grind__section">
+    <p class="aj-grind__eyebrow">{{ s.cats_eyebrow | escape }}</p>
+    <h2 class="aj-grind__h2">{{ s.cats_heading | escape }}</h2>
+
+    <ul class="aj-grind__levels" role="list">
+      {%- for i in (1..6) -%}
+        {%- liquid
+          assign nkey = 'cat_' | append: i | append: '_name'
+          assign hkey = 'cat_' | append: i | append: '_handle'
+          assign bkey = 'cat_' | append: i | append: '_blurb'
+          assign name = s[nkey]
+          assign handle = s[hkey]
+          assign blurb = s[bkey]
+        -%}
+        {%- if name != blank -%}
+          <li class="aj-grind__level">
+            <a href="{% if handle != blank %}{{ routes.all_products_collection_url | replace: '/collections/all', '/collections/' | append: handle }}{% else %}#{% endif %}">
+              <span class="aj-grind__level-no">{{ forloop.index | prepend: '0' | slice: -2, 2 }}</span>
+              <span class="aj-grind__level-name">{{ name | escape }}</span>
+              {%- if blurb != blank -%}<span class="aj-grind__level-blurb">{{ blurb | escape }}</span>{%- endif -%}
+              <span class="aj-grind__level-go">Drop in &rarr;</span>
+            </a>
+          </li>
+        {%- endif -%}
+      {%- endfor -%}
+    </ul>
+  </div>
+
+  {%- comment -%}
+    ---- the shops ----
+    Blocks rather than fixed settings: the number of shops is the one thing
+    guaranteed to change, and a shop added is a block added rather than an edit
+    to this file.
+  {%- endcomment -%}
+  {%- if section.blocks.size > 0 -%}
+    <div class="aj-grind__shops-band">
+      <div class="page-width aj-grind__section">
+        <p class="aj-grind__eyebrow aj-grind__eyebrow--on-dark">{{ s.shops_eyebrow | escape }}</p>
+        <h2 class="aj-grind__h2 aj-grind__h2--on-dark">{{ s.shops_heading | escape }}</h2>
+        {%- if s.shops_body != blank -%}
+          <p class="aj-grind__shops-body">{{ s.shops_body | escape }}</p>
+        {%- endif -%}
+
+        <ul class="aj-grind__shops" role="list">
+          {%- for block in section.blocks -%}
+            <li class="aj-grind__shop" {{ block.shopify_attributes }}>
+              <span class="aj-grind__shop-name">{{ block.settings.name | escape }}</span>
+              {%- if block.settings.town != blank -%}
+                <span class="aj-grind__shop-town">{{ block.settings.town | escape }}</span>
+              {%- endif -%}
+              {%- if block.settings.line != blank -%}
+                <span class="aj-grind__shop-line">{{ block.settings.line | escape }}</span>
+              {%- endif -%}
+            </li>
+          {%- endfor -%}
+        </ul>
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- comment -%}
+    ---- a product row, only when there is something in it ----
+    Same rule the merch shelf follows: a shelf advertising an empty collection
+    is worse than one fewer row.
+  {%- endcomment -%}
+  {%- liquid
+    assign featured = collections[s.featured_handle]
+  -%}
+  {%- if featured != blank and featured.products.size > 0 -%}
+    <div class="page-width aj-grind__section">
+      <p class="aj-grind__eyebrow">{{ s.featured_eyebrow | escape }}</p>
+      <h2 class="aj-grind__h2">{{ s.featured_heading | escape }}</h2>
+      <ul class="aj-grind__grid" role="list">
+        {%- for product in featured.products limit: 4 -%}
+          {%- assign v = product.selected_or_first_available_variant -%}
+          <li class="aj-grind__card">
+            <a href="{{ product.url }}">
+              <span class="aj-grind__shot">
+                {%- if product.featured_image -%}
+                  <img src="{{ product.featured_image | image_url: width: 600 }}"
+                       alt="{{ product.featured_image.alt | escape }}"
+                       width="300" height="300" loading="lazy">
+                {%- endif -%}
+              </span>
+              <span class="aj-grind__card-name">{{ product.title | escape }}</span>
+              <span class="aj-grind__card-price">{{ v.price | money }}</span>
+            </a>
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  {%- endif -%}
+
+  <div class="page-width aj-grind__section aj-grind__foot">
+    <p class="aj-grind__foot-line">{{ s.foot_line | escape }}</p>
+    {%- if s.cta_text != blank and s.cta_link != blank -%}
+      <a class="aj-grind__cta" href="{{ s.cta_link }}">{{ s.cta_text | escape }}</a>
+    {%- endif -%}
+  </div>
+</div>
+
+{% stylesheet %}
+  /*
+    GRIPTAPE IS THE GROUND. The whole page sits on near-black with a grit
+    texture, which is the one surface every skater has looked at for hours. The
+    brand's purple and yellow ride on top of it rather than under it — this is
+    the only Yoink surface that is not built on white or purple, and it should
+    feel like a different room in the same building.
+  */
+  .aj-grind {
+    background: #0f0f11;
+    color: #ffffff;
+  }
+
+  .aj-grind__hero { position: relative; padding: clamp(3rem, 9vw, 6rem) 0 clamp(2rem, 5vw, 3.5rem); overflow: hidden; }
+
+  /* The grit: two offset dot fields, which reads as griptape and costs nothing
+     to ship. A photograph of grip would be a 400KB texture doing the same job. */
+  .aj-grind__tape {
+    position: absolute; inset: 0; pointer-events: none; opacity: 0.55;
+    background-image:
+      radial-gradient(rgba(255,255,255,0.10) 1px, transparent 1px),
+      radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px);
+    background-size: 5px 5px, 7px 7px;
+    background-position: 0 0, 3px 4px;
+  }
+
+  .aj-grind__hero-inner { position: relative; }
+
+  .aj-grind__kicker {
+    font-family: "Ohpixel", var(--font-heading--family);
+    text-transform: uppercase; letter-spacing: 0.14em;
+    font-size: clamp(0.75rem, 1.6vw, 0.9rem);
+    color: var(--aj-brand-yellow, #ffe000);
+    margin: 0 0 0.9rem;
+  }
+
+  .aj-grind__title {
+    font-family: "Flashy", var(--font-heading--family);
+    font-weight: 400;
+    font-size: clamp(3.5rem, 13vw, 9rem);
+    line-height: 0.88;
+    margin: 0;
+    color: #fff;
+    /* A hard offset shadow in brand purple: the cheapest way to make display
+       type read as a sticker rather than as a heading. */
+    text-shadow: 0.06em 0.06em 0 var(--aj-brand-purple, #7a3fa0);
+  }
+
+  .aj-grind__sub {
+    margin: 1.4rem 0 0; max-width: 46ch;
+    font-size: clamp(1rem, 2.4vw, 1.25rem); line-height: 1.45;
+    color: rgb(255 255 255 / 0.86);
+  }
+
+  /* ---- the HUD ---- */
+  .aj-grind__hud {
+    display: flex; flex-wrap: wrap; gap: 0.75rem;
+    margin: 2rem 0 0; padding: 0; list-style: none;
+  }
+  .aj-grind__hud li {
+    display: grid; gap: 0.15rem;
+    padding: 0.6rem 1rem;
+    background: rgb(255 255 255 / 0.06);
+    border: 1px solid rgb(255 255 255 / 0.14);
+    border-radius: 4px;
+  }
+  .aj-grind__hud-k {
+    font-family: "Ohpixel", monospace; text-transform: uppercase;
+    letter-spacing: 0.12em; font-size: 0.7rem; color: var(--aj-brand-cyan, #5cd8f8);
+  }
+  .aj-grind__hud-v { font-weight: 700; font-size: 0.95rem; }
+
+  /* ---- sections ---- */
+  .aj-grind__section { padding: clamp(2.5rem, 6vw, 4rem) 0; }
+
+  .aj-grind__eyebrow {
+    font-family: "Ohpixel", var(--font-heading--family);
+    text-transform: uppercase; letter-spacing: 0.12em;
+    font-size: 0.8125rem; color: var(--aj-brand-cyan, #5cd8f8);
+    margin: 0 0 0.5rem;
+  }
+  .aj-grind__eyebrow--on-dark { color: var(--aj-brand-yellow, #ffe000); }
+
+  .aj-grind__h2 {
+    font-family: "Flashy", var(--font-heading--family);
+    font-weight: 400; font-size: clamp(2rem, 5.5vw, 3.25rem);
+    line-height: 1; margin: 0 0 1.6rem; color: #fff;
+  }
+
+  /* ---- the levels ---- */
+  .aj-grind__levels {
+    display: grid; gap: 0.9rem; margin: 0; padding: 0; list-style: none;
+    grid-template-columns: 1fr;
+  }
+  @media screen and (min-width: 750px) {
+    .aj-grind__levels { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .aj-grind__level a {
+    display: grid; gap: 0.35rem; height: 100%;
+    padding: 1.25rem 1.25rem 1.1rem;
+    background: #17171b;
+    border: 1px solid rgb(255 255 255 / 0.12);
+    border-left: 4px solid var(--aj-brand-yellow, #ffe000);
+    border-radius: 6px;
+    text-decoration: none; color: #fff;
+    transition: transform 0.12s ease, background 0.12s ease;
+  }
+  .aj-grind__level a:hover { transform: translateY(-2px); background: #1e1e24; }
+
+  .aj-grind__level-no {
+    font-family: "Ohpixel", monospace; font-size: 0.75rem;
+    letter-spacing: 0.12em; color: rgb(255 255 255 / 0.45);
+  }
+  .aj-grind__level-name {
+    font-family: "Flashy", var(--font-heading--family);
+    font-weight: 400; font-size: clamp(1.6rem, 4vw, 2.1rem); line-height: 1;
+  }
+  .aj-grind__level-blurb { font-size: 0.95rem; color: rgb(255 255 255 / 0.7); line-height: 1.4; }
+  .aj-grind__level-go {
+    margin-top: auto; padding-top: 0.5rem;
+    font-family: "Ohpixel", monospace; text-transform: uppercase;
+    letter-spacing: 0.1em; font-size: 0.75rem; color: var(--aj-brand-yellow, #ffe000);
+  }
+
+  /* ---- the shops ---- */
+  .aj-grind__shops-band { background: var(--aj-brand-purple, #7a3fa0); }
+  .aj-grind__shops-body { margin: 0 0 1.6rem; max-width: 52ch; line-height: 1.5; color: rgb(255 255 255 / 0.92); }
+
+  .aj-grind__shops { display: grid; gap: 0.9rem; margin: 0; padding: 0; list-style: none; }
+  @media screen and (min-width: 750px) {
+    .aj-grind__shops { grid-template-columns: repeat(3, 1fr); }
+  }
+  .aj-grind__shop {
+    display: grid; gap: 0.25rem;
+    padding: 1.1rem 1.2rem;
+    background: rgb(0 0 0 / 0.25);
+    border: 1px dashed rgb(255 255 255 / 0.35);
+    border-radius: 6px;
+  }
+  .aj-grind__shop-name { font-weight: 800; font-size: 1.1rem; }
+  .aj-grind__shop-town {
+    font-family: "Ohpixel", monospace; text-transform: uppercase;
+    letter-spacing: 0.1em; font-size: 0.72rem; color: var(--aj-brand-yellow, #ffe000);
+  }
+  .aj-grind__shop-line { font-size: 0.95rem; color: rgb(255 255 255 / 0.85); line-height: 1.4; }
+
+  /* ---- featured products ---- */
+  .aj-grind__grid { display: grid; gap: 1rem; margin: 0; padding: 0; list-style: none; grid-template-columns: repeat(2, 1fr); }
+  @media screen and (min-width: 750px) {
+    .aj-grind__grid { grid-template-columns: repeat(4, 1fr); }
+  }
+  .aj-grind__card a { display: grid; gap: 0.4rem; text-decoration: none; color: #fff; }
+  .aj-grind__shot {
+    display: block; aspect-ratio: 1 / 1; overflow: hidden;
+    border-radius: 6px; background: #1a1a1f;
+  }
+  .aj-grind__shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .aj-grind__card-name { font-size: 0.95rem; line-height: 1.3; }
+  .aj-grind__card-price {
+    font-family: "Flashy", var(--font-heading--family);
+    font-size: 1.25rem; color: var(--aj-brand-yellow, #ffe000);
+  }
+
+  /* ---- foot ---- */
+  .aj-grind__foot { text-align: center; }
+  .aj-grind__foot-line {
+    font-family: "Flashy", var(--font-heading--family);
+    font-size: clamp(1.5rem, 4vw, 2.25rem); line-height: 1.1;
+    margin: 0 0 1.4rem; color: #fff;
+  }
+  .aj-grind__cta {
+    display: inline-block; padding: 0.95rem 1.8rem;
+    background: var(--aj-brand-yellow, #ffe000);
+    color: var(--aj-brand-ink, #282828);
+    border-radius: 6px; font-weight: 800; text-decoration: none;
+  }
+  .aj-grind__cta:hover { filter: brightness(1.06); }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "AJ The Grind",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Hero" },
+    { "type": "text", "id": "kicker", "label": "Kicker", "default": "A skate shop inside The Yoink" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "The Grind" },
+    { "type": "textarea", "id": "subheading", "label": "Subheading",
+      "default": "Decks, trucks and hardware from independent skate shops — plus our own. One thing goes deeply discounted every day, same as everywhere else here." },
+    { "type": "text", "id": "hud_shops", "label": "HUD — shops", "default": "Independent, named" },
+    { "type": "text", "id": "hud_deal", "label": "HUD — deal", "default": "One a day, 24 hrs" },
+    { "type": "text", "id": "hud_ships", "label": "HUD — ships", "default": "Straight from the shop" },
+
+    { "type": "header", "content": "Categories" },
+    { "type": "text", "id": "cats_eyebrow", "label": "Eyebrow", "default": "Pick your line" },
+    { "type": "text", "id": "cats_heading", "label": "Heading", "default": "Six ways in" },
+    { "type": "text", "id": "cat_1_name", "label": "1 name", "default": "Decks" },
+    { "type": "text", "id": "cat_1_handle", "label": "1 collection handle", "default": "grind-decks" },
+    { "type": "text", "id": "cat_1_blurb", "label": "1 blurb", "default": "Blanks, pros and shop boards." },
+    { "type": "text", "id": "cat_2_name", "label": "2 name", "default": "Trucks" },
+    { "type": "text", "id": "cat_2_handle", "label": "2 collection handle", "default": "grind-trucks" },
+    { "type": "text", "id": "cat_2_blurb", "label": "2 blurb", "default": "The bit that actually grinds." },
+    { "type": "text", "id": "cat_3_name", "label": "3 name", "default": "Hardware" },
+    { "type": "text", "id": "cat_3_handle", "label": "3 collection handle", "default": "grind-hardware" },
+    { "type": "text", "id": "cat_3_blurb", "label": "3 blurb", "default": "Bearings, bolts, bushings, wheels." },
+    { "type": "text", "id": "cat_4_name", "label": "4 name", "default": "Safety" },
+    { "type": "text", "id": "cat_4_handle", "label": "4 collection handle", "default": "grind-safety" },
+    { "type": "text", "id": "cat_4_blurb", "label": "4 blurb", "default": "Helmets and pads. No lecture." },
+    { "type": "text", "id": "cat_5_name", "label": "5 name", "default": "Completes" },
+    { "type": "text", "id": "cat_5_handle", "label": "5 collection handle", "default": "grind-completes" },
+    { "type": "text", "id": "cat_5_blurb", "label": "5 blurb", "default": "Built and ready to roll away on." },
+    { "type": "text", "id": "cat_6_name", "label": "6 name", "default": "Apparel" },
+    { "type": "text", "id": "cat_6_handle", "label": "6 collection handle", "default": "grind-apparel" },
+    { "type": "text", "id": "cat_6_blurb", "label": "6 blurb", "default": "Shop tees, ours and theirs." },
+
+    { "type": "header", "content": "The shops" },
+    { "type": "text", "id": "shops_eyebrow", "label": "Eyebrow", "default": "Where this comes from" },
+    { "type": "text", "id": "shops_heading", "label": "Heading", "default": "Real shops, named" },
+    { "type": "textarea", "id": "shops_body", "label": "Body",
+      "default": "Independent skate shops are closing everywhere. These are the ones stocking this page, and every order goes back to them." },
+
+    { "type": "header", "content": "Featured row" },
+    { "type": "text", "id": "featured_eyebrow", "label": "Eyebrow", "default": "On the shelf" },
+    { "type": "text", "id": "featured_heading", "label": "Heading", "default": "In the shop now" },
+    { "type": "text", "id": "featured_handle", "label": "Collection handle",
+      "info": "Renders nothing until this collection has products, so the page is safe to ship before the suppliers are onboarded.",
+      "default": "grind" },
+
+    { "type": "header", "content": "Foot" },
+    { "type": "text", "id": "foot_line", "label": "Line", "default": "One good thing a day. Now with trucks." },
+    { "type": "text", "id": "cta_text", "label": "Button", "default": "See today's Yoink" },
+    { "type": "url", "id": "cta_link", "label": "Button link" },
+
+    { "type": "header", "content": "Spacing" },
+    { "type": "range", "id": "padding-block-start", "label": "Top padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding-block-end", "label": "Bottom padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 }
+  ],
+  "blocks": [
+    {
+      "type": "shop",
+      "name": "Skate shop",
+      "settings": [
+        { "type": "text", "id": "name", "label": "Shop name", "default": "Shop name" },
+        { "type": "text", "id": "town", "label": "Town", "default": "Town, ST" },
+        { "type": "text", "id": "line", "label": "One line", "default": "What makes this shop worth knowing about." }
+      ]
+    }
+  ],
+  "presets": [{ "name": "AJ The Grind" }]
+}
+{% endschema %}

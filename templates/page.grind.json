@@ -1,0 +1,17 @@
+{
+  "sections": {
+    "grind": {
+      "type": "aj-grind",
+      "blocks": {
+        "s1": { "type": "shop", "settings": { "name": "Shop one", "town": "Town, ST", "line": "Placeholder — swap for a real shop before this goes anywhere public." } },
+        "s2": { "type": "shop", "settings": { "name": "Shop two", "town": "Town, ST", "line": "Placeholder — swap for a real shop before this goes anywhere public." } },
+        "s3": { "type": "shop", "settings": { "name": "Shop three", "town": "Town, ST", "line": "Placeholder — swap for a real shop before this goes anywhere public." } }
+      },
+      "block_order": ["s1", "s2", "s3"],
+      "settings": {
+        "cta_link": "/"
+      }
+    }
+  },
+  "order": ["grind"]
+}
