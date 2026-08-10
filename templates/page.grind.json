@@ -3,15 +3,51 @@
     "grind": {
       "type": "aj-grind",
       "blocks": {
-        "s1": { "type": "shop", "settings": { "name": "Shop one", "town": "Town, ST", "line": "Placeholder — swap for a real shop before this goes anywhere public." } },
-        "s2": { "type": "shop", "settings": { "name": "Shop two", "town": "Town, ST", "line": "Placeholder — swap for a real shop before this goes anywhere public." } },
-        "s3": { "type": "shop", "settings": { "name": "Shop three", "town": "Town, ST", "line": "Placeholder — swap for a real shop before this goes anywhere public." } }
+        "s1": {
+          "type": "shop",
+          "settings": {
+            "name": "Shop one",
+            "town": "Town, ST",
+            "line": "Placeholder \u2014 swap for a real shop before this goes anywhere public."
+          }
+        },
+        "s2": {
+          "type": "shop",
+          "settings": {
+            "name": "Shop two",
+            "town": "Town, ST",
+            "line": "Placeholder \u2014 swap for a real shop before this goes anywhere public."
+          }
+        },
+        "s3": {
+          "type": "shop",
+          "settings": {
+            "name": "Shop three",
+            "town": "Town, ST",
+            "line": "Placeholder \u2014 swap for a real shop before this goes anywhere public."
+          }
+        }
       },
-      "block_order": ["s1", "s2", "s3"],
+      "block_order": [
+        "s1",
+        "s2",
+        "s3"
+      ],
       "settings": {
-        "cta_link": "/"
+        "cta_link": "/pages/grind-test-v1",
+        "subheading": "Decks, trucks and hardware from independent skate shops \u2014 and a bit of our own. You buy it here, they still get the sale.",
+        "hud_shops": "Independent, named",
+        "hud_deal": "Every order goes back",
+        "hud_ships": "Ships from the shop",
+        "shops_eyebrow": "Who this is",
+        "shops_heading": "The shops",
+        "shops_body": "Independent skate shops are closing everywhere. These are the ones stocking this page. You are buying from them \u2014 we just built the shelf.",
+        "foot_line": "Buy the deck from the shop that would have sold it to you anyway.",
+        "cta_text": "Meet the shops"
       }
     }
   },
-  "order": ["grind"]
+  "order": [
+    "grind"
+  ]
 }
