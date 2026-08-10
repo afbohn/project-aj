@@ -25,7 +25,7 @@
   assign s = section.settings
 -%}
 
-<div class="aj-grind section spacing-style" style="{% render 'spacing-style', settings: section.settings %}">
+<div class="aj-grind" style="{% render 'spacing-style', settings: section.settings %}">
 
   {%- comment -%} ---- hero ---- {%- endcomment -%}
   <div class="aj-grind__hero">
@@ -160,6 +160,16 @@
     brand's purple and yellow ride on top of it rather than under it — this is
     the only Yoink surface that is not built on white or purple, and it should
     feel like a different room in the same building.
+  */
+  /*
+    NO `section` CLASS ON THE ROOT, and this is the second time this codebase has
+    paid for the lesson. Adding it to pick up the theme's width handling let the
+    theme win `background` on that element — the black ground vanished, `color:
+    #fff` still applied, and the page shipped white on white with only the
+    purple text-shadow visible. `aj-join` carries the same warning from 7 Aug.
+
+    Background and text colour stay together on a class this file owns and
+    nothing else targets, and the gutter is handled below rather than borrowed.
   */
   .aj-grind {
     background: #0f0f11;
