@@ -96,9 +96,20 @@
     editor-owned and its internals can be rearranged at any time, so this cannot
     depend on where its columns sit.
   */
+  /*
+    CENTRED. Left-aligned, the label and the row sat hard against the page
+    gutter under a footer whose own content is centred, so the band read as a
+    stray fragment rather than the closing line of the page.
+
+    `text-align` on the band rather than on each child: the label is an
+    inline-block and the list is a flex row, so one declaration here centres the
+    label and the row centres itself with `justify-content` below. Nothing is
+    set on the footer section, which the theme editor owns.
+  */
   .aj-contact {
     border-block-start: 1px solid rgb(var(--color-foreground-rgb) / 0.12);
     padding-block: 1.25rem;
+    text-align: center;
   }
 
   .aj-contact__label {
@@ -127,6 +138,7 @@
   .aj-contact__list {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 0.35rem 1.5rem;
     margin: 0;
     padding: 0;
@@ -163,6 +175,10 @@
   @media screen and (max-width: 749px) {
     .aj-contact__list {
       flex-direction: column;
+      /* The column's cross axis is horizontal, so `justify-content` above stops
+         centring once the direction flips — this is what keeps the stack centred
+         on a phone rather than left-aligned under a centred label. */
+      align-items: center;
       gap: 0.5rem;
     }
   }
