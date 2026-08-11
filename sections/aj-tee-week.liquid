@@ -104,8 +104,60 @@
       {%- endcomment -%}
       <div class="aj-teew__side">
       <div class="aj-teew__copy">
-        {%- if s.kicker != blank -%}
-          <p class="aj-teew__kicker">{{ s.kicker | escape }}</p>
+        {%- comment -%}
+          SHIPS FREE, WHEN IT DOES — AND UP HERE, NOT BESIDE THE BUY BUTTON.
+
+          It sat between the body copy and "Yoink it" until 11 Aug 2026, where
+          it failed twice over. The pill is #ffe000 and the button is #ffde00,
+          so two near-identical yellows stacked and read as one shape — the mark
+          looked like a tab welded to the button rather than a fact about the
+          offer. And it repeated the exact mistake this file already fixed for
+          the archive link, whose own comment records that anything sitting next
+          to "Yoink it" reads as a second, competing call to action.
+
+          `aj-ships-free.css` says the mark belongs WITH THE PRICE, because free
+          shipping is arithmetic rather than a hook. On this section the price is
+          inside the rendered card image, so there is no number here to sit
+          beside — which is how it ended up orphaned against the CTA. Pairing it
+          with the kicker makes it a statement about the week's offer, which is
+          the nearest honest reading available in this column.
+
+          THE EXACT TEST THE OTHER SECTIONS USE, and it must stay exact: a real
+          `draftOrderCalculate` quote of zero, never the vendor's general shape.
+          A supplier who ships most things free can still charge on one item.
+
+          `| plus: 0` because `ship.cost` is a `number_decimal` and arrives as a
+          STRING — "0.0" == 0 is false in Liquid, which is why the deal section's
+          first attempt rendered nothing on a product that did ship free.
+
+          The blank check stays on the METAFIELD rather than the coerced number:
+          `blank | plus: 0` is 0, so testing the coerced value would announce
+          free shipping on every tee nobody has measured.
+        {%- endcomment -%}
+        {%- assign tee_ships_free = false -%}
+        {%- assign tee_ship_mf = tee.metafields.ship.cost -%}
+        {%- if tee_ship_mf != blank -%}
+          {%- assign tee_ship = tee_ship_mf.value | plus: 0 -%}
+          {%- if tee_ship == 0 -%}
+            {%- assign tee_ships_free = true -%}
+          {%- endif -%}
+        {%- endif -%}
+
+        {%- comment -%}
+          The row renders when EITHER part is present, so a shop that clears the
+          kicker still gets the shipping mark, and a tee that charges shipping
+          still gets the kicker. Wrapping only when both exist would drop one of
+          them silently.
+        {%- endcomment -%}
+        {%- if s.kicker != blank or tee_ships_free -%}
+          <div class="aj-teew__eyebrow">
+            {%- if s.kicker != blank -%}
+              <p class="aj-teew__kicker">{{ s.kicker | escape }}</p>
+            {%- endif -%}
+            {%- if tee_ships_free -%}
+              <p class="aj-card-free aj-teew__ship">Ships free</p>
+            {%- endif -%}
+          </div>
         {%- endif -%}
         {%- if s.heading != blank -%}
           <h2 class="aj-teew__heading">{{ s.heading | escape }}</h2>
@@ -134,31 +186,9 @@
           availability branch and renders either way.
         {%- endcomment -%}
         {%- comment -%}
-          SHIPS FREE, WHEN IT DOES. The pill the Yoink, the Bin and Shop by
-          Price all render; the Tee of the Week was the last section without it.
-          Free shipping on a $27 tee is worth more than another adjective, and
-          it was being withheld by accident.
-
-          THE EXACT TEST THE OTHER SECTIONS USE, and it must stay exact: a real
-          `draftOrderCalculate` quote of zero, never the vendor's general shape.
-          A supplier who ships most things free can still charge on one item.
-
-          `| plus: 0` because `ship.cost` is a `number_decimal` and arrives as a
-          STRING — "0.0" == 0 is false in Liquid, which is why the deal section's
-          first attempt rendered nothing on a product that did ship free.
-
-          The blank check stays on the METAFIELD rather than the coerced number:
-          `blank | plus: 0` is 0, so testing the coerced value would announce
-          free shipping on every tee nobody has measured.
+          The shipping mark used to render here. It now sits with the kicker at
+          the top of this column — see the note there for why.
         {%- endcomment -%}
-        {%- assign tee_ship_mf = tee.metafields.ship.cost -%}
-        {%- if tee_ship_mf != blank -%}
-          {%- assign tee_ship = tee_ship_mf.value | plus: 0 -%}
-          {%- if tee_ship == 0 -%}
-            <p class="aj-card-free aj-teew__ship">Ships free</p>
-          {%- endif -%}
-        {%- endif -%}
-
         <div class="aj-teew__actions">
           {%- if tee.available -%}
             <a class="aj-teew__cta" href="{{ tee.url }}">
@@ -205,8 +235,27 @@
     Yellow carrying ink is the arrangement aj-brand.css permits, and it matches
     the price stickers on the merch cards.
   */
+  /*
+    The eyebrow row: kicker and shipping mark on one line, wrapping to two on a
+    narrow column rather than squeezing. The 0.5rem the kicker used to carry
+    moves here, so the gap under the row is unchanged whether the mark renders
+    or not — a section that shifted vertically depending on one product's
+    shipping cost would read as a layout bug.
+  */
+  .aj-teew__eyebrow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 0 0 0.5rem;
+  }
+
+  .aj-teew__eyebrow .aj-teew__kicker {
+    margin: 0;
+  }
+
   .aj-teew__ship {
-    margin: 0 0 0.9rem;
+    margin: 0;
     --aj-ships-free-bg: #ffe000;
     --aj-ships-free-ink: #282828;
   }
