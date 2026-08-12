@@ -69,7 +69,14 @@
     every lookup falls back to the product image rather than blanking, here and
     in the script.
   endcomment
-  assign hero_image = variant.image | default: product.featured_image
+  comment
+    MEDIA, NOT IMAGE, AND THAT IS THE WHOLE POINT. `variant.image` and
+    `product.media` carry ids from different spaces — measured on Clyde Pro,
+    `variant.image.id` is 36363031806054 while the same picture's
+    `media.id` is 27446729212006. `variant.featured_media` is the Media behind
+    the variant, so it compares directly against the gallery below.
+  endcomment
+  assign hero_media = variant.featured_media | default: product.featured_media
 
   assign on_sale = false
   if variant.compare_at_price > variant.price
@@ -127,7 +134,7 @@
         data-count="{{ gallery.size }}"
       >
         <div class="aj-deal__track" data-aj-gallery-track>
-          {%- if hero_image -%}
+          {%- if hero_media -%}
             {%- comment -%}
               The marker sits on the anchor, not the img: `image_tag` takes named
               arguments, and Liquid cannot parse a hyphenated one like
@@ -135,7 +142,7 @@
             {%- endcomment -%}
             <a class="aj-deal__slide" href="{{ product.url }}" tabindex="-1" aria-hidden="true" data-aj-variant-image>
               {{
-                hero_image
+                hero_media
                 | image_url: width: 1200
                 | image_tag:
                   loading: 'eager',
@@ -143,29 +150,32 @@
                   sizes: '(min-width: 750px) 50vw, 100vw',
                   widths: '400, 600, 800, 1000, 1200',
                   class: 'aj-deal__image',
-                  alt: hero_image.alt
+                  alt: hero_media.alt
               }}
             </a>
           {%- endif -%}
 
           {%- comment -%}
-            The rest. `hero_image` is skipped by id so a variant image that is
-            also in product.media does not appear twice. These stay lazy — only
-            the hero is the LCP element.
+            The rest. `hero_media` is skipped by id so the variant's image
+            does not appear twice. These stay lazy — only the hero is the LCP
+            element.
 
-            COMPARED AGAINST `preview_image`, NOT THE MEDIA ITSELF, and that is
-            the whole reason this works at all. `hero_image` is an IMAGE —
-            `variant.image`, falling back to `product.featured_image` — while
-            `gallery` holds MEDIA. The two carry ids from different spaces, so
-            `media.id == hero_image.id` is never true and the skip never fired:
-            every deal rendered its hero twice and the dot count was one short.
-            It hid for months because the duplicate landed mid-carousel; the
-            moment a variant image was also first in media order the two
-            identical slides became adjacent. `media.preview_image` is the
-            Image behind the Media, so this compares like with like.
+            THIS ONLY WORKS BECAUSE BOTH SIDES ARE MEDIA. It used to read
+            `media.id == hero_image.id`, comparing a Media id against an Image
+            id — two different id spaces, never equal, so the skip never fired
+            and every deal rendered its hero twice with `data-count` one short.
+            It hid because the duplicate landed mid-carousel; the moment a
+            variant image was also first in media order the two identical
+            slides became adjacent and it was obvious.
+
+            `media.preview_image.id` is NOT the fix and was tried first —
+            it renders empty, so that comparison fails the same way and just as
+            silently. Verified on a preview theme: `hero_media.id` and the
+            first `media.id` both read 27446729212006, and the gallery drops
+            from 8 slides to 7.
           {%- endcomment -%}
           {%- for media in gallery -%}
-            {%- if hero_image and media.preview_image.id == hero_image.id -%}{%- continue -%}{%- endif -%}
+            {%- if hero_media and media.id == hero_media.id -%}{%- continue -%}{%- endif -%}
             <a class="aj-deal__slide" href="{{ product.url }}" tabindex="-1" aria-hidden="true">
               {{
                 media
