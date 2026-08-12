@@ -152,9 +152,20 @@
             The rest. `hero_image` is skipped by id so a variant image that is
             also in product.media does not appear twice. These stay lazy — only
             the hero is the LCP element.
+
+            COMPARED AGAINST `preview_image`, NOT THE MEDIA ITSELF, and that is
+            the whole reason this works at all. `hero_image` is an IMAGE —
+            `variant.image`, falling back to `product.featured_image` — while
+            `gallery` holds MEDIA. The two carry ids from different spaces, so
+            `media.id == hero_image.id` is never true and the skip never fired:
+            every deal rendered its hero twice and the dot count was one short.
+            It hid for months because the duplicate landed mid-carousel; the
+            moment a variant image was also first in media order the two
+            identical slides became adjacent. `media.preview_image` is the
+            Image behind the Media, so this compares like with like.
           {%- endcomment -%}
           {%- for media in gallery -%}
-            {%- if hero_image and media.id == hero_image.id -%}{%- continue -%}{%- endif -%}
+            {%- if hero_image and media.preview_image.id == hero_image.id -%}{%- continue -%}{%- endif -%}
             <a class="aj-deal__slide" href="{{ product.url }}" tabindex="-1" aria-hidden="true">
               {{
                 media
