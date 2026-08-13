@@ -9,6 +9,36 @@
  */
 {
   "sections": {
+    "aj_daily_deal": {
+      "type": "aj-daily-deal",
+      "settings": {
+        "color_scheme": "scheme-1",
+        "default_headline": "Yoink of the Day",
+        "show_countdown": true,
+        "countdown_heading": "Yoink ends in",
+        "reload_on_expire": true,
+        "show_claimed": false,
+        "padding-block-start": 48,
+        "padding-block-end": 48
+      }
+    },
+    "aj_how": {
+      "type": "aj-how",
+      "settings": {
+        "definition_term": "Yoink",
+        "definition_pos": "verb",
+        "definition_gloss": "to grab something great half a second before the person next to you.",
+        "label_1": "",
+        "body_1": "",
+        "label_2": "",
+        "body_2": "",
+        "label_3": "",
+        "body_3": "",
+        "color_scheme": "scheme-1",
+        "padding-block-start": 16,
+        "padding-block-end": 16
+      }
+    },
     "aj_cadence": {
       "type": "aj-cadence",
       "settings": {
@@ -38,36 +68,6 @@
         "padding-block-end": 32
       }
     },
-    "aj_how": {
-      "type": "aj-how",
-      "settings": {
-        "definition_term": "Yoink",
-        "definition_pos": "verb",
-        "definition_gloss": "to grab something great half a second before the person next to you.",
-        "label_1": "",
-        "body_1": "",
-        "label_2": "",
-        "body_2": "",
-        "label_3": "",
-        "body_3": "",
-        "color_scheme": "scheme-1",
-        "padding-block-start": 16,
-        "padding-block-end": 16
-      }
-    },
-    "aj_daily_deal": {
-      "type": "aj-daily-deal",
-      "settings": {
-        "color_scheme": "scheme-1",
-        "default_headline": "Yoink of the Day",
-        "show_countdown": true,
-        "countdown_heading": "Yoink ends in",
-        "reload_on_expire": true,
-        "show_claimed": false,
-        "padding-block-start": 48,
-        "padding-block-end": 48
-      }
-    },
     "aj_merch_J4pF7K": {
       "type": "aj-merch",
       "name": "AJ Merch",
@@ -78,6 +78,7 @@
         "collection": "",
         "ship_badge": "Always ships free",
         "count": 4,
+        "choose_text": "Choose options",
         "cta_text": "See all the merch",
         "padding-block-start": 40,
         "padding-block-end": 40
@@ -96,18 +97,6 @@
         ],
         "heading": "Shop by price",
         "subheading": "Everything sorted by what it costs.",
-        "color_scheme": "scheme-1",
-        "padding-block-start": 32,
-        "padding-block-end": 32
-      }
-    },
-    "aj_bargain_bin": {
-      "type": "aj-bargain-bin",
-      "settings": {
-        "heading": "The Bargain Bin",
-        "subheading": "Everything at least 25% off. New picks every week.",
-        "collection_handle": "bargain-bin",
-        "products_shown": 8,
         "color_scheme": "scheme-1",
         "padding-block-start": 32,
         "padding-block-end": 32
@@ -132,6 +121,18 @@
         "color_scheme": "scheme-1",
         "padding-block-start": 24,
         "padding-block-end": 24
+      }
+    },
+    "aj_bargain_bin": {
+      "type": "aj-bargain-bin",
+      "settings": {
+        "heading": "The Bargain Bin",
+        "subheading": "Everything at least 25% off. New picks every week.",
+        "collection_handle": "bargain-bin",
+        "products_shown": 8,
+        "color_scheme": "scheme-1",
+        "padding-block-start": 32,
+        "padding-block-end": 32
       }
     },
     "aj_shop_by_category": {
@@ -177,9 +178,9 @@
     }
   },
   "order": [
-    "aj_cadence",
-    "aj_how",
     "aj_daily_deal",
+    "aj_how",
+    "aj_cadence",
     "aj_merch_J4pF7K",
     "aj_shop_by_price",
     "aj_tee_week",
