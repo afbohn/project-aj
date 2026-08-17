@@ -405,6 +405,7 @@
 
     { "type": "header", "content": "Categories",
       "info": "Five squares are filled. A square with no name renders nothing, so the sixth is the slot to use if another category is ever tagged." },
+    { "type": "paragraph", "content": "The sixth slot has NO default keys. Shopify rejects the whole file with \"default can't be blank\" if a text setting carries default: \"\" — omit the key instead. theme check does not catch it and the GitHub sync drops the file in silence." },
     { "type": "text", "id": "cats_eyebrow", "label": "Eyebrow", "default": "Pick your line" },
     { "type": "text", "id": "cats_heading", "label": "Heading", "default": "Five ways in" },
     { "type": "text", "id": "cat_1_name", "label": "1 name", "default": "Decks" },
@@ -422,9 +423,9 @@
     { "type": "text", "id": "cat_5_name", "label": "5 name", "default": "Apparel" },
     { "type": "text", "id": "cat_5_handle", "label": "5 collection handle", "default": "skate-apparel" },
     { "type": "text", "id": "cat_5_blurb", "label": "5 blurb", "default": "Shoes, tees and hats." },
-    { "type": "text", "id": "cat_6_name", "label": "6 name", "default": "" },
-    { "type": "text", "id": "cat_6_handle", "label": "6 collection handle", "default": "" },
-    { "type": "text", "id": "cat_6_blurb", "label": "6 blurb", "default": "" },
+    { "type": "text", "id": "cat_6_name", "label": "6 name" },
+    { "type": "text", "id": "cat_6_handle", "label": "6 collection handle" },
+    { "type": "text", "id": "cat_6_blurb", "label": "6 blurb" },
 
     { "type": "header", "content": "Mission",
       "info": "Deliberately does not name the shops — see the note in the file. Clearing the statement removes the whole band." },
