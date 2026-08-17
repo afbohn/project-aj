@@ -11,48 +11,9 @@
   "sections": {
     "grind_b": {
       "type": "aj-grind",
-      "blocks": {
-        "s1": {
-          "type": "shop",
-          "settings": {
-            "name": "Shop one",
-            "town": "Town, ST",
-            "line": "Placeholder \u2014 swap for a real shop before this goes anywhere public."
-          }
-        },
-        "s2": {
-          "type": "shop",
-          "settings": {
-            "name": "Shop two",
-            "town": "Town, ST",
-            "line": "Placeholder \u2014 swap for a real shop before this goes anywhere public."
-          }
-        },
-        "s3": {
-          "type": "shop",
-          "settings": {
-            "name": "Shop three",
-            "town": "Town, ST",
-            "line": "Placeholder \u2014 swap for a real shop before this goes anywhere public."
-          }
-        }
-      },
-      "block_order": [
-        "s1",
-        "s2",
-        "s3"
-      ],
       "settings": {
-        "cta_link": "/pages/grind-test-v1",
-        "subheading": "Decks, trucks and hardware from independent skate shops \u2014 and a bit of our own. Same gear, same shops, one checkout.",
-        "hud_shops": "Independent, not chains",
-        "hud_deal": "Every order goes back",
-        "hud_ships": "Ships from the shop",
-        "shops_eyebrow": "Who you are buying from",
-        "shops_heading": "The shops",
-        "shops_body": "Skate shops are independent, outnumbered and closing. These are the ones stocking this page \u2014 buying here buys from them instead of from a warehouse that has never stood on a board.",
-        "foot_line": "Same deck. Bought from a skate shop instead of a warehouse.",
-        "cta_text": "Meet the shops"
+        "cta_text": "See the whole rack",
+        "cta_link": "/collections/skate-local"
       }
     }
   },
