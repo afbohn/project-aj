@@ -30,13 +30,15 @@
 {%- endcomment -%}
 
 {{ 'aj-grind.css' | asset_url | stylesheet_tag }}
+{% render 'aj-grind-vars', section: section %}
 
 {%- liquid
   assign s = section.settings
 -%}
 
 {%- if s.mission_body != blank -%}
-  <div class="aj-grind" style="{% render 'spacing-style', settings: section.settings %}">
+  <div class="aj-grind{% if section.settings.bg_image != blank %} aj-grind--has-bg{% endif %}" style="{% render 'spacing-style', settings: section.settings %}">
+  {% render 'aj-grind-bg', settings: section.settings %}
     <div class="aj-grind__shops-band">
       <div class="page-width aj-grind__section">
         {%- if s.mission_eyebrow != blank -%}
@@ -56,15 +58,98 @@
   "name": "AJ Skate — Mission",
   "tag": "section",
   "settings": [
-    { "type": "paragraph", "content": "Deliberately does not name the shops — see the note in the file. Clearing the statement removes the whole band." },
-    { "type": "text", "id": "mission_eyebrow", "label": "Eyebrow", "default": "Why this exists" },
-    { "type": "text", "id": "mission_heading", "label": "Heading", "default": "Bought from a shop, not a warehouse" },
-    { "type": "textarea", "id": "mission_body", "label": "Statement",
-      "default": "Skate shops are independent, outnumbered and closing. Everything here is stocked by one of them, so the money goes to people who have stood on a board rather than to a distributor who has not." },
-    { "type": "header", "content": "Spacing" },
-    { "type": "range", "id": "padding-block-start", "label": "Top padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 },
-    { "type": "range", "id": "padding-block-end", "label": "Bottom padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 }
+    {
+      "type": "paragraph",
+      "content": "Deliberately does not name the shops — see the note in the file. Clearing the statement removes the whole band."
+    },
+    {
+      "type": "text",
+      "id": "mission_eyebrow",
+      "label": "Eyebrow",
+      "default": "Why this exists"
+    },
+    {
+      "type": "text",
+      "id": "mission_heading",
+      "label": "Heading",
+      "default": "Bought from a shop, not a warehouse"
+    },
+    {
+      "type": "textarea",
+      "id": "mission_body",
+      "label": "Statement",
+      "default": "Skate shops are independent, outnumbered and closing. Everything here is stocked by one of them, so the money goes to people who have stood on a board rather than to a distributor who has not."
+    },
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "color",
+      "id": "band_color",
+      "label": "Band colour",
+      "default": "#7a3fa0",
+      "info": "The mission statement sits on this. It is the visible background of this section, so the background colour above only shows if you set an image."
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background colour",
+      "default": "#0f0f11"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text colour",
+      "default": "#ffffff",
+      "info": "Everything on this page was white on near-black. If you lighten the background, lighten this too or the text disappears."
+    },
+    {
+      "type": "image_picker",
+      "id": "bg_image",
+      "label": "Background image",
+      "info": "Sits behind the whole section, darkened toward the background colour above. Leave empty for the flat colour."
+    },
+    {
+      "type": "range",
+      "id": "bg_overlay",
+      "label": "Image darkening",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "default": 55,
+      "info": "How far the photo is pushed toward the background colour. Only applies when an image is set."
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    }
   ],
-  "presets": [{ "name": "AJ Skate — Mission" }]
+  "presets": [
+    {
+      "name": "AJ Skate — Mission"
+    }
+  ]
 }
 {% endschema %}

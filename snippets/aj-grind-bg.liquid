@@ -1,0 +1,36 @@
+{%- comment -%}
+  The background-image layer for one skate-page section.
+
+  Renders nothing when no image is set, which is what keeps the flat sections
+  exactly as they were — no wrapper, no stacking context, no change.
+
+  DECORATIVE, so `alt` is empty and the layer is aria-hidden. A background
+  photograph that a screen reader announces is noise between the heading and the
+  content; if a picture carries meaning here it belongs in the content, not
+  behind it.
+
+  EAGER, NOT LAZY, and this is the one place on the page where that is right. A
+  lazily-loaded background paints after the text has already been read against
+  the flat colour, which flashes. It is one image per section and it is the
+  first thing visible in that section.
+
+  Usage, as the first child of the .aj-grind wrapper:
+    {% render 'aj-grind-bg', settings: section.settings %}
+{%- endcomment -%}
+
+{%- if settings.bg_image != blank -%}
+  <span class="aj-grind__bg" aria-hidden="true">
+    <img
+      src="{{ settings.bg_image | image_url: width: 2000 }}"
+      srcset="{{ settings.bg_image | image_url: width: 750 }} 750w,
+              {{ settings.bg_image | image_url: width: 1100 }} 1100w,
+              {{ settings.bg_image | image_url: width: 1500 }} 1500w,
+              {{ settings.bg_image | image_url: width: 2000 }} 2000w"
+      sizes="100vw"
+      alt=""
+      width="{{ settings.bg_image.width }}"
+      height="{{ settings.bg_image.height }}"
+      loading="eager"
+    >
+  </span>
+{%- endif -%}

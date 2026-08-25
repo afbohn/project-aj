@@ -16,8 +16,8 @@
   nothing else targets, and the gutter is handled below rather than borrowed.
 */
 .aj-grind {
-  background: #0f0f11;
-  color: #ffffff;
+  background: var(--aj-grind-bg, #0f0f11);
+  color: var(--aj-grind-fg, #ffffff);
 }
 
 /*
@@ -63,7 +63,7 @@
   font-size: clamp(3.5rem, 13vw, 9rem);
   line-height: 0.88;
   margin: 0;
-  color: #fff;
+  color: var(--aj-grind-fg, #fff);
   /* A hard offset shadow in brand purple: the cheapest way to make display
      type read as a sticker rather than as a heading. */
   text-shadow: 0.06em 0.06em 0 var(--aj-brand-purple, #7a3fa0);
@@ -81,7 +81,7 @@
 .aj-grind__sub {
   margin: 1.4rem 0 0; max-width: 46ch;
   font-size: clamp(1rem, 2.4vw, 1.25rem); line-height: 1.45;
-  color: rgb(255 255 255 / 0.86);
+  color: inherit; opacity: 0.86;
 }
 
 /* ---- the HUD ---- */
@@ -92,8 +92,8 @@
 .aj-grind__hud li {
   display: grid; gap: 0.15rem;
   padding: 0.6rem 1rem;
-  background: rgb(255 255 255 / 0.06);
-  border: 1px solid rgb(255 255 255 / 0.14);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
   border-radius: 4px;
 }
 .aj-grind__hud-k {
@@ -116,7 +116,7 @@
 .aj-grind__h2 {
   font-family: "Flashy", var(--font-heading--family);
   font-weight: 400; font-size: clamp(2rem, 5.5vw, 3.25rem);
-  line-height: 1; margin: 0 0 1.6rem; color: #fff;
+  line-height: 1; margin: 0 0 1.6rem; color: var(--aj-grind-fg, #fff);
 }
 
 /* ---- the levels ---- */
@@ -131,24 +131,24 @@
 .aj-grind__level a {
   display: grid; gap: 0.35rem; height: 100%;
   padding: 1.25rem 1.25rem 1.1rem;
-  background: #17171b;
+  background: color-mix(in srgb, var(--aj-grind-bg, #0f0f11) 92%, currentColor);
   border: 1px solid rgb(255 255 255 / 0.12);
   border-left: 4px solid var(--aj-brand-yellow, #ffe000);
   border-radius: 6px;
-  text-decoration: none; color: #fff;
+  text-decoration: none; color: var(--aj-grind-fg, #fff);
   transition: transform 0.12s ease, background 0.12s ease;
 }
-.aj-grind__level a:hover { transform: translateY(-2px); background: #1e1e24; }
+.aj-grind__level a:hover { transform: translateY(-2px); background: color-mix(in srgb, var(--aj-grind-bg, #0f0f11) 86%, currentColor); }
 
 .aj-grind__level-no {
   font-family: "Ohpixel", monospace; font-size: 0.75rem;
-  letter-spacing: 0.12em; color: rgb(255 255 255 / 0.45);
+  letter-spacing: 0.12em; color: color-mix(in srgb, currentColor 45%, transparent);
 }
 .aj-grind__level-name {
   font-family: "Flashy", var(--font-heading--family);
   font-weight: 400; font-size: clamp(1.6rem, 4vw, 2.1rem); line-height: 1;
 }
-.aj-grind__level-blurb { font-size: 0.95rem; color: rgb(255 255 255 / 0.7); line-height: 1.4; }
+.aj-grind__level-blurb { font-size: 0.95rem; color: inherit; opacity: 0.7; line-height: 1.4; }
 .aj-grind__level-go {
   margin-top: auto; padding-top: 0.5rem;
   font-family: "Ohpixel", monospace; text-transform: uppercase;
@@ -159,18 +159,18 @@
    Class names kept as __shops-* because the live template and any saved
    section settings still reference this block by them; renaming CSS to match
    new copy is not worth a repaint of markup that is working. */
-.aj-grind__shops-band { background: var(--aj-brand-purple, #7a3fa0); }
-.aj-grind__shops-body { margin: 0; max-width: 52ch; line-height: 1.5; color: rgb(255 255 255 / 0.92); }
+.aj-grind__shops-band { background: var(--aj-grind-band, var(--aj-brand-purple, #7a3fa0)); }
+.aj-grind__shops-body { margin: 0; max-width: 52ch; line-height: 1.5; color: inherit; opacity: 0.92; }
 
 /* ---- featured products ---- */
 .aj-grind__grid { display: grid; gap: 1rem; margin: 0; padding: 0; list-style: none; grid-template-columns: repeat(2, 1fr); }
 @media screen and (min-width: 750px) {
   .aj-grind__grid { grid-template-columns: repeat(4, 1fr); }
 }
-.aj-grind__card a { display: grid; gap: 0.4rem; text-decoration: none; color: #fff; }
+.aj-grind__card a { display: grid; gap: 0.4rem; text-decoration: none; color: var(--aj-grind-fg, #fff); }
 .aj-grind__shot {
   display: block; aspect-ratio: 1 / 1; overflow: hidden;
-  border-radius: 6px; background: #1a1a1f;
+  border-radius: 6px; background: color-mix(in srgb, var(--aj-grind-bg, #0f0f11) 92%, currentColor);
 }
 .aj-grind__shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .aj-grind__card-name { font-size: 0.95rem; line-height: 1.3; }
@@ -184,7 +184,7 @@
 .aj-grind__foot-line {
   font-family: "Flashy", var(--font-heading--family);
   font-size: clamp(1.5rem, 4vw, 2.25rem); line-height: 1.1;
-  margin: 0 0 1.4rem; color: #fff;
+  margin: 0 0 1.4rem; color: var(--aj-grind-fg, #fff);
 }
 .aj-grind__cta {
   display: inline-block; padding: 0.95rem 1.8rem;
@@ -251,4 +251,33 @@
   .aj-grind__level a,
   .aj-grind__level--has-image .aj-grind__level-media img { transition: none; }
   .aj-grind__level--has-image a:hover .aj-grind__level-media img { transform: none; }
+}
+
+/* ---- a background image behind a whole section ----
+
+   ADDED 25 Aug 2026. Every section already painted a flat near-black; this puts
+   an optional photograph under it, with the section's OWN background colour used
+   as the scrim rather than a fixed black. That is what lets the colour picker and
+   the image work together instead of fighting: darken a photo toward the colour
+   you chose and the section still reads as one surface.
+
+   THE TEXT COLOUR IS A SETTING NOW, AND IT HAD TO BECOME ONE. Every heading in
+   this file was hardcoded #fff against a hardcoded near-black. The moment the
+   background became editable, a light colour would have reproduced exactly the
+   white-on-white failure the note at the top of this file describes. The
+   translucent whites went with it — they are currentColor mixes now, so a dark
+   text colour on a light ground dims rather than disappears. */
+.aj-grind--has-bg { position: relative; isolation: isolate; }
+
+.aj-grind__bg {
+  position: absolute; inset: 0; z-index: -1;
+  display: block; overflow: hidden; pointer-events: none;
+}
+.aj-grind__bg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* The scrim colour is emitted per section from the chosen background colour, so
+   it is never a black wash over a page that is not black. */
+.aj-grind__bg::after {
+  content: ""; position: absolute; inset: 0;
+  background: var(--aj-grind-bg-scrim, rgb(15 15 17 / 0.55));
 }

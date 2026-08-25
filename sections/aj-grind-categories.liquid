@@ -28,12 +28,14 @@
 {%- endcomment -%}
 
 {{ 'aj-grind.css' | asset_url | stylesheet_tag }}
+{% render 'aj-grind-vars', section: section %}
 
 {%- liquid
   assign s = section.settings
 -%}
 
-<div class="aj-grind" style="{% render 'spacing-style', settings: section.settings %}">
+<div class="aj-grind{% if section.settings.bg_image != blank %} aj-grind--has-bg{% endif %}" style="{% render 'spacing-style', settings: section.settings %}">
+  {% render 'aj-grind-bg', settings: section.settings %}
   <div class="page-width aj-grind__section">
     {%- if s.cats_eyebrow != blank -%}
       <p class="aj-grind__eyebrow">{{ s.cats_eyebrow | escape }}</p>
@@ -98,25 +100,118 @@
   "tag": "section",
   "max_blocks": 12,
   "settings": [
-    { "type": "text", "id": "cats_eyebrow", "label": "Eyebrow", "default": "Pick your line" },
-    { "type": "text", "id": "cats_heading", "label": "Heading", "default": "Five ways in" },
-    { "type": "paragraph", "content": "A tile with no name renders nothing, so the count is a content decision. A tile with no image keeps the flat panel it shipped with." },
-    { "type": "header", "content": "Spacing" },
-    { "type": "range", "id": "padding-block-start", "label": "Top padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 },
-    { "type": "range", "id": "padding-block-end", "label": "Bottom padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 }
+    {
+      "type": "text",
+      "id": "cats_eyebrow",
+      "label": "Eyebrow",
+      "default": "Pick your line"
+    },
+    {
+      "type": "text",
+      "id": "cats_heading",
+      "label": "Heading",
+      "default": "Five ways in"
+    },
+    {
+      "type": "paragraph",
+      "content": "A tile with no name renders nothing, so the count is a content decision. A tile with no image keeps the flat panel it shipped with."
+    },
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background colour",
+      "default": "#0f0f11"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text colour",
+      "default": "#ffffff",
+      "info": "Everything on this page was white on near-black. If you lighten the background, lighten this too or the text disappears."
+    },
+    {
+      "type": "image_picker",
+      "id": "bg_image",
+      "label": "Background image",
+      "info": "Sits behind the whole section, darkened toward the background colour above. Leave empty for the flat colour."
+    },
+    {
+      "type": "range",
+      "id": "bg_overlay",
+      "label": "Image darkening",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "default": 55,
+      "info": "How far the photo is pushed toward the background colour. Only applies when an image is set."
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    }
   ],
   "blocks": [
     {
       "type": "category",
       "name": "Category",
       "settings": [
-        { "type": "text", "id": "name", "label": "Name" },
-        { "type": "text", "id": "handle", "label": "Collection handle" },
-        { "type": "text", "id": "blurb", "label": "Blurb" },
-        { "type": "image_picker", "id": "image", "label": "Image",
-          "info": "Sits behind the text, darkened. Landscape crops best — the tile is wider than it is tall. Leave empty for the flat panel." },
-        { "type": "range", "id": "scrim", "label": "Image darkening", "min": 40, "max": 95, "step": 5, "unit": "%", "default": 80,
-          "info": "Raise it for a bright or busy photo. The text has to stay readable — that is the only thing this dial is for." }
+        {
+          "type": "text",
+          "id": "name",
+          "label": "Name"
+        },
+        {
+          "type": "text",
+          "id": "handle",
+          "label": "Collection handle"
+        },
+        {
+          "type": "text",
+          "id": "blurb",
+          "label": "Blurb"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image",
+          "info": "Sits behind the text, darkened. Landscape crops best — the tile is wider than it is tall. Leave empty for the flat panel."
+        },
+        {
+          "type": "range",
+          "id": "scrim",
+          "label": "Image darkening",
+          "min": 40,
+          "max": 95,
+          "step": 5,
+          "unit": "%",
+          "default": 80,
+          "info": "Raise it for a bright or busy photo. The text has to stay readable — that is the only thing this dial is for."
+        }
       ]
     }
   ],
@@ -124,11 +219,46 @@
     {
       "name": "AJ Skate — Categories",
       "blocks": [
-        { "type": "category", "settings": { "name": "Decks", "handle": "skate-decks", "blurb": "Blanks, pros and shop boards." } },
-        { "type": "category", "settings": { "name": "Trucks & Wheels", "handle": "skate-trucks-wheels", "blurb": "The bits that grind and the bits that roll." } },
-        { "type": "category", "settings": { "name": "Hardware", "handle": "skate-hardware", "blurb": "Bearings, bolts, bushings, griptape, stickers." } },
-        { "type": "category", "settings": { "name": "Safety Gear", "handle": "skate-safety-gear", "blurb": "Helmets and pads. No lecture." } },
-        { "type": "category", "settings": { "name": "Apparel", "handle": "skate-apparel", "blurb": "Shoes, tees and hats." } }
+        {
+          "type": "category",
+          "settings": {
+            "name": "Decks",
+            "handle": "skate-decks",
+            "blurb": "Blanks, pros and shop boards."
+          }
+        },
+        {
+          "type": "category",
+          "settings": {
+            "name": "Trucks & Wheels",
+            "handle": "skate-trucks-wheels",
+            "blurb": "The bits that grind and the bits that roll."
+          }
+        },
+        {
+          "type": "category",
+          "settings": {
+            "name": "Hardware",
+            "handle": "skate-hardware",
+            "blurb": "Bearings, bolts, bushings, griptape, stickers."
+          }
+        },
+        {
+          "type": "category",
+          "settings": {
+            "name": "Safety Gear",
+            "handle": "skate-safety-gear",
+            "blurb": "Helmets and pads. No lecture."
+          }
+        },
+        {
+          "type": "category",
+          "settings": {
+            "name": "Apparel",
+            "handle": "skate-apparel",
+            "blurb": "Shoes, tees and hats."
+          }
+        }
       ]
     }
   ]

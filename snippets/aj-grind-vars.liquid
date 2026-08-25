@@ -1,0 +1,42 @@
+{%- comment -%}
+  The colour tokens for one skate-page section, scoped to that section.
+
+  WHY A SCOPED <style> AND NOT AN INLINE style ATTRIBUTE. The tokens have to
+  reach descendants that are not the element carrying them — the mission band,
+  the level tiles, the product shots — and an inline attribute on the wrapper
+  does that fine. What it cannot do is stay readable: five sections each
+  carrying four custom properties in a style attribute alongside the spacing
+  rules is a line nobody can scan. This emits one rule per section instead, and
+  `#shopify-section-{{ section.id }}` is unique because every one of these
+  sections declares `"tag": "section"`.
+
+  THE SCRIM IS DERIVED, NOT PICKED. A section with a background image darkens it
+  toward the section's OWN background colour, via `color_modify: 'alpha'` — so
+  the photo and the flat colour read as one surface. A fixed black wash would
+  have meant the colour picker did nothing on any section with an image, which
+  is exactly the pair Alex asked for.
+
+  Usage: {% render 'aj-grind-vars', section: section %}
+
+  Accepts: section — the section drop. Reads bg_color, text_color, bg_image,
+  bg_overlay and, on the mission section only, band_color.
+{%- endcomment -%}
+
+{%- liquid
+  assign s = section.settings
+  assign bg = s.bg_color | default: '#0f0f11'
+  assign fg = s.text_color | default: '#ffffff'
+  assign alpha = s.bg_overlay | default: 55 | divided_by: 100.0
+-%}
+<style>
+  #shopify-section-{{ section.id }} .aj-grind {
+    --aj-grind-bg: {{ bg }};
+    --aj-grind-fg: {{ fg }};
+    {%- if s.bg_image != blank %}
+    --aj-grind-bg-scrim: {{ bg | color_modify: 'alpha', alpha }};
+    {%- endif %}
+    {%- if s.band_color != blank %}
+    --aj-grind-band: {{ s.band_color }};
+    {%- endif %}
+  }
+</style>

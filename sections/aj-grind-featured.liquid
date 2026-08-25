@@ -15,6 +15,7 @@
 {%- endcomment -%}
 
 {{ 'aj-grind.css' | asset_url | stylesheet_tag }}
+{% render 'aj-grind-vars', section: section %}
 
 {%- liquid
   assign s = section.settings
@@ -22,7 +23,8 @@
 -%}
 
 {%- if featured != blank and featured.products.size > 0 -%}
-  <div class="aj-grind" style="{% render 'spacing-style', settings: section.settings %}">
+  <div class="aj-grind{% if section.settings.bg_image != blank %} aj-grind--has-bg{% endif %}" style="{% render 'spacing-style', settings: section.settings %}">
+  {% render 'aj-grind-bg', settings: section.settings %}
     <div class="page-width aj-grind__section">
       {%- if s.featured_eyebrow != blank -%}
         <p class="aj-grind__eyebrow">{{ s.featured_eyebrow | escape }}</p>
@@ -57,17 +59,98 @@
   "name": "AJ Skate — Featured row",
   "tag": "section",
   "settings": [
-    { "type": "text", "id": "featured_eyebrow", "label": "Eyebrow", "default": "On the shelf" },
-    { "type": "text", "id": "featured_heading", "label": "Heading", "default": "In the shop now" },
-    { "type": "text", "id": "featured_handle", "label": "Collection handle",
+    {
+      "type": "text",
+      "id": "featured_eyebrow",
+      "label": "Eyebrow",
+      "default": "On the shelf"
+    },
+    {
+      "type": "text",
+      "id": "featured_heading",
+      "label": "Heading",
+      "default": "In the shop now"
+    },
+    {
+      "type": "text",
+      "id": "featured_handle",
+      "label": "Collection handle",
       "info": "Renders nothing until this collection has products, so the page is safe to ship before the suppliers are onboarded.",
-      "default": "skate-local" },
-    { "type": "range", "id": "count", "label": "Products shown", "min": 2, "max": 12, "step": 2, "default": 4,
-      "info": "The grid is two across on a phone and four on a desktop, so even numbers leave no orphan." },
-    { "type": "header", "content": "Spacing" },
-    { "type": "range", "id": "padding-block-start", "label": "Top padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 },
-    { "type": "range", "id": "padding-block-end", "label": "Bottom padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 }
+      "default": "skate-local"
+    },
+    {
+      "type": "range",
+      "id": "count",
+      "label": "Products shown",
+      "min": 2,
+      "max": 12,
+      "step": 2,
+      "default": 4,
+      "info": "The grid is two across on a phone and four on a desktop, so even numbers leave no orphan."
+    },
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background colour",
+      "default": "#0f0f11"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text colour",
+      "default": "#ffffff",
+      "info": "Everything on this page was white on near-black. If you lighten the background, lighten this too or the text disappears."
+    },
+    {
+      "type": "image_picker",
+      "id": "bg_image",
+      "label": "Background image",
+      "info": "Sits behind the whole section, darkened toward the background colour above. Leave empty for the flat colour."
+    },
+    {
+      "type": "range",
+      "id": "bg_overlay",
+      "label": "Image darkening",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "default": 55,
+      "info": "How far the photo is pushed toward the background colour. Only applies when an image is set."
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    }
   ],
-  "presets": [{ "name": "AJ Skate — Featured row" }]
+  "presets": [
+    {
+      "name": "AJ Skate — Featured row"
+    }
+  ]
 }
 {% endschema %}
