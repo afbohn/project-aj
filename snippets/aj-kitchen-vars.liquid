@@ -35,5 +35,11 @@
     {%- if s.ball_size %}
     --aj-kt-ball-size: {{ s.ball_size }}px;
     {%- endif %}
+    {%- if s.ball_height %}
+    --aj-kt-bounce-h: {{ s.ball_height }}px;
+    {%- endif %}
+    {%- if s.ball_speed %}
+    --aj-kt-dur: {{ s.ball_speed | divided_by: 10.0 }}s;
+    {%- endif %}
   }
 </style>

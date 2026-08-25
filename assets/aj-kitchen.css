@@ -141,139 +141,189 @@
 */
 .aj-kt__ball {
   position: absolute;
-  left: 0; bottom: clamp(1rem, 4vw, 3rem);
+  left: 0; bottom: clamp(0.75rem, 3vw, 2rem);
   width: var(--aj-kt-ball-size, 68px);
-  z-index: 0;                 /* behind the copy: it passes under the words */
+  height: var(--aj-kt-ball-size, 68px);
+  /*
+    ABOVE THE COPY, NOT BEHIND IT. The first build put this at z-index 0 so it
+    would pass under the words, which on a hero this text-heavy meant it was
+    hidden for most of its run. It travels along the bottom edge where there is
+    nothing to collide with, and passing briefly in front of the HUD is the
+    point rather than a problem.
+  */
+  z-index: 3;
   pointer-events: none;
   will-change: transform;
-  animation: aj-kt-x 4.4s linear 0.35s 1 both;
+  animation: aj-kt-x var(--aj-kt-dur, 3.2s) linear 0.3s 1 both;
+}
+
+/*
+  THE CONTACT SHADOW, which is what actually sells a bounce.
+
+  It lives on the OUTER element — the one that only moves sideways — so it stays
+  welded to the ground while the ball leaves it. Tight and dark at impact, wide
+  and faint at the apex. Without it the ball reads as a sprite sliding around;
+  with it there is a floor.
+*/
+.aj-kt__ball::after {
+  content: "";
+  position: absolute; left: 50%; bottom: -6%;
+  width: 78%; height: 12%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(0 0 0 / 0.45), transparent);
+  animation: aj-kt-shadow var(--aj-kt-dur, 3.2s) linear 0.3s 1 both;
 }
 
 .aj-kt__ball img {
   display: block; width: 100%; height: auto;
   transform-origin: 50% 100%;
   animation:
-    aj-kt-bounce 4.4s linear 0.35s 1 both,
-    aj-kt-spin 4.4s cubic-bezier(0.15, 0.6, 0.3, 1) 0.35s 1 both;
+    aj-kt-bounce var(--aj-kt-dur, 3.2s) linear 0.3s 1 both,
+    aj-kt-spin var(--aj-kt-dur, 3.2s) cubic-bezier(0.15, 0.6, 0.3, 1) 0.3s 1 both;
 }
 
 @keyframes aj-kt-x {
-  from { transform: translateX(-14vw); }
-  to   { transform: translateX(88vw); }
+  from { transform: translateX(-12%); }
+  to   { transform: translateX(calc(100vw - 100%)); }
 }
 
-/* Four decaying arcs. The squash lives on the same keyframes as the impacts, so
-   the ball flattens exactly when it lands rather than near it. */
+/*
+  THE ARC HEIGHTS ARE PIXELS OFF ONE VARIABLE, NOT VIEWPORT UNITS.
+
+  The first build wrote these as `vh` — 46% of the VIEWPORT — which has nothing
+  to do with the hero the ball is meant to be bouncing inside. On any normal
+  screen it launched straight past the top of the section, got clipped by
+  `overflow: hidden`, and spent most of its run invisible. The bug was not the
+  easing; it was the unit.
+
+  Every peak is a fraction of `--aj-kt-bounce-h`, so the whole arc scales
+  together from one number and cannot drift out of the section again.
+
+  Timing changes per segment: falling accelerates, rising decelerates into the
+  apex. The impact frames hold a few percent so the squash is visible at all.
+*/
 @keyframes aj-kt-bounce {
-  /*
-    THE TIMING FUNCTION CHANGES PER SEGMENT, and this is the part that does the
-    work. A single `linear` across these stops moves the ball at constant speed
-    between them, which reads as a machine rather than a ball. Falling
-    accelerates (ease-in); rising decelerates into the apex (ease-out). The
-    impact frames hold for a few percent so the squash is visible at all.
-  */
-  0%   { transform: translateY(-46vh) scale(1, 1);      animation-timing-function: ease-in; }
-  18%  { transform: translateY(0)     scale(1.14, 0.86); animation-timing-function: ease-out; }
-  22%  { transform: translateY(0)     scale(1, 1);       animation-timing-function: ease-out; }
-  42%  { transform: translateY(-24vh) scale(0.96, 1.04); animation-timing-function: ease-in; }
-  56%  { transform: translateY(0)     scale(1.1, 0.9);   animation-timing-function: ease-out; }
-  59%  { transform: translateY(0)     scale(1, 1);       animation-timing-function: ease-out; }
-  72%  { transform: translateY(-11vh) scale(0.98, 1.02); animation-timing-function: ease-in; }
-  82%  { transform: translateY(0)     scale(1.06, 0.94); animation-timing-function: ease-out; }
-  85%  { transform: translateY(0)     scale(1, 1);       animation-timing-function: ease-out; }
-  92%  { transform: translateY(-4vh)  scale(1, 1);       animation-timing-function: ease-in; }
-  97%  { transform: translateY(0)     scale(1.03, 0.97); animation-timing-function: ease-out; }
-  100% { transform: translateY(0)     scale(1, 1); }
+  0%   { transform: translateY(calc(var(--aj-kt-bounce-h, 190px) * -1)) scale(1, 1);       animation-timing-function: ease-in; }
+  20%  { transform: translateY(0) scale(1.16, 0.84);                                       animation-timing-function: ease-out; }
+  24%  { transform: translateY(0) scale(1, 1);                                             animation-timing-function: ease-out; }
+  42%  { transform: translateY(calc(var(--aj-kt-bounce-h, 190px) * -0.58)) scale(0.95, 1.05); animation-timing-function: ease-in; }
+  58%  { transform: translateY(0) scale(1.11, 0.89);                                       animation-timing-function: ease-out; }
+  61%  { transform: translateY(0) scale(1, 1);                                             animation-timing-function: ease-out; }
+  74%  { transform: translateY(calc(var(--aj-kt-bounce-h, 190px) * -0.3)) scale(0.97, 1.03); animation-timing-function: ease-in; }
+  85%  { transform: translateY(0) scale(1.07, 0.93);                                       animation-timing-function: ease-out; }
+  88%  { transform: translateY(0) scale(1, 1);                                             animation-timing-function: ease-out; }
+  94%  { transform: translateY(calc(var(--aj-kt-bounce-h, 190px) * -0.12)) scale(1, 1);    animation-timing-function: ease-in; }
+  98%  { transform: translateY(0) scale(1.04, 0.96);                                       animation-timing-function: ease-out; }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+
+/* Synced to the arcs above: tight and dark where the ball lands. */
+@keyframes aj-kt-shadow {
+  0%   { opacity: 0.10; transform: translateX(-50%) scale(1.5, 1); }
+  20%  { opacity: 0.55; transform: translateX(-50%) scale(0.85, 1); }
+  42%  { opacity: 0.18; transform: translateX(-50%) scale(1.3, 1); }
+  58%  { opacity: 0.5;  transform: translateX(-50%) scale(0.88, 1); }
+  74%  { opacity: 0.26; transform: translateX(-50%) scale(1.15, 1); }
+  85%  { opacity: 0.46; transform: translateX(-50%) scale(0.92, 1); }
+  94%  { opacity: 0.34; transform: translateX(-50%) scale(1.05, 1); }
+  100% { opacity: 0.44; transform: translateX(-50%) scale(0.95, 1); }
 }
 
 /* The spin eases out too: a ball that has stopped bouncing has stopped rolling. */
 @keyframes aj-kt-spin {
   from { rotate: 0deg; }
-  to   { rotate: 540deg; }
+  to   { rotate: 500deg; }
 }
 
 /*
   MOTION IS A PREFERENCE, AND THIS ONE IS PURELY DECORATIVE — so it is the
-  easiest possible thing to honour. The ball still appears, at rest, where it
-  would have finished.
+  easiest possible thing to honour. The ball still appears, at rest, at the end
+  of its run, with its shadow under it.
 */
 @media (prefers-reduced-motion: reduce) {
-  .aj-kt__ball { animation: none; transform: translateX(80vw); }
+  .aj-kt__ball { animation: none; transform: translateX(calc(100vw - 100%)); }
   .aj-kt__ball img { animation: none; }
+  .aj-kt__ball::after { animation: none; opacity: 0.44; }
 }
 
 /* ================= THE MENU =================
 
-   A MENU, NOT A GRID OF CARDS. Alex's call, and it is the right one: this is
-   the single place where the food joke and the sport joke are the same joke, so
-   it is the one place the pun should be structural rather than written.
+   COURSE CARDS, NOT A LIST OF ROWS. The first build was menu rows with dot
+   leaders — structurally clever and visually thin, six lines of text on a dark
+   ground with nothing to look at. Alex's call, and it is right: a shop page
+   should show the goods. The menu reading now comes from the labelling — the
+   course number, the name, the count sitting where a price would — while the
+   photograph does the selling.
 
-   DOT LEADERS ARE THE WHOLE SIGNAL. A row, a name, a run of dots and a number
-   on the right is read as a menu before a word of it is read as language. It is
-   also the reason this is not the skate page's tile grid — tiles say catalogue,
-   rows say menu, and the copy would have to work much harder to say it instead.
+   THE ART FALLS BACK RATHER THAN BREAKING. An uploaded image wins; failing that
+   the collection's own image; failing that the first product in it. A course
+   with no picture anywhere keeps the flat panel and still works, so a tile is
+   never blocked on somebody finding a photograph.
 */
-.aj-kt__menu { margin: 0; padding: 0; list-style: none; border-top: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
-
-.aj-kt__course { border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
+.aj-kt__menu {
+  display: grid; gap: 0.9rem; margin: 0; padding: 0; list-style: none;
+  grid-template-columns: 1fr;
+}
+@media screen and (min-width: 600px) { .aj-kt__menu { grid-template-columns: repeat(2, 1fr); } }
+@media screen and (min-width: 990px) { .aj-kt__menu { grid-template-columns: repeat(3, 1fr); } }
 
 .aj-kt__course a {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: baseline;
-  gap: 0.75rem;
-  padding: clamp(0.9rem, 2.4vw, 1.35rem) 0;
-  text-decoration: none;
-  color: inherit;
-  transition: background 0.14s ease, padding-inline 0.14s ease;
+  position: relative; isolation: isolate; overflow: hidden;
+  display: grid; align-content: end; gap: 0.3rem;
+  min-height: clamp(190px, 26vw, 260px);
+  padding: 1.15rem 1.25rem 1.1rem;
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  border-left: 4px solid var(--aj-kt-accent, #e4ff4f);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--aj-kt-bg, #12332a) 88%, currentColor);
+  text-decoration: none; color: inherit;
+  transition: transform 0.14s ease;
 }
-.aj-kt__course a:hover {
-  background: color-mix(in srgb, currentColor 6%, transparent);
-  padding-inline: 0.75rem;
+.aj-kt__course a:hover { transform: translateY(-2px); }
+
+.aj-kt__course-media { position: absolute; inset: 0; z-index: -1; display: block; }
+.aj-kt__course-media img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s ease; }
+.aj-kt__course a:hover .aj-kt__course-media img { transform: scale(1.04); }
+
+/* Heaviest where the type sits, lifting toward the top so the photograph is
+   still a photograph rather than a dark rectangle. */
+.aj-kt__course-media::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(
+    to top,
+    var(--aj-kt-course-scrim, rgb(18 51 42 / 0.88)) 0%,
+    color-mix(in srgb, var(--aj-kt-bg, #12332a) 55%, transparent) 55%,
+    color-mix(in srgb, var(--aj-kt-bg, #12332a) 18%, transparent) 100%
+  );
 }
 
 .aj-kt__no {
-  font-family: "Ohpixel", monospace; font-size: 0.75rem;
-  letter-spacing: 0.12em;
-  color: color-mix(in srgb, currentColor 45%, transparent);
+  font-family: "Ohpixel", monospace; font-size: 0.75rem; letter-spacing: 0.14em;
+  color: color-mix(in srgb, currentColor 55%, transparent);
 }
 
 .aj-kt__name {
   font-family: "Flashy", var(--font-heading--family);
-  font-weight: 400; font-size: clamp(1.5rem, 4vw, 2.15rem); line-height: 1;
-  white-space: nowrap;
-}
-
-/* The leader itself. A repeating radial gradient rather than a row of typed
-   full stops, so it stretches to whatever space is left and never wraps. */
-.aj-kt__dots {
-  align-self: center; height: 1px; min-width: 1.5rem;
-  background-image: radial-gradient(currentColor 42%, transparent 44%);
-  background-size: 6px 2px; background-repeat: repeat-x;
-  background-position: 0 center;
-  opacity: 0.45;
+  font-weight: 400; font-size: clamp(1.6rem, 4vw, 2.2rem); line-height: 1;
 }
 
 .aj-kt__count {
   font-family: "Ohpixel", monospace;
-  font-size: clamp(0.8rem, 1.8vw, 0.95rem);
-  letter-spacing: 0.06em;
+  font-size: 0.8rem; letter-spacing: 0.08em;
   color: var(--aj-kt-accent, #e4ff4f);
-  white-space: nowrap;
 }
 
 .aj-kt__blurb {
-  grid-column: 2 / -1;
-  margin: 0.25rem 0 0;
-  font-size: 0.95rem; line-height: 1.4;
-  color: inherit; opacity: 0.72;
+  margin: 0.15rem 0 0;
+  font-size: 0.92rem; line-height: 1.35;
+  color: inherit; opacity: 0.78;
 }
 
-@media screen and (max-width: 600px) {
-  .aj-kt__course a { grid-template-columns: auto 1fr; }
-  .aj-kt__dots { display: none; }
-  .aj-kt__count { grid-column: 2; justify-self: start; }
-  .aj-kt__blurb { grid-column: 1 / -1; }
+@media (prefers-reduced-motion: reduce) {
+  .aj-kt__course a, .aj-kt__course-media img { transition: none; }
+  .aj-kt__course a:hover { transform: none; }
+  .aj-kt__course a:hover .aj-kt__course-media img { transform: none; }
 }
 
 /* ================= MISSION ================= */
