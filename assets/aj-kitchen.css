@@ -56,9 +56,17 @@
 }
 
 /* ================= HERO ================= */
+/*
+  MIN-HEIGHT SO THE ARC ALWAYS HAS ROOM. The bounce is measured in pixels off
+  one variable; the hero is measured in content. On a narrow screen the content
+  gets shorter while the arc does not, and the apex ends up above the section
+  with `overflow: hidden` waiting for it. The floor here is the tallest the
+  bounce can be plus the ball plus its resting gap, so the two cannot cross.
+*/
 .aj-kt__hero {
   position: relative;
   padding: clamp(3rem, 9vw, 6rem) 0 clamp(3.5rem, 8vw, 5.5rem);
+  min-height: calc(var(--aj-kt-bounce-h, 190px) + var(--aj-kt-ball-size, 68px) + 6rem);
   overflow: hidden;
 }
 
@@ -153,7 +161,6 @@
   */
   z-index: 3;
   pointer-events: none;
-  will-change: transform;
   animation: aj-kt-x var(--aj-kt-dur, 3.2s) linear 0.3s 1 both;
 }
 
@@ -171,7 +178,9 @@
   width: 78%; height: 12%;
   transform: translateX(-50%);
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgb(0 0 0 / 0.45), transparent);
+  /* Pure black vanishes on a dark green ground — the shadow has to be darker
+     than the SECTION, not darker than nothing. */
+  background: radial-gradient(closest-side, rgb(0 0 0 / 0.62), transparent 78%);
   animation: aj-kt-shadow var(--aj-kt-dur, 3.2s) linear 0.3s 1 both;
 }
 
@@ -183,9 +192,24 @@
     aj-kt-spin var(--aj-kt-dur, 3.2s) cubic-bezier(0.15, 0.6, 0.3, 1) 0.3s 1 both;
 }
 
+/*
+  `100vw` WAS WRONG AND IT IS WHY THE BALL DISAPPEARED AT THE END OF ITS RUN.
+
+  The viewport includes the scrollbar; the hero does not. So the track was
+  consistently wider than the box containing it, and the last stretch of the
+  journey happened outside the hero — where `overflow: hidden` clipped it. The
+  ball did not vanish below the section, it vanished PAST it, on the right.
+
+  Animating `left` against the hero's own width cannot drift from its container
+  the way a viewport unit can. It is a layout-animating property rather than a
+  compositor one, which for a single absolutely-positioned decoration running
+  once for three seconds is a trade worth making for being correct at every
+  width — including inside the theme editor, whose preview frame is not the
+  viewport either.
+*/
 @keyframes aj-kt-x {
-  from { transform: translateX(-12%); }
-  to   { transform: translateX(calc(100vw - 100%)); }
+  from { left: 0; }
+  to   { left: calc(100% - var(--aj-kt-ball-size, 68px)); }
 }
 
 /*
@@ -242,9 +266,23 @@
   of its run, with its shadow under it.
 */
 @media (prefers-reduced-motion: reduce) {
-  .aj-kt__ball { animation: none; transform: translateX(calc(100vw - 100%)); }
+  .aj-kt__ball { animation: none; left: calc(100% - var(--aj-kt-ball-size, 68px)); }
   .aj-kt__ball img { animation: none; }
   .aj-kt__ball::after { animation: none; opacity: 0.44; }
+}
+
+/*
+  ON A PHONE THE BALL AND ITS ARC COME DOWN TOGETHER.
+
+  A 190px bounce is a third of a desktop hero and most of a phone one, and a
+  68px ball against a 390px screen is a beach ball. Both are overridden here
+  rather than left to the section settings, because a value that reads well on
+  Alex's desktop should not have to be wrong on a phone for that to stay true.
+  Anything set in the editor still wins on desktop; this only narrows the small
+  end.
+*/
+@media screen and (max-width: 749px) {
+  .aj-kt__hero { --aj-kt-bounce-h: 110px; --aj-kt-ball-size: 46px; }
 }
 
 /* ================= THE MENU =================
