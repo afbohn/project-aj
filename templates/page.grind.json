@@ -12,14 +12,18 @@
     "hero": {
       "type": "aj-grind-hero",
       "settings": {
-        "kicker": "A skate shop inside The Yoink",
+        "kicker": "Go big or go home",
         "heading": "Yoink Skate Shop",
         "logo": "shopify://shop_images/SKate-Yoink-Logo.svg",
-        "logo_width": 420,
-        "subheading": "Decks, trucks, hardware and safety gear from independent skate shops — and a bit of our own. Same gear, one checkout.",
-        "hud_shops": "Independent, not chains",
+        "logo_width": 460,
+        "subheading": "Stop shopping at the skate shop chains that you find at the mall... you know who I am talking about.",
+        "hud_shops": "From the source",
         "hud_deal": "Every order goes back",
         "hud_ships": "Ships from the shop",
+        "bg_color": "#0f0f11",
+        "text_color": "#ffffff",
+        "bg_image": "shopify://shop_images/abstract-close-up-of-coarse-black-surface-texture-2026-01-11-08-41-36-utc.jpg",
+        "bg_overlay": 60,
         "padding-block-start": 0,
         "padding-block-end": 0
       }
@@ -84,6 +88,9 @@
       "settings": {
         "cats_eyebrow": "Pick your line",
         "cats_heading": "Five ways in",
+        "bg_color": "#0f0f11",
+        "text_color": "#ffffff",
+        "bg_overlay": 55,
         "padding-block-start": 0,
         "padding-block-end": 0
       }
@@ -94,6 +101,10 @@
         "mission_eyebrow": "Why this exists",
         "mission_heading": "Bought from a shop, not a warehouse",
         "mission_body": "Skate shops are independent, outnumbered and closing. Everything here is stocked by one of them, so the money goes to people who have stood on a board rather than to a distributor who has not.",
+        "band_color": "#7a3fa0",
+        "bg_color": "#0f0f11",
+        "text_color": "#ffffff",
+        "bg_overlay": 55,
         "padding-block-start": 0,
         "padding-block-end": 0
       }
@@ -105,6 +116,9 @@
         "featured_heading": "In the shop now",
         "featured_handle": "skate-local",
         "count": 4,
+        "bg_color": "#0f0f11",
+        "text_color": "#ffffff",
+        "bg_overlay": 55,
         "padding-block-start": 0,
         "padding-block-end": 0
       }
@@ -115,6 +129,9 @@
         "foot_line": "Same deck. Bought from a skate shop instead of a warehouse.",
         "cta_text": "See the whole rack",
         "cta_link": "/collections/skate-local",
+        "bg_color": "#0f0f11",
+        "text_color": "#ffffff",
+        "bg_overlay": 55,
         "padding-block-start": 0,
         "padding-block-end": 0
       }
