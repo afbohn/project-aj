@@ -11,7 +11,10 @@
   "sections": {
     "hero": {
       "type": "aj-grind-hero",
-      "settings": {}
+      "settings": {
+        "kicker": "A skate shop inside The Yoink",
+        "heading": "Yoink Skate Shop"
+      }
     },
     "categories": {
       "type": "aj-grind-categories",
@@ -64,7 +67,10 @@
         "safety",
         "apparel"
       ],
-      "settings": {}
+      "settings": {
+        "cats_eyebrow": "Pick your line",
+        "cats_heading": "Five ways in"
+      }
     },
     "mission": {
       "type": "aj-grind-mission",
@@ -72,11 +78,15 @@
     },
     "featured": {
       "type": "aj-grind-featured",
-      "settings": {}
+      "settings": {
+        "featured_handle": "skate-local",
+        "count": 4
+      }
     },
     "foot": {
       "type": "aj-grind-foot",
       "settings": {
+        "foot_line": "Same deck. Bought from a skate shop instead of a warehouse.",
         "cta_text": "See the whole rack",
         "cta_link": "/collections/skate-local"
       }
