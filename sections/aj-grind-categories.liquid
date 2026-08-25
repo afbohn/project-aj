@@ -1,0 +1,136 @@
+{%- comment -%}
+  YOINK SKATE SHOP — the categories, as levels.
+
+  SPLIT OUT OF `aj-grind` ON 25 Aug 2026. The page was one section carrying five
+  unrelated elements, which meant the only way to reorder the mission band above
+  the categories, or to drop the featured row for a week, was to edit Liquid.
+  Each element is now its own section and the page is assembled in
+  `templates/page.grind.json` like any other. `aj-grind.liquid` is left in the
+  theme unreferenced — see the note at the top of that file.
+
+  SIX FIXED SLOTS BECAME BLOCKS, and the reason is the image. Six numbered
+  triples of text settings was already the wrong shape; adding a seventh setting
+  to each would have made twenty-four flat fields in one panel. Blocks give the
+  add/remove/reorder that the six-slot trick was imitating, and an
+  `image_picker` per block, which is what Alex asked for.
+
+  THE NUMBER IS THE POSITION, NOT A SETTING. `forloop.index` numbers the tiles
+  01, 02, 03 in render order, so reordering blocks in the editor renumbers them
+  and there is no field to keep in step. This was true of the six-slot version
+  and is worth not losing.
+
+  A TILE WITH NO IMAGE IS NOT A BROKEN TILE. It falls back to the flat panel the
+  page shipped with. The five levels are the store's own tags — YLSD, YLSTW,
+  YLSH, YLSSG, YLSA — each behind a smart collection of its own, all five
+  children of `skate-local` (tag YLSS). Worth knowing: an API-created collection
+  is published to NOTHING by default, so a tile can point at a real collection
+  and still 404.
+{%- endcomment -%}
+
+{{ 'aj-grind.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign s = section.settings
+-%}
+
+<div class="aj-grind" style="{% render 'spacing-style', settings: section.settings %}">
+  <div class="page-width aj-grind__section">
+    {%- if s.cats_eyebrow != blank -%}
+      <p class="aj-grind__eyebrow">{{ s.cats_eyebrow | escape }}</p>
+    {%- endif -%}
+    {%- if s.cats_heading != blank -%}
+      <h2 class="aj-grind__h2">{{ s.cats_heading | escape }}</h2>
+    {%- endif -%}
+
+    <ul class="aj-grind__levels" role="list">
+      {%- for block in section.blocks -%}
+        {%- liquid
+          assign name = block.settings.name
+          assign handle = block.settings.handle
+          assign blurb = block.settings.blurb
+          assign image = block.settings.image
+        -%}
+        {%- if name != blank -%}
+          <li
+            class="aj-grind__level{% if image != blank %} aj-grind__level--has-image{% endif %}"
+            {{ block.shopify_attributes }}
+          >
+            <a
+              href="{% if handle != blank %}{{ routes.all_products_collection_url | replace: '/collections/all', '/collections/' | append: handle }}{% else %}#{% endif %}"
+              {% if image != blank %}style="--aj-grind-scrim: {{ block.settings.scrim | divided_by: 100.0 }};"{% endif %}
+            >
+              {%- comment -%}
+                DECORATIVE ON PURPOSE, so `alt` is empty. The tile's accessible
+                name is the category name sitting right beside it; a screen
+                reader announcing "Decks, image of a skateboard deck, Decks" is
+                worse than one that says it once.
+              {%- endcomment -%}
+              {%- if image != blank -%}
+                <span class="aj-grind__level-media" aria-hidden="true">
+                  <img
+                    src="{{ image | image_url: width: 1000 }}"
+                    srcset="{{ image | image_url: width: 500 }} 500w,
+                            {{ image | image_url: width: 1000 }} 1000w,
+                            {{ image | image_url: width: 1500 }} 1500w"
+                    sizes="(min-width: 750px) 33vw, 100vw"
+                    alt=""
+                    width="{{ image.width }}"
+                    height="{{ image.height }}"
+                    loading="lazy"
+                  >
+                </span>
+              {%- endif -%}
+              <span class="aj-grind__level-no">{{ forloop.index | prepend: '0' | slice: -2, 2 }}</span>
+              <span class="aj-grind__level-name">{{ name | escape }}</span>
+              {%- if blurb != blank -%}<span class="aj-grind__level-blurb">{{ blurb | escape }}</span>{%- endif -%}
+              <span class="aj-grind__level-go">Drop in &rarr;</span>
+            </a>
+          </li>
+        {%- endif -%}
+      {%- endfor -%}
+    </ul>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "AJ Skate — Categories",
+  "tag": "section",
+  "max_blocks": 12,
+  "settings": [
+    { "type": "text", "id": "cats_eyebrow", "label": "Eyebrow", "default": "Pick your line" },
+    { "type": "text", "id": "cats_heading", "label": "Heading", "default": "Five ways in" },
+    { "type": "paragraph", "content": "A tile with no name renders nothing, so the count is a content decision. A tile with no image keeps the flat panel it shipped with." },
+    { "type": "header", "content": "Spacing" },
+    { "type": "range", "id": "padding-block-start", "label": "Top padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding-block-end", "label": "Bottom padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 }
+  ],
+  "blocks": [
+    {
+      "type": "category",
+      "name": "Category",
+      "settings": [
+        { "type": "text", "id": "name", "label": "Name" },
+        { "type": "text", "id": "handle", "label": "Collection handle" },
+        { "type": "text", "id": "blurb", "label": "Blurb" },
+        { "type": "image_picker", "id": "image", "label": "Image",
+          "info": "Sits behind the text, darkened. Landscape crops best — the tile is wider than it is tall. Leave empty for the flat panel." },
+        { "type": "range", "id": "scrim", "label": "Image darkening", "min": 40, "max": 95, "step": 5, "unit": "%", "default": 82,
+          "info": "Raise it for a bright or busy photo. The text has to stay readable — that is the only thing this dial is for." }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "AJ Skate — Categories",
+      "blocks": [
+        { "type": "category", "settings": { "name": "Decks", "handle": "skate-decks", "blurb": "Blanks, pros and shop boards." } },
+        { "type": "category", "settings": { "name": "Trucks & Wheels", "handle": "skate-trucks-wheels", "blurb": "The bits that grind and the bits that roll." } },
+        { "type": "category", "settings": { "name": "Hardware", "handle": "skate-hardware", "blurb": "Bearings, bolts, bushings, griptape, stickers." } },
+        { "type": "category", "settings": { "name": "Safety Gear", "handle": "skate-safety-gear", "blurb": "Helmets and pads. No lecture." } },
+        { "type": "category", "settings": { "name": "Apparel", "handle": "skate-apparel", "blurb": "Shoes, tees and hats." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

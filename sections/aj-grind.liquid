@@ -1,4 +1,25 @@
 {%- comment -%}
+  SUPERSEDED 25 Aug 2026 — DO NOT EDIT, AND DO NOT DELETE YET.
+
+  This one section carried all five elements of the skate page, which meant
+  reordering them or dropping one for a week was a Liquid edit. It has been
+  split into `aj-grind-hero`, `aj-grind-categories`, `aj-grind-mission`,
+  `aj-grind-featured` and `aj-grind-foot`, and `templates/page.grind.json` now
+  assembles those. The categories gained an image per tile in the move, which is
+  what prompted it.
+
+  IT STAYS ON DISK UNTIL THE NEW PAGE IS CONFIRMED LIVE. A theme push and the
+  GitHub sync are not one atomic step, and a template pointing at a section type
+  the theme does not have renders nothing at all. Deleting this file is the last
+  move, not the first. Its preset is removed so it cannot be added to anything
+  new in the meantime.
+
+  The styles it used to carry now live in `assets/aj-grind.css`, shared by all
+  five. This file's own `{% stylesheet %}` block is left intact so that it still
+  renders correctly if anything is still pointing at it.
+
+  ----------------------------------------------------------------------------
+
   YOINK SKATE SHOP — a skate shop inside The Yoink. v2.
 
   THE FILE IS STILL CALLED aj-grind. The page was drafted as "The Grind" and
@@ -449,7 +470,6 @@
     { "type": "header", "content": "Spacing" },
     { "type": "range", "id": "padding-block-start", "label": "Top padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 },
     { "type": "range", "id": "padding-block-end", "label": "Bottom padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 }
-  ],
-  "presets": [{ "name": "AJ Yoink Skate Shop" }]
+  ]
 }
 {% endschema %}

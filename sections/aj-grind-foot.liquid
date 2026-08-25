@@ -1,0 +1,44 @@
+{%- comment -%}
+  YOINK SKATE SHOP — the closing line and the button.
+
+  SPLIT OUT OF `aj-grind` ON 25 Aug 2026. See `aj-grind-categories.liquid`.
+
+  THE ONLY SETTINGS ON THE LIVE PAGE THAT WERE NOT SCHEMA DEFAULTS were this
+  button's text and link — "See the whole rack" pointing at `/collections/
+  skate-local`. They are carried into `templates/page.grind.json` by hand as
+  part of the split, because a section that changes type loses every stored
+  setting and the editor gives no warning that it happened.
+{%- endcomment -%}
+
+{{ 'aj-grind.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign s = section.settings
+-%}
+
+<div class="aj-grind" style="{% render 'spacing-style', settings: section.settings %}">
+  <div class="page-width aj-grind__section aj-grind__foot">
+    {%- if s.foot_line != blank -%}
+      <p class="aj-grind__foot-line">{{ s.foot_line | escape }}</p>
+    {%- endif -%}
+    {%- if s.cta_text != blank and s.cta_link != blank -%}
+      <a class="aj-grind__cta" href="{{ s.cta_link }}">{{ s.cta_text | escape }}</a>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "AJ Skate — Foot",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "foot_line", "label": "Line", "default": "Same deck. Bought from a skate shop instead of a warehouse." },
+    { "type": "text", "id": "cta_text", "label": "Button", "default": "Meet the shops" },
+    { "type": "url", "id": "cta_link", "label": "Button link" },
+    { "type": "header", "content": "Spacing" },
+    { "type": "range", "id": "padding-block-start", "label": "Top padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding-block-end", "label": "Bottom padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 }
+  ],
+  "presets": [{ "name": "AJ Skate — Foot" }]
+}
+{% endschema %}

@@ -9,8 +9,73 @@
  */
 {
   "sections": {
-    "grind_b": {
-      "type": "aj-grind",
+    "hero": {
+      "type": "aj-grind-hero",
+      "settings": {}
+    },
+    "categories": {
+      "type": "aj-grind-categories",
+      "blocks": {
+        "decks": {
+          "type": "category",
+          "settings": {
+            "name": "Decks",
+            "handle": "skate-decks",
+            "blurb": "Blanks, pros and shop boards."
+          }
+        },
+        "trucks": {
+          "type": "category",
+          "settings": {
+            "name": "Trucks & Wheels",
+            "handle": "skate-trucks-wheels",
+            "blurb": "The bits that grind and the bits that roll."
+          }
+        },
+        "hardware": {
+          "type": "category",
+          "settings": {
+            "name": "Hardware",
+            "handle": "skate-hardware",
+            "blurb": "Bearings, bolts, bushings, griptape, stickers."
+          }
+        },
+        "safety": {
+          "type": "category",
+          "settings": {
+            "name": "Safety Gear",
+            "handle": "skate-safety-gear",
+            "blurb": "Helmets and pads. No lecture."
+          }
+        },
+        "apparel": {
+          "type": "category",
+          "settings": {
+            "name": "Apparel",
+            "handle": "skate-apparel",
+            "blurb": "Shoes, tees and hats."
+          }
+        }
+      },
+      "block_order": [
+        "decks",
+        "trucks",
+        "hardware",
+        "safety",
+        "apparel"
+      ],
+      "settings": {}
+    },
+    "mission": {
+      "type": "aj-grind-mission",
+      "settings": {}
+    },
+    "featured": {
+      "type": "aj-grind-featured",
+      "settings": {}
+    },
+    "foot": {
+      "type": "aj-grind-foot",
       "settings": {
         "cta_text": "See the whole rack",
         "cta_link": "/collections/skate-local"
@@ -18,6 +83,10 @@
     }
   },
   "order": [
-    "grind_b"
+    "hero",
+    "categories",
+    "mission",
+    "featured",
+    "foot"
   ]
 }

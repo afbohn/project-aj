@@ -1,0 +1,108 @@
+{%- comment -%}
+  YOINK SKATE SHOP — the hero.
+
+  SPLIT OUT OF `aj-grind` ON 25 Aug 2026, along with the other four elements of
+  that page. See `aj-grind-categories.liquid` for why.
+
+  THE ERA WITHOUT THE MARKS. Tony Hawk, THPS, Powell Peralta and Element are all
+  live trademarks and this is a commercial page. What is free is the GRAMMAR of
+  1999 skate media: griptape black, a video-game HUD, warped display type. The
+  grit is two offset dot fields rather than a photograph of griptape, which
+  would be 400KB doing the same job.
+
+  THE BLACK GROUND TRAVELS WITH EVERY SECTION. Each of the five carries its own
+  `.aj-grind` wrapper, because a section cannot rely on a sibling to paint the
+  page behind it — and the theme's own `section` class must not go on that root.
+  That mistake shipped this page white-on-white once already; the warning lives
+  in `assets/aj-grind.css` beside the rule it protects.
+{%- endcomment -%}
+
+{{ 'aj-grind.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign s = section.settings
+-%}
+
+<div class="aj-grind" style="{% render 'spacing-style', settings: section.settings %}">
+  <div class="aj-grind__hero">
+    <div class="aj-grind__tape" aria-hidden="true"></div>
+
+    <div class="page-width aj-grind__hero-inner">
+      {%- if s.kicker != blank -%}
+        <p class="aj-grind__kicker">{{ s.kicker | escape }}</p>
+      {%- endif -%}
+
+      {%- comment -%}
+        THE MARK, WHEN THERE IS ONE. The hero is griptape black, so a logo here
+        has to read light-on-dark — a dark PNG disappears completely and the page
+        looks broken rather than unbranded.
+
+        The heading is not dropped when a logo is present, it is kept as the
+        accessible name and hidden visually. A shop whose name exists only inside
+        a PNG has no name as far as search or a screen reader is concerned.
+      {%- endcomment -%}
+      {%- if s.logo != blank -%}
+        <img
+          class="aj-grind__logo"
+          src="{{ s.logo | image_url: width: 900 }}"
+          alt="{{ s.heading | escape }}"
+          width="{{ s.logo.width }}"
+          height="{{ s.logo.height }}"
+          style="--aj-grind-logo-w: {{ s.logo_width }}px;"
+          loading="eager"
+        >
+        <h1 class="aj-grind__title visually-hidden">{{ s.heading | escape }}</h1>
+      {%- else -%}
+        <h1 class="aj-grind__title">{{ s.heading | escape }}</h1>
+      {%- endif -%}
+
+      {%- if s.subheading != blank -%}
+        <p class="aj-grind__sub">{{ s.subheading | escape }}</p>
+      {%- endif -%}
+
+      {%- comment -%}
+        THE HUD. A score counter is the one piece of 90s skate furniture that
+        can carry real information — so it does: what the shop is, not a number
+        invented to look busy. A stat with no value is dropped rather than
+        rendered as an empty box.
+      {%- endcomment -%}
+      {%- if s.hud_shops != blank or s.hud_deal != blank or s.hud_ships != blank -%}
+        <ul class="aj-grind__hud" role="list">
+          {%- if s.hud_shops != blank -%}
+            <li><span class="aj-grind__hud-k">Shops</span><span class="aj-grind__hud-v">{{ s.hud_shops | escape }}</span></li>
+          {%- endif -%}
+          {%- if s.hud_deal != blank -%}
+            <li><span class="aj-grind__hud-k">Orders</span><span class="aj-grind__hud-v">{{ s.hud_deal | escape }}</span></li>
+          {%- endif -%}
+          {%- if s.hud_ships != blank -%}
+            <li><span class="aj-grind__hud-k">Shipping</span><span class="aj-grind__hud-v">{{ s.hud_ships | escape }}</span></li>
+          {%- endif -%}
+        </ul>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "AJ Skate — Hero",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "kicker", "label": "Kicker", "default": "A skate shop inside The Yoink" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Yoink Skate Shop" },
+    { "type": "image_picker", "id": "logo", "label": "Logo",
+      "info": "The hero is near-black, so this has to read light-on-dark — a dark mark disappears entirely. The heading stays as the accessible name whether or not a logo is set." },
+    { "type": "range", "id": "logo_width", "label": "Logo width", "min": 120, "max": 560, "step": 20, "unit": "px", "default": 320 },
+    { "type": "textarea", "id": "subheading", "label": "Subheading",
+      "default": "Decks, trucks, hardware and safety gear from independent skate shops — and a bit of our own. Same gear, one checkout." },
+    { "type": "header", "content": "HUD" },
+    { "type": "text", "id": "hud_shops", "label": "HUD — shops", "default": "Independent, not chains" },
+    { "type": "text", "id": "hud_deal", "label": "HUD — second stat", "default": "Every order goes back" },
+    { "type": "text", "id": "hud_ships", "label": "HUD — third stat", "default": "Ships from the shop" },
+    { "type": "header", "content": "Spacing" },
+    { "type": "range", "id": "padding-block-start", "label": "Top padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding-block-end", "label": "Bottom padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 }
+  ],
+  "presets": [{ "name": "AJ Skate — Hero" }]
+}
+{% endschema %}

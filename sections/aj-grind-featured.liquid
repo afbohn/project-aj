@@ -1,0 +1,73 @@
+{%- comment -%}
+  YOINK SKATE SHOP — the featured product row.
+
+  SPLIT OUT OF `aj-grind` ON 25 Aug 2026. See `aj-grind-categories.liquid`.
+
+  THE PRODUCTS ARE THE STORY, NOT THE SHOPS — and there is still NO DEAL here.
+  Every other surface on this store sells on price, and a discount would bury
+  the one thing that makes this page worth existing.
+
+  IT DEGRADES TO NOTHING GRACEFULLY, which is the same rule the merch shelf
+  follows: a shelf advertising an empty collection is worse than one fewer row.
+  So the row checks its collection first and renders nothing until there is
+  something in it. A v1 that only appears when the catalogue is finished is a v1
+  nobody can look at.
+{%- endcomment -%}
+
+{{ 'aj-grind.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign s = section.settings
+  assign featured = collections[s.featured_handle]
+-%}
+
+{%- if featured != blank and featured.products.size > 0 -%}
+  <div class="aj-grind" style="{% render 'spacing-style', settings: section.settings %}">
+    <div class="page-width aj-grind__section">
+      {%- if s.featured_eyebrow != blank -%}
+        <p class="aj-grind__eyebrow">{{ s.featured_eyebrow | escape }}</p>
+      {%- endif -%}
+      {%- if s.featured_heading != blank -%}
+        <h2 class="aj-grind__h2">{{ s.featured_heading | escape }}</h2>
+      {%- endif -%}
+      <ul class="aj-grind__grid" role="list">
+        {%- for product in featured.products limit: s.count -%}
+          {%- assign v = product.selected_or_first_available_variant -%}
+          <li class="aj-grind__card">
+            <a href="{{ product.url }}">
+              <span class="aj-grind__shot">
+                {%- if product.featured_image -%}
+                  <img src="{{ product.featured_image | image_url: width: 600 }}"
+                       alt="{{ product.featured_image.alt | escape }}"
+                       width="300" height="300" loading="lazy">
+                {%- endif -%}
+              </span>
+              <span class="aj-grind__card-name">{{ product.title | escape }}</span>
+              <span class="aj-grind__card-price">{{ v.price | money }}</span>
+            </a>
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "AJ Skate — Featured row",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "featured_eyebrow", "label": "Eyebrow", "default": "On the shelf" },
+    { "type": "text", "id": "featured_heading", "label": "Heading", "default": "In the shop now" },
+    { "type": "text", "id": "featured_handle", "label": "Collection handle",
+      "info": "Renders nothing until this collection has products, so the page is safe to ship before the suppliers are onboarded.",
+      "default": "skate-local" },
+    { "type": "range", "id": "count", "label": "Products shown", "min": 2, "max": 12, "step": 2, "default": 4,
+      "info": "The grid is two across on a phone and four on a desktop, so even numbers leave no orphan." },
+    { "type": "header", "content": "Spacing" },
+    { "type": "range", "id": "padding-block-start", "label": "Top padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding-block-end", "label": "Bottom padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 }
+  ],
+  "presets": [{ "name": "AJ Skate — Featured row" }]
+}
+{% endschema %}

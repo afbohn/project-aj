@@ -1,0 +1,70 @@
+{%- comment -%}
+  YOINK SKATE SHOP — the mission band.
+
+  SPLIT OUT OF `aj-grind` ON 25 Aug 2026. See `aj-grind-categories.liquid`.
+
+  THIS BAND USED TO NAME THE SHOPS, AND DELIBERATELY NO LONGER DOES. Alex's
+  call, 17 Aug 2026: sell their products, do not advertise them. Listing the
+  suppliers by name sends a reader off to buy direct, and it also writes a
+  promise this page then has to keep — the moment a named shop stops stocking,
+  the band is a lie until someone remembers to edit it.
+
+  So what is left is the argument itself, which is true whoever is stocking it
+  and needs no maintenance. If named shops ever come back they should come back
+  as real data, not as three text fields somebody has to keep in step.
+
+  INDEPENDENT, NOT NEARBY. The argument is not "buy local to you" — a customer in
+  Mesa is not closer to any of these shops than to a warehouse. It is that the
+  money goes to an independent skate shop rather than to a distributor. Copy
+  here should never imply proximity, because that promise would be false for
+  almost every reader.
+
+  GATED ON THE STATEMENT, not on the section being present: clearing the body
+  removes the band. That was true when this was one element of a page and is
+  kept now that removing it is also possible by deleting the section — the two
+  are not the same thing, because the band still has to vanish cleanly for
+  anyone who empties the field instead.
+
+  CLASS NAMES STAY `__shops-*`. They predate the rename and the CSS is working;
+  repainting markup to match new copy is not worth the risk.
+{%- endcomment -%}
+
+{{ 'aj-grind.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign s = section.settings
+-%}
+
+{%- if s.mission_body != blank -%}
+  <div class="aj-grind" style="{% render 'spacing-style', settings: section.settings %}">
+    <div class="aj-grind__shops-band">
+      <div class="page-width aj-grind__section">
+        {%- if s.mission_eyebrow != blank -%}
+          <p class="aj-grind__eyebrow aj-grind__eyebrow--on-dark">{{ s.mission_eyebrow | escape }}</p>
+        {%- endif -%}
+        {%- if s.mission_heading != blank -%}
+          <h2 class="aj-grind__h2 aj-grind__h2--on-dark">{{ s.mission_heading | escape }}</h2>
+        {%- endif -%}
+        <p class="aj-grind__shops-body">{{ s.mission_body | escape }}</p>
+      </div>
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "AJ Skate — Mission",
+  "tag": "section",
+  "settings": [
+    { "type": "paragraph", "content": "Deliberately does not name the shops — see the note in the file. Clearing the statement removes the whole band." },
+    { "type": "text", "id": "mission_eyebrow", "label": "Eyebrow", "default": "Why this exists" },
+    { "type": "text", "id": "mission_heading", "label": "Heading", "default": "Bought from a shop, not a warehouse" },
+    { "type": "textarea", "id": "mission_body", "label": "Statement",
+      "default": "Skate shops are independent, outnumbered and closing. Everything here is stocked by one of them, so the money goes to people who have stood on a board rather than to a distributor who has not." },
+    { "type": "header", "content": "Spacing" },
+    { "type": "range", "id": "padding-block-start", "label": "Top padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding-block-end", "label": "Bottom padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 }
+  ],
+  "presets": [{ "name": "AJ Skate — Mission" }]
+}
+{% endschema %}

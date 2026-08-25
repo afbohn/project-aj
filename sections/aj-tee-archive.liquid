@@ -33,8 +33,53 @@
   # section renders nothing, silently. Resolve the handle first.
   assign archive_handle = s.archive_handle | default: 'tee-past'
   assign archive = collections[archive_handle]
-  assign cards = archive.products
-  assign filled = cards | size
+  assign filled = archive.products | size
+-%}
+
+{%- comment -%}
+  THE BINDER READS IN WEEK ORDER, AND IT HAS TO BE SORTED HERE.
+
+  Fixed 25 Aug 2026. The section took `archive.products` in whatever order the
+  collection was sorted, which is alphabetical by title — so the binder read
+  "Adopt a Familiar, Cartoon Network, Ric Flair" and the week numbers printed on
+  the cards ran 002, 001, 003. A numbered archive in the wrong order is worse
+  than an unnumbered one: it looks like the numbers are wrong rather than the
+  sequence.
+
+  WHY NOT JUST SET THE COLLECTION'S SORT ORDER. Because none of the options say
+  what we mean. `tee-past` is filled by tag, and the only date Shopify can sort
+  it by is when the PRODUCT was created — which is when the tee entered the
+  catalogue, months before it held the slot, and in no relation to the week it
+  ran. Manual order would work exactly until the agent adds the next one
+  unattended. The week number is the real key and it lives in `tee.week`.
+
+  WHY THE STRING DANCE. Liquid's `sort` filter takes a direct property name and
+  cannot reach `metafields.tee.week.value`, and Liquid has no way to push onto an
+  array. The supported idiom is to build one delimited string, sort that, and
+  look the products back up by handle — the week is zero-padded to four digits so
+  a plain lexical sort orders 0002 before 0010, which a bare number would not.
+
+  A TEE WITH NO WEEK NUMBER SORTS TO THE BOTTOM rather than the top. An absent
+  metafield reads 0, and 0000 sorts first ascending — which would put a
+  mis-tagged product at the head of the binder as week 001. Missing numbers get
+  9998 instead so they trail the real ones, and the per-card fallback below still
+  gives them a plausible number to print.
+{%- endcomment -%}
+{%- liquid
+  assign pairs = ''
+  for product in archive.products
+    assign wk = product.metafields.tee.week.value | plus: 0
+    if wk == 0
+      assign wk = 9998
+    endif
+    assign key = wk | prepend: '000' | slice: -4, 4
+    assign pairs = pairs | append: key | append: '~' | append: product.handle | append: ','
+  endfor
+
+  assign ordered = pairs | split: ',' | sort
+  unless s.order == 'oldest'
+    assign ordered = ordered | reverse
+  endunless
 -%}
 
 <div
@@ -66,7 +111,19 @@
 
     {%- if filled > 0 -%}
       <ul class="aj-teeb__grid" role="list">
-        {%- for product in cards -%}
+        {%- for entry in ordered -%}
+          {%- liquid
+            # Each entry is `0003~some-handle`, built above. The handle is the
+            # second half; look the product back up by it.
+            #
+            # NOT `all_products[handle]`, which is capped at twenty lookups per
+            # template — the binder passes twenty in its fifth month and the
+            # twenty-first card would simply stop rendering, with nothing said.
+            # `where` searches the collection we already have in hand.
+            assign handle = entry | split: '~' | last
+            assign product = archive.products | where: 'handle', handle | first
+          -%}
+          {%- if product == blank -%}{%- continue -%}{%- endif -%}
           {%- liquid
             assign v = product.selected_or_first_available_variant
 
@@ -75,7 +132,13 @@
             # string; an absent metafield yields 0 and falls through.
             assign wk = product.metafields.tee.week.value | plus: 0
             if wk == 0
-              assign wk = filled | minus: forloop.index0
+              # No stored number, so guess from position — which depends on
+              # which way round the binder is reading.
+              if s.order == 'oldest'
+                assign wk = forloop.index
+              else
+                assign wk = filled | minus: forloop.index0
+              endif
             endif
 
             assign wk_label = wk | append: ''
@@ -535,6 +598,17 @@
       "label": "Collection handle",
       "info": "The agent maintains 'tee-past'. Change only if that collection is renamed.",
       "default": "tee-past"
+    },
+    {
+      "type": "select",
+      "id": "order",
+      "label": "Order",
+      "info": "Sorted by the week each tee actually ran, not by the collection's own sort order — which is alphabetical and put the numbers out of sequence.",
+      "options": [
+        { "value": "newest", "label": "Newest week first" },
+        { "value": "oldest", "label": "Week 001 first" }
+      ],
+      "default": "newest"
     },
     { "type": "header", "content": "Copy" },
     { "type": "text", "id": "kicker", "label": "Kicker", "default": "The set" },
