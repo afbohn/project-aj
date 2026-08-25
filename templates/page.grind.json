@@ -33,6 +33,7 @@
             "name": "Decks",
             "handle": "skate-decks",
             "blurb": "Blanks, pros and shop boards.",
+            "image": "shopify://shop_images/Skate-Background.jpg",
             "scrim": 80
           }
         },
