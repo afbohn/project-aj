@@ -228,9 +228,9 @@
   background:
     linear-gradient(
       135deg,
-      rgb(15 15 17 / var(--aj-grind-scrim, 0.82)) 0%,
-      rgb(15 15 17 / calc(var(--aj-grind-scrim, 0.82) * 0.92)) 45%,
-      rgb(15 15 17 / calc(var(--aj-grind-scrim, 0.82) * 0.55)) 100%
+      rgb(15 15 17 / var(--aj-grind-scrim, 0.8)) 0%,
+      rgb(15 15 17 / calc(var(--aj-grind-scrim, 0.8) * 0.92)) 45%,
+      rgb(15 15 17 / calc(var(--aj-grind-scrim, 0.8) * 0.55)) 100%
     );
 }
 
