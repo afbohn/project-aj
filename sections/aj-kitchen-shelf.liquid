@@ -1,0 +1,80 @@
+{%- comment -%}
+  THE KITCHEN — the product row.
+
+  IT DEGRADES TO NOTHING GRACEFULLY, the same rule the skate shelf and the merch
+  shelf follow: a shelf advertising an empty collection is worse than one fewer
+  row, so it checks its collection has products before rendering anything at all.
+
+  NO DISCOUNT LANGUAGE HERE. Every other surface on this store sells on price and
+  this page is not one of them — the tagline already says deals once, and saying
+  it again on every card is the abundance problem the hero note warns about. The
+  price is the price; the Bargain Bin overlap has its own course on the menu.
+{%- endcomment -%}
+
+{{ 'aj-kitchen.css' | asset_url | stylesheet_tag }}
+{% render 'aj-kitchen-vars', section: section %}
+
+{%- liquid
+  assign s = section.settings
+  assign shelf = collections[s.handle]
+-%}
+
+{%- if shelf != blank and shelf.products.size > 0 -%}
+  <div
+    class="aj-kt{% if s.bg_image != blank %} aj-kt--has-bg{% endif %}"
+    style="{% render 'spacing-style', settings: section.settings %}"
+  >
+    {% render 'aj-kitchen-bg', settings: section.settings %}
+    <div class="page-width aj-kt__section">
+      {%- if s.eyebrow != blank -%}
+        <p class="aj-kt__eyebrow">{{ s.eyebrow | escape }}</p>
+      {%- endif -%}
+      {%- if s.heading != blank -%}
+        <h2 class="aj-kt__h2">{{ s.heading | escape }}</h2>
+      {%- endif -%}
+      <ul class="aj-kt__grid" role="list">
+        {%- for product in shelf.products limit: s.count -%}
+          {%- assign v = product.selected_or_first_available_variant -%}
+          <li class="aj-kt__card">
+            <a href="{{ product.url }}">
+              <span class="aj-kt__shot">
+                {%- if product.featured_image -%}
+                  <img src="{{ product.featured_image | image_url: width: 600 }}"
+                       alt="{{ product.featured_image.alt | escape }}"
+                       width="300" height="300" loading="lazy">
+                {%- endif -%}
+              </span>
+              <span class="aj-kt__card-name">{{ product.title | escape }}</span>
+              <span class="aj-kt__card-price">{{ v.price | money }}</span>
+            </a>
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "AJ Kitchen — Shelf",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "On the shelf" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "In the shop now" },
+    { "type": "text", "id": "handle", "label": "Collection handle", "default": "pickleball",
+      "info": "Renders nothing until this collection has products in it." },
+    { "type": "range", "id": "count", "label": "Products shown", "min": 2, "max": 12, "step": 2, "default": 8,
+      "info": "Two across on a phone, four on a desktop — even numbers leave no orphan." },
+    { "type": "header", "content": "Background" },
+    { "type": "color", "id": "bg_color", "label": "Background colour", "default": "#12332a" },
+    { "type": "color", "id": "text_color", "label": "Text colour", "default": "#ffffff" },
+    { "type": "color", "id": "accent_color", "label": "Accent colour", "default": "#e4ff4f" },
+    { "type": "image_picker", "id": "bg_image", "label": "Background image" },
+    { "type": "range", "id": "bg_overlay", "label": "Image darkening", "min": 0, "max": 90, "step": 5, "unit": "%", "default": 55 },
+    { "type": "header", "content": "Spacing" },
+    { "type": "range", "id": "padding-block-start", "label": "Top padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding-block-end", "label": "Bottom padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 }
+  ],
+  "presets": [{ "name": "AJ Kitchen — Shelf" }]
+}
+{% endschema %}

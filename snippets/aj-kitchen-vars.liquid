@@ -1,0 +1,39 @@
+{%- comment -%}
+  Colour tokens for one Kitchen section, scoped to that section.
+
+  Same contract as `aj-grind-vars`: a scoped rule rather than an inline style
+  attribute, because the tokens have to reach descendants — the mission band,
+  the menu rows, the card shots — and because five sections each carrying five
+  custom properties inline is a line nobody can read.
+
+  The scrim is derived from the section's own background colour, so a photograph
+  darkens toward the colour that was picked rather than toward black. A fixed
+  wash would make the colour setting do nothing on any section with an image.
+
+  Usage: {% render 'aj-kitchen-vars', section: section %}
+{%- endcomment -%}
+
+{%- liquid
+  assign s = section.settings
+  assign bg = s.bg_color | default: '#12332a'
+  assign fg = s.text_color | default: '#ffffff'
+  assign accent = s.accent_color | default: '#e4ff4f'
+  assign alpha = s.bg_overlay | default: 55 | divided_by: 100.0
+-%}
+<style>
+  #shopify-section-{{ section.id }} .aj-kt {
+    --aj-kt-bg: {{ bg }};
+    --aj-kt-fg: {{ fg }};
+    --aj-kt-accent: {{ accent }};
+    --aj-kt-ink: {{ bg }};
+    {%- if s.bg_image != blank %}
+    --aj-kt-bg-scrim: {{ bg | color_modify: 'alpha', alpha }};
+    {%- endif %}
+    {%- if s.band_color != blank %}
+    --aj-kt-band: {{ s.band_color }};
+    {%- endif %}
+    {%- if s.ball_size %}
+    --aj-kt-ball-size: {{ s.ball_size }}px;
+    {%- endif %}
+  }
+</style>

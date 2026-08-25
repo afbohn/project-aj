@@ -1,0 +1,321 @@
+/*
+  THE KITCHEN — the pickleball sub-shop.
+
+  A SIBLING OF THE SKATE PAGE, NOT A COPY OF IT. The five sections mirror
+  aj-grind-*: each paints its own ground, each carries background colour, text
+  colour and an optional photograph, and none of them relies on a neighbour
+  being present. What differs is the palette and the category section, which is
+  a menu rather than a grid of tiles.
+
+  THE GROUND IS COURT GREEN, not griptape black and not the store's purple.
+  Every Yoink surface except the skate page is built on white or purple; this is
+  the third room in the same building, and it should feel like one. The accent
+  is the optic yellow of an actual pickleball, which is the one colour a player
+  will recognise without being told.
+
+  COLOURS ARE TOKENS FROM THE START. The skate page had to be retro-fitted with
+  them the moment its background became editable — every heading was a hardcoded
+  #fff over a hardcoded near-black, one click away from white-on-white. This
+  file starts where that one ended up.
+*/
+.aj-kt {
+  background: var(--aj-kt-bg, #12332a);
+  color: var(--aj-kt-fg, #ffffff);
+}
+
+.aj-kt .page-width {
+  max-width: var(--page-width, 87.5rem);
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 5vw, 3.5rem);
+}
+
+.aj-kt__section { padding: clamp(2.5rem, 6vw, 4rem) 0; }
+
+.aj-kt__eyebrow {
+  font-family: "Ohpixel", var(--font-heading--family);
+  text-transform: uppercase; letter-spacing: 0.14em;
+  font-size: 0.8125rem;
+  color: var(--aj-kt-accent, #e4ff4f);
+  margin: 0 0 0.5rem;
+}
+
+.aj-kt__h2 {
+  font-family: "Flashy", var(--font-heading--family);
+  font-weight: 400; font-size: clamp(2rem, 5.5vw, 3.25rem);
+  line-height: 1; margin: 0 0 1.6rem;
+  color: var(--aj-kt-fg, #fff);
+}
+
+/* ---- section background image, same contract as the skate page ---- */
+.aj-kt--has-bg { position: relative; isolation: isolate; }
+.aj-kt__bg { position: absolute; inset: 0; z-index: -1; display: block; overflow: hidden; pointer-events: none; }
+.aj-kt__bg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.aj-kt__bg::after {
+  content: ""; position: absolute; inset: 0;
+  background: var(--aj-kt-bg-scrim, rgb(18 51 42 / 0.55));
+}
+
+/* ================= HERO ================= */
+.aj-kt__hero {
+  position: relative;
+  padding: clamp(3rem, 9vw, 6rem) 0 clamp(3.5rem, 8vw, 5.5rem);
+  overflow: hidden;
+}
+
+/* The court lines: two hairlines suggesting a kitchen line, which is the only
+   piece of court furniture that means anything to a player. Cheap, and it does
+   not pretend to be a photograph of a court. */
+.aj-kt__court {
+  position: absolute; inset: auto 0 0 0; height: 38%;
+  pointer-events: none; opacity: 0.5;
+  border-top: 2px solid color-mix(in srgb, currentColor 22%, transparent);
+  background:
+    linear-gradient(to bottom, color-mix(in srgb, currentColor 5%, transparent), transparent 60%);
+}
+
+.aj-kt__hero-inner { position: relative; z-index: 2; }
+
+.aj-kt__kicker {
+  font-family: "Ohpixel", var(--font-heading--family);
+  text-transform: uppercase; letter-spacing: 0.16em;
+  font-size: clamp(0.75rem, 1.6vw, 0.9rem);
+  color: var(--aj-kt-accent, #e4ff4f);
+  margin: 0 0 0.9rem;
+}
+
+.aj-kt__title {
+  font-family: "Flashy", var(--font-heading--family);
+  font-weight: 400;
+  font-size: clamp(3.25rem, 12vw, 8rem);
+  line-height: 0.9; margin: 0;
+  color: var(--aj-kt-fg, #fff);
+  text-shadow: 0.05em 0.05em 0 var(--aj-kt-accent-2, #2b6b55);
+}
+
+.aj-kt__sub {
+  margin: 1.3rem 0 0; max-width: 46ch;
+  font-size: clamp(1rem, 2.4vw, 1.25rem); line-height: 1.45;
+  color: inherit; opacity: 0.88;
+}
+
+.aj-kt__logo { display: block; width: min(var(--aj-kt-logo-w, 340px), 100%); height: auto; }
+
+/* ---- the HUD, same idea as the skate page: real facts or nothing ---- */
+.aj-kt__hud { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 2rem 0 0; padding: 0; list-style: none; }
+.aj-kt__hud li {
+  display: grid; gap: 0.15rem; padding: 0.6rem 1rem;
+  background: color-mix(in srgb, currentColor 7%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  border-radius: 4px;
+}
+.aj-kt__hud-k {
+  font-family: "Ohpixel", monospace; text-transform: uppercase;
+  letter-spacing: 0.12em; font-size: 0.7rem;
+  color: var(--aj-kt-accent, #e4ff4f);
+}
+.aj-kt__hud-v { font-weight: 700; font-size: 0.95rem; }
+
+/* ================= THE BOUNCING BALL =================
+
+   WHY A PNG AND CSS RATHER THAN VIDEO OR THE .obj.
+
+   The supplied model is 42MB and would need three.js — roughly 600KB of
+   JavaScript and a WebGL context — to decorate a hero whose job is to load fast
+   and sell paddles. The PNG is 360px, 79KB, and keeps its alpha, which is the
+   part that matters: a ball crossing a photograph has to be cut out.
+
+   Video loses on transparency, not weight. Alpha WebM plays in Chrome and
+   Firefox; Safari wants HEVC-with-alpha in an MP4, so it is two encodes and an
+   opaque rectangle on your hero whenever one of them fails. Autoplay is not
+   guaranteed either — iOS in Low Power Mode refuses it outright, so on a slice
+   of mobile traffic the ball would simply never move.
+
+   IT RUNS ONCE, NOT ON A LOOP. A ball bouncing forever behind copy is charming
+   for four seconds and irritating by the tenth.
+
+   THE BOUNCES DECAY, and that is the whole difference between this reading as
+   physics and reading as a cartoon. Equal-height bounces look wrong to everyone
+   even though almost nobody can say why. Horizontal speed stays constant —
+   nothing slows a ball down sideways except the floor it has not touched yet —
+   so the X track is linear while Y does the work.
+*/
+.aj-kt__ball {
+  position: absolute;
+  left: 0; bottom: clamp(1rem, 4vw, 3rem);
+  width: var(--aj-kt-ball-size, 68px);
+  z-index: 0;                 /* behind the copy: it passes under the words */
+  pointer-events: none;
+  will-change: transform;
+  animation: aj-kt-x 4.4s linear 0.35s 1 both;
+}
+
+.aj-kt__ball img {
+  display: block; width: 100%; height: auto;
+  transform-origin: 50% 100%;
+  animation:
+    aj-kt-bounce 4.4s linear 0.35s 1 both,
+    aj-kt-spin 4.4s cubic-bezier(0.15, 0.6, 0.3, 1) 0.35s 1 both;
+}
+
+@keyframes aj-kt-x {
+  from { transform: translateX(-14vw); }
+  to   { transform: translateX(88vw); }
+}
+
+/* Four decaying arcs. The squash lives on the same keyframes as the impacts, so
+   the ball flattens exactly when it lands rather than near it. */
+@keyframes aj-kt-bounce {
+  /*
+    THE TIMING FUNCTION CHANGES PER SEGMENT, and this is the part that does the
+    work. A single `linear` across these stops moves the ball at constant speed
+    between them, which reads as a machine rather than a ball. Falling
+    accelerates (ease-in); rising decelerates into the apex (ease-out). The
+    impact frames hold for a few percent so the squash is visible at all.
+  */
+  0%   { transform: translateY(-46vh) scale(1, 1);      animation-timing-function: ease-in; }
+  18%  { transform: translateY(0)     scale(1.14, 0.86); animation-timing-function: ease-out; }
+  22%  { transform: translateY(0)     scale(1, 1);       animation-timing-function: ease-out; }
+  42%  { transform: translateY(-24vh) scale(0.96, 1.04); animation-timing-function: ease-in; }
+  56%  { transform: translateY(0)     scale(1.1, 0.9);   animation-timing-function: ease-out; }
+  59%  { transform: translateY(0)     scale(1, 1);       animation-timing-function: ease-out; }
+  72%  { transform: translateY(-11vh) scale(0.98, 1.02); animation-timing-function: ease-in; }
+  82%  { transform: translateY(0)     scale(1.06, 0.94); animation-timing-function: ease-out; }
+  85%  { transform: translateY(0)     scale(1, 1);       animation-timing-function: ease-out; }
+  92%  { transform: translateY(-4vh)  scale(1, 1);       animation-timing-function: ease-in; }
+  97%  { transform: translateY(0)     scale(1.03, 0.97); animation-timing-function: ease-out; }
+  100% { transform: translateY(0)     scale(1, 1); }
+}
+
+/* The spin eases out too: a ball that has stopped bouncing has stopped rolling. */
+@keyframes aj-kt-spin {
+  from { rotate: 0deg; }
+  to   { rotate: 540deg; }
+}
+
+/*
+  MOTION IS A PREFERENCE, AND THIS ONE IS PURELY DECORATIVE — so it is the
+  easiest possible thing to honour. The ball still appears, at rest, where it
+  would have finished.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .aj-kt__ball { animation: none; transform: translateX(80vw); }
+  .aj-kt__ball img { animation: none; }
+}
+
+/* ================= THE MENU =================
+
+   A MENU, NOT A GRID OF CARDS. Alex's call, and it is the right one: this is
+   the single place where the food joke and the sport joke are the same joke, so
+   it is the one place the pun should be structural rather than written.
+
+   DOT LEADERS ARE THE WHOLE SIGNAL. A row, a name, a run of dots and a number
+   on the right is read as a menu before a word of it is read as language. It is
+   also the reason this is not the skate page's tile grid — tiles say catalogue,
+   rows say menu, and the copy would have to work much harder to say it instead.
+*/
+.aj-kt__menu { margin: 0; padding: 0; list-style: none; border-top: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
+
+.aj-kt__course { border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
+
+.aj-kt__course a {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: clamp(0.9rem, 2.4vw, 1.35rem) 0;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.14s ease, padding-inline 0.14s ease;
+}
+.aj-kt__course a:hover {
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  padding-inline: 0.75rem;
+}
+
+.aj-kt__no {
+  font-family: "Ohpixel", monospace; font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  color: color-mix(in srgb, currentColor 45%, transparent);
+}
+
+.aj-kt__name {
+  font-family: "Flashy", var(--font-heading--family);
+  font-weight: 400; font-size: clamp(1.5rem, 4vw, 2.15rem); line-height: 1;
+  white-space: nowrap;
+}
+
+/* The leader itself. A repeating radial gradient rather than a row of typed
+   full stops, so it stretches to whatever space is left and never wraps. */
+.aj-kt__dots {
+  align-self: center; height: 1px; min-width: 1.5rem;
+  background-image: radial-gradient(currentColor 42%, transparent 44%);
+  background-size: 6px 2px; background-repeat: repeat-x;
+  background-position: 0 center;
+  opacity: 0.45;
+}
+
+.aj-kt__count {
+  font-family: "Ohpixel", monospace;
+  font-size: clamp(0.8rem, 1.8vw, 0.95rem);
+  letter-spacing: 0.06em;
+  color: var(--aj-kt-accent, #e4ff4f);
+  white-space: nowrap;
+}
+
+.aj-kt__blurb {
+  grid-column: 2 / -1;
+  margin: 0.25rem 0 0;
+  font-size: 0.95rem; line-height: 1.4;
+  color: inherit; opacity: 0.72;
+}
+
+@media screen and (max-width: 600px) {
+  .aj-kt__course a { grid-template-columns: auto 1fr; }
+  .aj-kt__dots { display: none; }
+  .aj-kt__count { grid-column: 2; justify-self: start; }
+  .aj-kt__blurb { grid-column: 1 / -1; }
+}
+
+/* ================= MISSION ================= */
+.aj-kt__band { background: var(--aj-kt-band, #2b6b55); }
+.aj-kt__band-body { margin: 0; max-width: 54ch; line-height: 1.5; color: inherit; opacity: 0.94; }
+
+/* The one-line sign-off. It is a separate element because it is a separate
+   move — the paragraph argues, this states. */
+.aj-kt__flat {
+  margin: 1.4rem 0 0;
+  font-family: "Flashy", var(--font-heading--family);
+  font-size: clamp(1.15rem, 2.8vw, 1.6rem);
+  line-height: 1.15;
+  color: var(--aj-kt-accent, #e4ff4f);
+}
+
+/* ================= THE SHELF ================= */
+.aj-kt__grid { display: grid; gap: 1rem; margin: 0; padding: 0; list-style: none; grid-template-columns: repeat(2, 1fr); }
+@media screen and (min-width: 750px) { .aj-kt__grid { grid-template-columns: repeat(4, 1fr); } }
+.aj-kt__card a { display: grid; gap: 0.4rem; text-decoration: none; color: inherit; }
+.aj-kt__shot {
+  display: block; aspect-ratio: 1 / 1; overflow: hidden; border-radius: 6px;
+  background: color-mix(in srgb, var(--aj-kt-bg, #12332a) 92%, currentColor);
+}
+.aj-kt__shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.aj-kt__card-name { font-size: 0.95rem; line-height: 1.3; }
+.aj-kt__card-price {
+  font-family: "Flashy", var(--font-heading--family);
+  font-size: 1.25rem; color: var(--aj-kt-accent, #e4ff4f);
+}
+
+/* ================= FOOT ================= */
+.aj-kt__foot { text-align: center; }
+.aj-kt__foot-line {
+  font-family: "Flashy", var(--font-heading--family);
+  font-size: clamp(1.5rem, 4vw, 2.25rem); line-height: 1.1;
+  margin: 0 0 1.4rem; color: var(--aj-kt-fg, #fff);
+}
+.aj-kt__cta {
+  display: inline-block; padding: 0.95rem 1.8rem;
+  background: var(--aj-kt-accent, #e4ff4f);
+  color: var(--aj-kt-ink, #12332a);
+  border-radius: 6px; font-weight: 800; text-decoration: none;
+}
+.aj-kt__cta:hover { filter: brightness(1.06); }

@@ -1,0 +1,130 @@
+{%- comment -%}
+  THE KITCHEN — the categories, as a menu.
+
+  A MENU RATHER THAN A GRID OF TILES, and this is the one structural joke on the
+  page. Alex's call, and it is the right one: this is the single place where the
+  food pun and the sport pun are the SAME pun, so it is the place the joke should
+  be built rather than written. Everywhere else the copy stays flat.
+
+  DOT LEADERS ARE THE ENTIRE SIGNAL. A name, a run of dots, a number on the
+  right — that is read as a menu before a word of it is read as language. The
+  skate page's tile grid would have needed the copy to work much harder to say
+  the same thing, because tiles say catalogue and rows say menu.
+
+  THE COURSES ARE THE SHELF, NOT AN INVENTION. Six tiers were derived by
+  classifying the live collection, not chosen and then filled: Mains 38, To Go 7,
+  Sides 7, Aprons 6, Starters 3, Day Old 2. `Aprons` exists because the first
+  five left six products — two Rev tees, three hats, a pair of shorts — with
+  nowhere to go, and a tier was missing rather than those products being wrong.
+
+  THE COUNT IS RENDERED, NEVER TYPED. `all_products_count` off the collection, so
+  it cannot become a stale number somebody entered once — the same rule the tee
+  binder's count follows. A course whose collection is missing or empty renders
+  NOTHING: `Day Old` is this shop intersected with the Bargain Bin, which rotates
+  weekly and can legitimately empty, and a menu line advertising an empty
+  collection is worse than one fewer line.
+{%- endcomment -%}
+
+{{ 'aj-kitchen.css' | asset_url | stylesheet_tag }}
+{% render 'aj-kitchen-vars', section: section %}
+
+{%- liquid
+  assign s = section.settings
+-%}
+
+<div
+  class="aj-kt{% if s.bg_image != blank %} aj-kt--has-bg{% endif %}"
+  style="{% render 'spacing-style', settings: section.settings %}"
+>
+  {% render 'aj-kitchen-bg', settings: section.settings %}
+
+  <div class="page-width aj-kt__section">
+    {%- if s.eyebrow != blank -%}
+      <p class="aj-kt__eyebrow">{{ s.eyebrow | escape }}</p>
+    {%- endif -%}
+    {%- if s.heading != blank -%}
+      <h2 class="aj-kt__h2">{{ s.heading | escape }}</h2>
+    {%- endif -%}
+
+    <ul class="aj-kt__menu" role="list">
+      {%- assign shown = 0 -%}
+      {%- for block in section.blocks -%}
+        {%- liquid
+          assign name = block.settings.name
+          assign handle = block.settings.handle
+          assign coll = collections[handle]
+          assign n = coll.all_products_count
+        -%}
+        {%- comment -%}
+          Gated on the collection having something in it, not merely existing.
+          An API-created collection is published to nothing by default, so a
+          course can point at a real collection and still 404 — and an empty one
+          is a dead end even when it resolves.
+        {%- endcomment -%}
+        {%- if name != blank and coll != blank and n > 0 -%}
+          {%- assign shown = shown | plus: 1 -%}
+          <li class="aj-kt__course" {{ block.shopify_attributes }}>
+            <a href="{{ coll.url }}">
+              <span class="aj-kt__no">{{ shown | prepend: '0' | slice: -2, 2 }}</span>
+              <span class="aj-kt__name">{{ name | escape }}</span>
+              <span class="aj-kt__dots" aria-hidden="true"></span>
+              <span class="aj-kt__count">
+                {{ n }}{% if block.settings.unit != blank %} {{ block.settings.unit | escape }}{% endif %}
+              </span>
+              {%- if block.settings.blurb != blank -%}
+                <span class="aj-kt__blurb">{{ block.settings.blurb | escape }}</span>
+              {%- endif -%}
+            </a>
+          </li>
+        {%- endif -%}
+      {%- endfor -%}
+    </ul>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "AJ Kitchen — Menu",
+  "tag": "section",
+  "max_blocks": 12,
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Pick your line" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "The Menu" },
+    { "type": "paragraph", "content": "A course renders only when its collection exists AND has products in it, so an empty tier drops off the menu rather than becoming a dead link. The counts are read from the collections — there is nothing to keep in step." },
+    { "type": "header", "content": "Background" },
+    { "type": "color", "id": "bg_color", "label": "Background colour", "default": "#12332a" },
+    { "type": "color", "id": "text_color", "label": "Text colour", "default": "#ffffff" },
+    { "type": "color", "id": "accent_color", "label": "Accent colour", "default": "#e4ff4f" },
+    { "type": "image_picker", "id": "bg_image", "label": "Background image" },
+    { "type": "range", "id": "bg_overlay", "label": "Image darkening", "min": 0, "max": 90, "step": 5, "unit": "%", "default": 55 },
+    { "type": "header", "content": "Spacing" },
+    { "type": "range", "id": "padding-block-start", "label": "Top padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding-block-end", "label": "Bottom padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 }
+  ],
+  "blocks": [
+    {
+      "type": "course",
+      "name": "Course",
+      "settings": [
+        { "type": "text", "id": "name", "label": "Name" },
+        { "type": "text", "id": "handle", "label": "Collection handle" },
+        { "type": "text", "id": "blurb", "label": "Blurb" },
+        { "type": "text", "id": "unit", "label": "Unit", "info": "Follows the count — \"paddles\", \"bags\". Leave empty for a bare number." }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "AJ Kitchen — Menu",
+      "blocks": [
+        { "type": "course", "settings": { "name": "Mains", "handle": "pickleball-paddles", "blurb": "Paddles. The whole point.", "unit": "paddles" } },
+        { "type": "course", "settings": { "name": "Sides", "handle": "pickleball-accessories", "blurb": "Balls, retrievers, odds and ends.", "unit": "items" } },
+        { "type": "course", "settings": { "name": "To Go", "handle": "pickleball-bags", "blurb": "Bags, backpacks, sleeves.", "unit": "bags" } },
+        { "type": "course", "settings": { "name": "Aprons", "handle": "pickleball-apparel", "blurb": "Hats, tees and shorts.", "unit": "items" } },
+        { "type": "course", "settings": { "name": "Starters", "handle": "pickleball-sets", "blurb": "Sets and bundles for a first game.", "unit": "sets" } },
+        { "type": "course", "settings": { "name": "Day Old", "handle": "pickleball-day-old", "blurb": "In the Bargain Bin this week.", "unit": "left" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,51 @@
+{%- comment -%}
+  THE KITCHEN — the closing line and the button.
+
+  The button needs both a label and a link before it renders. A button that goes
+  nowhere is worse than no button, and the editor will happily leave one half of
+  a pair empty.
+{%- endcomment -%}
+
+{{ 'aj-kitchen.css' | asset_url | stylesheet_tag }}
+{% render 'aj-kitchen-vars', section: section %}
+
+{%- liquid
+  assign s = section.settings
+-%}
+
+<div
+  class="aj-kt{% if s.bg_image != blank %} aj-kt--has-bg{% endif %}"
+  style="{% render 'spacing-style', settings: section.settings %}"
+>
+  {% render 'aj-kitchen-bg', settings: section.settings %}
+  <div class="page-width aj-kt__section aj-kt__foot">
+    {%- if s.foot_line != blank -%}
+      <p class="aj-kt__foot-line">{{ s.foot_line | escape }}</p>
+    {%- endif -%}
+    {%- if s.cta_text != blank and s.cta_link != blank -%}
+      <a class="aj-kt__cta" href="{{ s.cta_link }}">{{ s.cta_text | escape }}</a>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "AJ Kitchen — Foot",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "foot_line", "label": "Line", "default": "Everything on the menu, in one place." },
+    { "type": "text", "id": "cta_text", "label": "Button", "default": "See the whole shop" },
+    { "type": "url", "id": "cta_link", "label": "Button link" },
+    { "type": "header", "content": "Background" },
+    { "type": "color", "id": "bg_color", "label": "Background colour", "default": "#12332a" },
+    { "type": "color", "id": "text_color", "label": "Text colour", "default": "#ffffff" },
+    { "type": "color", "id": "accent_color", "label": "Accent colour", "default": "#e4ff4f" },
+    { "type": "image_picker", "id": "bg_image", "label": "Background image" },
+    { "type": "range", "id": "bg_overlay", "label": "Image darkening", "min": 0, "max": 90, "step": 5, "unit": "%", "default": 55 },
+    { "type": "header", "content": "Spacing" },
+    { "type": "range", "id": "padding-block-start", "label": "Top padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding-block-end", "label": "Bottom padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 }
+  ],
+  "presets": [{ "name": "AJ Kitchen — Foot" }]
+}
+{% endschema %}

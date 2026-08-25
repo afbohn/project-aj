@@ -1,0 +1,142 @@
+{%- comment -%}
+  THE KITCHEN — the hero, with a pickleball bouncing across it.
+
+  THE NAME IS AN IN-JOKE THAT COSTS NOTHING. "The kitchen" is the no-volley
+  zone, the seven feet either side of the net where you cannot smash. Every
+  player knows the word; nobody else does. So it reads as a warm, food-ish shop
+  name to a stranger and as a wink to a player, and the tagline lands the pun
+  without explaining it. What it is NOT is discoverable — nobody searching for
+  paddles types "the kitchen" — which is why the collection behind this page is
+  handled `pickleball` and this page lives at `/pages/pickleball`. Joke on the
+  page, search term in the URL.
+
+  ONE PUN PER SURFACE. Pickleball puns are abundant and abundance is the enemy:
+  a page that puns in the eyebrow, the heading, the blurb, the button and the
+  footer stops being playful and becomes exhausting, and it buries the paddles.
+  The brand voice is dry, concrete, unimpressed, unbothered — so the jokes are
+  delivered flat and the dryness is what makes them land.
+
+  THE HUD CARRIES FACTS OR IT CARRIES NOTHING, same rule the skate hero follows.
+  A stat with no value is dropped rather than rendered as an empty box, and no
+  number here should be invented to look busy.
+
+  THE BALL IS DECORATION AND IS MARKED AS SUCH — aria-hidden, empty alt, behind
+  the copy. See `assets/aj-kitchen.css` for why it is a PNG and CSS rather than a
+  video or the supplied 42MB .obj, and why it runs once instead of looping.
+{%- endcomment -%}
+
+{{ 'aj-kitchen.css' | asset_url | stylesheet_tag }}
+{% render 'aj-kitchen-vars', section: section %}
+
+{%- liquid
+  assign s = section.settings
+-%}
+
+<div
+  class="aj-kt{% if s.bg_image != blank %} aj-kt--has-bg{% endif %}"
+  style="{% render 'spacing-style', settings: section.settings %}"
+>
+  {% render 'aj-kitchen-bg', settings: section.settings %}
+
+  <div class="aj-kt__hero">
+    <div class="aj-kt__court" aria-hidden="true"></div>
+
+    {%- if s.show_ball -%}
+      <span class="aj-kt__ball" aria-hidden="true">
+        <img
+          src="{{ 'aj-kitchen-ball.png' | asset_url }}"
+          alt=""
+          width="360"
+          height="360"
+          loading="eager"
+          decoding="async"
+        >
+      </span>
+    {%- endif -%}
+
+    <div class="page-width aj-kt__hero-inner">
+      {%- if s.kicker != blank -%}
+        <p class="aj-kt__kicker">{{ s.kicker | escape }}</p>
+      {%- endif -%}
+
+      {%- comment -%}
+        The heading survives a logo rather than being replaced by it — a shop
+        whose name exists only inside a PNG has no name as far as search or a
+        screen reader is concerned.
+      {%- endcomment -%}
+      {%- if s.logo != blank -%}
+        <img
+          class="aj-kt__logo"
+          src="{{ s.logo | image_url: width: 900 }}"
+          alt="{{ s.heading | escape }}"
+          width="{{ s.logo.width }}"
+          height="{{ s.logo.height }}"
+          style="--aj-kt-logo-w: {{ s.logo_width }}px;"
+          loading="eager"
+        >
+        <h1 class="aj-kt__title visually-hidden">{{ s.heading | escape }}</h1>
+      {%- else -%}
+        <h1 class="aj-kt__title">{{ s.heading | escape }}</h1>
+      {%- endif -%}
+
+      {%- if s.subheading != blank -%}
+        <p class="aj-kt__sub">{{ s.subheading | escape }}</p>
+      {%- endif -%}
+
+      {%- if s.hud_1 != blank or s.hud_2 != blank or s.hud_3 != blank -%}
+        <ul class="aj-kt__hud" role="list">
+          {%- if s.hud_1 != blank -%}
+            <li><span class="aj-kt__hud-k">{{ s.hud_1_k | escape }}</span><span class="aj-kt__hud-v">{{ s.hud_1 | escape }}</span></li>
+          {%- endif -%}
+          {%- if s.hud_2 != blank -%}
+            <li><span class="aj-kt__hud-k">{{ s.hud_2_k | escape }}</span><span class="aj-kt__hud-v">{{ s.hud_2 | escape }}</span></li>
+          {%- endif -%}
+          {%- if s.hud_3 != blank -%}
+            <li><span class="aj-kt__hud-k">{{ s.hud_3_k | escape }}</span><span class="aj-kt__hud-v">{{ s.hud_3 | escape }}</span></li>
+          {%- endif -%}
+        </ul>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "AJ Kitchen — Hero",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "kicker", "label": "Kicker", "default": "A pickleball shop inside The Yoink" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "The Kitchen" },
+    { "type": "image_picker", "id": "logo", "label": "Logo",
+      "info": "Reads light-on-dark by default, so a dark mark will disappear. The heading stays as the accessible name either way." },
+    { "type": "range", "id": "logo_width", "label": "Logo width", "min": 120, "max": 560, "step": 20, "unit": "px", "default": 340 },
+    { "type": "textarea", "id": "subheading", "label": "Subheading",
+      "default": "Serving up piping hot deals on pickleball gear." },
+    { "type": "header", "content": "The ball" },
+    { "type": "checkbox", "id": "show_ball", "label": "Bounce a ball across the hero", "default": true,
+      "info": "Runs once on load, never loops, and stops entirely for anyone whose device asks for reduced motion." },
+    { "type": "range", "id": "ball_size", "label": "Ball size", "min": 40, "max": 140, "step": 4, "unit": "px", "default": 68 },
+    { "type": "header", "content": "HUD",
+      "info": "Real facts only. A stat invented to look busy is worse than three fewer boxes." },
+    { "type": "text", "id": "hud_1_k", "label": "1 label", "default": "Paddles" },
+    { "type": "text", "id": "hud_1", "label": "1 value", "default": "Beginner to obsessive" },
+    { "type": "text", "id": "hud_2_k", "label": "2 label", "default": "Players" },
+    { "type": "text", "id": "hud_2", "label": "2 value", "default": "All ages, all levels" },
+    { "type": "text", "id": "hud_3_k", "label": "3 label", "default": "Checkout" },
+    { "type": "text", "id": "hud_3", "label": "3 value", "default": "One basket, one order" },
+    { "type": "header", "content": "Background" },
+    { "type": "color", "id": "bg_color", "label": "Background colour", "default": "#12332a" },
+    { "type": "color", "id": "text_color", "label": "Text colour", "default": "#ffffff",
+      "info": "Lighten the background and you must lighten this too, or the text disappears." },
+    { "type": "color", "id": "accent_color", "label": "Accent colour", "default": "#e4ff4f",
+      "info": "The optic yellow of an actual pickleball. Used on the kicker, the HUD labels and the button." },
+    { "type": "image_picker", "id": "bg_image", "label": "Background image",
+      "info": "Sits behind the section, darkened toward the background colour above." },
+    { "type": "range", "id": "bg_overlay", "label": "Image darkening", "min": 0, "max": 90, "step": 5, "unit": "%", "default": 55 },
+    { "type": "header", "content": "Spacing" },
+    { "type": "range", "id": "padding-block-start", "label": "Top padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding-block-end", "label": "Bottom padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 }
+  ],
+  "presets": [{ "name": "AJ Kitchen — Hero" }]
+}
+{% endschema %}

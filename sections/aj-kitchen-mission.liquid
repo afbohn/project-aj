@@ -1,0 +1,80 @@
+{%- comment -%}
+  THE KITCHEN — the mission band.
+
+  ALEX'S WORDS, 25 Aug 2026: "offering cool pickleball gear to players of all
+  ages, stages and skill levels because pickleball is the best sport ever."
+
+  THE SIGN-OFF BREAKS THE VOICE ON PURPOSE. This brand is dry, concrete,
+  unimpressed and unbothered, and "the best sport ever" is none of those. It
+  works BECAUSE it breaks the register — said once, flatly, and then refused
+  rather than defended. An enthusiastic brand saying it is noise; an unbothered
+  one saying it and moving on is funny. It is a separate element from the
+  paragraph because it is a separate move: the paragraph argues, this states.
+
+  THE COPY IS ALEX'S. What is here is a draft in his voice from his sentiment,
+  and every line of it is a setting — the file should never be the reason a word
+  on the storefront cannot change.
+
+  GATED ON THE BODY, not on the section being present. Clearing the statement
+  removes the band. That mattered when this was one element of a bigger section
+  and it still matters: emptying the field and deleting the section are different
+  actions, and the first has to come out cleanly too.
+{%- endcomment -%}
+
+{{ 'aj-kitchen.css' | asset_url | stylesheet_tag }}
+{% render 'aj-kitchen-vars', section: section %}
+
+{%- liquid
+  assign s = section.settings
+-%}
+
+{%- if s.body != blank -%}
+  <div
+    class="aj-kt{% if s.bg_image != blank %} aj-kt--has-bg{% endif %}"
+    style="{% render 'spacing-style', settings: section.settings %}"
+  >
+    {% render 'aj-kitchen-bg', settings: section.settings %}
+    <div class="aj-kt__band">
+      <div class="page-width aj-kt__section">
+        {%- if s.eyebrow != blank -%}
+          <p class="aj-kt__eyebrow">{{ s.eyebrow | escape }}</p>
+        {%- endif -%}
+        {%- if s.heading != blank -%}
+          <h2 class="aj-kt__h2">{{ s.heading | escape }}</h2>
+        {%- endif -%}
+        <p class="aj-kt__band-body">{{ s.body | escape }}</p>
+        {%- if s.flat_line != blank -%}
+          <p class="aj-kt__flat">{{ s.flat_line | escape }}</p>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "AJ Kitchen — Mission",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Why this exists" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Everyone's welcome in the kitchen" },
+    { "type": "textarea", "id": "body", "label": "Statement",
+      "default": "Paddles, bags and balls for people who played their first game last Tuesday and people who have opinions about core thickness. Same gear, one checkout." },
+    { "type": "text", "id": "flat_line", "label": "Sign-off",
+      "info": "Said once and not defended. That is the joke — arguing for it would kill it.",
+      "default": "Pickleball is the best sport ever. We're not going to argue about it." },
+    { "type": "header", "content": "Background" },
+    { "type": "color", "id": "band_color", "label": "Band colour", "default": "#2b6b55",
+      "info": "The statement sits on this. It is the visible background of the section, so the background colour below only shows if you set an image." },
+    { "type": "color", "id": "bg_color", "label": "Background colour", "default": "#12332a" },
+    { "type": "color", "id": "text_color", "label": "Text colour", "default": "#ffffff" },
+    { "type": "color", "id": "accent_color", "label": "Accent colour", "default": "#e4ff4f" },
+    { "type": "image_picker", "id": "bg_image", "label": "Background image" },
+    { "type": "range", "id": "bg_overlay", "label": "Image darkening", "min": 0, "max": 90, "step": 5, "unit": "%", "default": 55 },
+    { "type": "header", "content": "Spacing" },
+    { "type": "range", "id": "padding-block-start", "label": "Top padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding-block-end", "label": "Bottom padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 0 }
+  ],
+  "presets": [{ "name": "AJ Kitchen — Mission" }]
+}
+{% endschema %}
