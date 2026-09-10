@@ -85,7 +85,7 @@
         "dayold": {
           "type": "course",
           "settings": {
-            "name": "Day Old",
+            "name": "Left Overs",
             "handle": "pickleball-day-old",
             "blurb": "In the Bargain Bin this week.",
             "unit": "left"
