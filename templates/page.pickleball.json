@@ -14,40 +14,154 @@
       "settings": {
         "kicker": "A pickleball shop inside The Yoink",
         "heading": "The Kitchen",
+        "logo_width": 340,
         "subheading": "Serving up piping hot deals on pickleball gear.",
         "show_ball": true,
-        "ball_size": 68
+        "ball_size": 68,
+        "ball_height": 190,
+        "ball_speed": 32,
+        "hud_1_k": "Paddles",
+        "hud_1": "Beginner to obsessive",
+        "hud_2_k": "Players",
+        "hud_2": "All ages, all levels",
+        "hud_3_k": "Checkout",
+        "hud_3": "One basket, one order",
+        "bg_color": "#12332a",
+        "text_color": "#ffffff",
+        "accent_color": "#e4ff4f",
+        "bg_overlay": 55,
+        "padding-block-start": 0,
+        "padding-block-end": 0
       }
     },
     "menu": {
       "type": "aj-kitchen-menu",
       "blocks": {
-        "mains": { "type": "course", "settings": { "name": "Mains", "handle": "pickleball-paddles", "blurb": "Paddles. The whole point.", "unit": "paddles" } },
-        "sides": { "type": "course", "settings": { "name": "Sides", "handle": "pickleball-accessories", "blurb": "Balls, retrievers, odds and ends.", "unit": "items" } },
-        "togo": { "type": "course", "settings": { "name": "To Go", "handle": "pickleball-bags", "blurb": "Bags, backpacks, sleeves.", "unit": "bags" } },
-        "aprons": { "type": "course", "settings": { "name": "Aprons", "handle": "pickleball-apparel", "blurb": "Hats, tees and shorts.", "unit": "items" } },
-        "starters": { "type": "course", "settings": { "name": "Starters", "handle": "pickleball-sets", "blurb": "Sets and bundles for a first game.", "unit": "sets" } },
-        "dayold": { "type": "course", "settings": { "name": "Day Old", "handle": "pickleball-day-old", "blurb": "In the Bargain Bin this week.", "unit": "left" } }
+        "mains": {
+          "type": "course",
+          "settings": {
+            "name": "Mains",
+            "handle": "pickleball-paddles",
+            "blurb": "Paddles. The whole point.",
+            "unit": "paddles"
+          }
+        },
+        "sides": {
+          "type": "course",
+          "settings": {
+            "name": "Sides",
+            "handle": "pickleball-accessories",
+            "blurb": "Balls, retrievers, odds and ends.",
+            "unit": "items"
+          }
+        },
+        "togo": {
+          "type": "course",
+          "settings": {
+            "name": "To Go",
+            "handle": "pickleball-bags",
+            "blurb": "Bags, backpacks, sleeves.",
+            "unit": "bags"
+          }
+        },
+        "aprons": {
+          "type": "course",
+          "settings": {
+            "name": "Attire",
+            "handle": "pickleball-apparel",
+            "blurb": "Hats, tees and shorts.",
+            "unit": "items"
+          }
+        },
+        "starters": {
+          "type": "course",
+          "settings": {
+            "name": "Starters",
+            "handle": "pickleball-sets",
+            "blurb": "Sets and bundles for a first game.",
+            "unit": "sets"
+          }
+        },
+        "dayold": {
+          "type": "course",
+          "settings": {
+            "name": "Day Old",
+            "handle": "pickleball-day-old",
+            "blurb": "In the Bargain Bin this week.",
+            "unit": "left"
+          }
+        }
       },
-      "block_order": ["mains", "sides", "togo", "aprons", "starters", "dayold"],
-      "settings": { "eyebrow": "Pick your line", "heading": "The Menu" }
+      "block_order": [
+        "mains",
+        "sides",
+        "togo",
+        "aprons",
+        "starters",
+        "dayold"
+      ],
+      "settings": {
+        "eyebrow": "Pick your line",
+        "heading": "The Menu",
+        "bg_color": "#12332a",
+        "text_color": "#ffffff",
+        "accent_color": "#e4ff4f",
+        "bg_overlay": 55,
+        "padding-block-start": 0,
+        "padding-block-end": 0
+      }
     },
     "mission": {
       "type": "aj-kitchen-mission",
-      "settings": {}
+      "settings": {
+        "eyebrow": "Why this exists",
+        "heading": "Everyone's welcome in the kitchen",
+        "body": "Paddles, bags and balls for people who played their first game last Tuesday and people who have opinions about core thickness. Same gear, one checkout.",
+        "flat_line": "Pickleball is the best sport ever. We're not going to argue about it.",
+        "band_color": "#2b6b55",
+        "bg_color": "#12332a",
+        "text_color": "#ffffff",
+        "accent_color": "#e4ff4f",
+        "bg_overlay": 55,
+        "padding-block-start": 0,
+        "padding-block-end": 0
+      }
     },
     "shelf": {
       "type": "aj-kitchen-shelf",
-      "settings": { "handle": "pickleball", "count": 8 }
+      "settings": {
+        "eyebrow": "On the shelf",
+        "heading": "In the shop now",
+        "handle": "pickleball",
+        "count": 8,
+        "bg_color": "#12332a",
+        "text_color": "#ffffff",
+        "accent_color": "#e4ff4f",
+        "bg_overlay": 55,
+        "padding-block-start": 0,
+        "padding-block-end": 0
+      }
     },
     "foot": {
       "type": "aj-kitchen-foot",
       "settings": {
         "foot_line": "Everything on the menu, in one place.",
         "cta_text": "See the whole shop",
-        "cta_link": "/collections/pickleball"
+        "cta_link": "/collections/pickleball",
+        "bg_color": "#12332a",
+        "text_color": "#ffffff",
+        "accent_color": "#e4ff4f",
+        "bg_overlay": 55,
+        "padding-block-start": 0,
+        "padding-block-end": 0
       }
     }
   },
-  "order": ["hero", "menu", "mission", "shelf", "foot"]
+  "order": [
+    "hero",
+    "menu",
+    "mission",
+    "shelf",
+    "foot"
+  ]
 }
