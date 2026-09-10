@@ -1,0 +1,468 @@
+{%- comment -%}
+  AJ Shops — the shops within the shop.
+
+  The Yoink is a deals store, so its browsing furniture is all filters: Shop by
+  price, Shop by category, the bin. The Kitchen and the Yoink Skate Shop are not
+  filters, they are DESTINATIONS — each one has its own page, its own art
+  direction and its own reason to exist — and a text tile in a row of text tiles
+  would have filed them as two more ways to sort the same pile.
+
+  So each shop gets a card in its own page's colours, carrying its own mascot.
+  The card is a swatch of the place the link goes: click the near-black one and
+  you land on a near-black page. That costs nothing and does the job a generic
+  tile cannot, which is to say these are different shops rather than different
+  queries.
+
+  THE COUNT IS READ LIVE from the collection, so a shop that empties out says so
+  rather than promising a rack that is not there. A blank handle just drops the
+  line — see `collection_handle` in `aj-bargain-bin` for why these are plain text
+  settings and not `collection` pickers: a `collection` picker makes Shopify
+  resolve the handle while VALIDATING the template, and an agent-created
+  collection does not exist on first deploy, which refuses the whole file.
+
+  THE MASCOT FALLS BACK TO A THEME ASSET. `mascot` is an image_picker for
+  swapping art from the editor; when it is empty the section serves
+  `mascot_asset` out of `assets/`. That way the art ships with the theme and the
+  card is never a coloured rectangle with a hole in it, which is what an
+  image_picker alone would have given us on first deploy.
+
+  Slots are blocks rather than a fixed pair so a third shop is a block, not a
+  rewrite. A block with a blank name is skipped, so the count is a content
+  decision — the same rule the skate page's tiles use.
+{%- endcomment -%}
+
+{%- liquid
+  assign renderable = 0
+  for block in section.blocks
+    if block.settings.name != blank
+      assign renderable = renderable | plus: 1
+    endif
+  endfor
+-%}
+
+{%- if renderable > 0 -%}
+  <div
+    class="aj-shops color-{{ section.settings.color_scheme }} section spacing-style"
+    style="{% render 'spacing-style', settings: section.settings %}"
+  >
+    <div class="page-width">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="aj-shops__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+      {%- endif -%}
+      {%- if section.settings.heading != blank -%}
+        <h2 class="aj-shops__heading">{{ section.settings.heading | escape }}</h2>
+      {%- endif -%}
+      {%- if section.settings.subheading != blank -%}
+        <p class="aj-shops__subheading">{{ section.settings.subheading | escape }}</p>
+      {%- endif -%}
+
+      <ul class="aj-shops__grid" role="list">
+        {%- for block in section.blocks -%}
+          {%- if block.settings.name == blank -%}
+            {%- continue -%}
+          {%- endif -%}
+
+          {%- liquid
+            assign shop_collection = collections[block.settings.collection_handle]
+            assign shop_count = 0
+            if block.settings.collection_handle != blank
+              assign shop_count = shop_collection.all_products_count
+            endif
+
+            assign mascot_src = blank
+            if block.settings.mascot != blank
+              assign mascot_src = block.settings.mascot | image_url: width: 900
+            elsif block.settings.mascot_asset != blank
+              assign mascot_src = block.settings.mascot_asset | asset_url
+            endif
+          -%}
+
+          <li class="aj-shops__item" {{ block.shopify_attributes }}>
+            <a
+              class="aj-shops__card"
+              href="{{ block.settings.link | default: '#' }}"
+              style="
+                --aj-shops-bg: {{ block.settings.bg_color }};
+                --aj-shops-fg: {{ block.settings.text_color }};
+                --aj-shops-accent: {{ block.settings.accent_color }};
+                --aj-shops-on-accent: {{ block.settings.accent_text_color }};
+                {%- comment -%}
+                  `default` before the divide, because a missing setting divides
+                  to 0 and a scale of 0 is an invisible mascot on a live card.
+                {%- endcomment -%}
+                --aj-shops-scale: {{ block.settings.mascot_scale | default: 100 | divided_by: 100.0 }};
+              "
+            >
+              {%- comment -%}
+                The mascot is decorative: the shop's name sits in text directly
+                under it, so a described image would announce the same shop
+                twice to a screen reader.
+              {%- endcomment -%}
+              {%- if mascot_src != blank -%}
+                <span class="aj-shops__stage">
+                  <img
+                    class="aj-shops__mascot"
+                    src="{{ mascot_src }}"
+                    alt=""
+                    loading="lazy"
+                    width="600"
+                    height="600"
+                  >
+                </span>
+              {%- endif -%}
+
+              <span class="aj-shops__body">
+                <span class="aj-shops__name">{{ block.settings.name | escape }}</span>
+
+                {%- if block.settings.blurb != blank -%}
+                  <span class="aj-shops__blurb">{{ block.settings.blurb | escape }}</span>
+                {%- endif -%}
+
+                {%- if shop_count > 0 -%}
+                  <span class="aj-shops__count">
+                    {{ shop_count }}
+                    {%- if shop_count == 1 %} item{% else %} items{% endif -%}
+                  </span>
+                {%- endif -%}
+
+                {%- if block.settings.cta != blank -%}
+                  <span class="aj-shops__cta">{{ block.settings.cta | escape }}</span>
+                {%- endif -%}
+              </span>
+            </a>
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  </div>
+{%- elsif request.design_mode -%}
+  <div class="aj-shops aj-shops--empty page-width">
+    <p>
+      <strong>No shops yet.</strong>
+      Add a shop block and give it a name. Blocks with a blank name are skipped.
+    </p>
+  </div>
+{%- endif -%}
+
+{% stylesheet %}
+  .aj-shops__eyebrow {
+    margin: 0 0 0.25rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+
+  .aj-shops__heading {
+    margin: 0 0 0.25rem;
+  }
+
+  .aj-shops__subheading {
+    margin: 0 0 var(--padding-md, 1.5rem);
+    opacity: 0.75;
+  }
+
+  .aj-shops__grid {
+    display: grid;
+    /* auto-fit rather than a hard two-up, so a third shop is a block and not a
+       ragged final row. 20rem is wide enough that a card never squeezes the
+       mascot into a stamp. */
+    grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
+    gap: var(--padding-sm, 1rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /*
+    THE CARD IS THE SHOP'S OWN GROUND, not a theme colour. Every value here comes
+    off the block so the two cards can disagree — that is the point of them.
+  */
+  .aj-shops__card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 14px;
+    background: var(--aj-shops-bg, #282828);
+    color: var(--aj-shops-fg, #ffffff);
+    text-decoration: none;
+    transition: transform 0.14s ease;
+  }
+
+  .aj-shops__card:hover,
+  .aj-shops__card:focus-visible {
+    transform: translateY(-3px);
+  }
+
+  /*
+    The mascot stands on a floor rather than floating: a soft pool of the accent
+    behind it grounds a cut-out with no background of its own, and keeps the
+    bright art from sitting on flat black like a sticker.
+  */
+  .aj-shops__stage {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 1.25rem 1rem 0;
+    background:
+      radial-gradient(
+        ellipse 58% 40% at 50% 100%,
+        color-mix(in srgb, var(--aj-shops-accent, #ffe000) 34%, transparent) 0%,
+        transparent 72%
+      );
+  }
+
+  /*
+    SCALED PER SHOP, because aspect ratio is not visual weight. The pickle is a
+    tall narrow figure and the skater a wide compact one; at the same height the
+    skater reads noticeably bigger. There is no automatic fix for that — it is a
+    judgement about the art — so it is a setting rather than a constant.
+  */
+  .aj-shops__mascot {
+    width: auto;
+    height: calc(clamp(10rem, 25vw, 15rem) * var(--aj-shops-scale, 1));
+    max-width: 100%;
+    object-fit: contain;
+    /* The art is pixel work. A drop shadow would blur its edges, so the lift on
+       hover is the only movement it gets. */
+    transition: transform 0.14s ease;
+  }
+
+  .aj-shops__card:hover .aj-shops__mascot,
+  .aj-shops__card:focus-visible .aj-shops__mascot {
+    transform: translateY(-4px);
+  }
+
+  .aj-shops__body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+    padding: 1.25rem 1.4rem 1.5rem;
+  }
+
+  .aj-shops__name {
+    font-size: clamp(1.375rem, 2.2vw, 1.75rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+
+  .aj-shops__blurb {
+    font-size: 0.9375rem;
+    line-height: 1.45;
+    opacity: 0.85;
+  }
+
+  /* Pushed to the bottom so the button lines up across cards whose blurbs run to
+     different lengths. */
+  .aj-shops__count {
+    margin-top: auto;
+    padding-top: 0.6rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    opacity: 0.6;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /*
+    THE ACCENT IS A BACKGROUND, NEVER TYPE — see assets/aj-brand.css. The skate
+    shop's accent is brand purple, which is 2.79:1 against its own near-black
+    card and would be unreadable as a coloured label; as a filled pill carrying
+    white it is 6.90:1. The Kitchen's optic yellow carries its deep green at
+    11.7:1. Both pass because the colour is under the words rather than in them.
+  */
+  .aj-shops__cta {
+    margin-top: 0.75rem;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    background: var(--aj-shops-accent, #ffe000);
+    color: var(--aj-shops-on-accent, #282828);
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aj-shops__card,
+    .aj-shops__mascot {
+      transition: none;
+    }
+
+    .aj-shops__card:hover,
+    .aj-shops__card:focus-visible,
+    .aj-shops__card:hover .aj-shops__mascot,
+    .aj-shops__card:focus-visible .aj-shops__mascot {
+      transform: none;
+    }
+  }
+
+  .aj-shops--empty {
+    padding-block: var(--padding-xl, 3rem);
+    text-align: center;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "AJ Shops",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "The shops within the shop. Each block is one shop, in its own page's colours. A block with a blank name is skipped."
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Shops within the shop"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "We run a couple of specialist shops"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Specialist gear, filed where you would expect it. Same cart, same checkout."
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 32
+    }
+  ],
+  "blocks": [
+    {
+      "type": "shop",
+      "name": "Shop",
+      "settings": [
+        {
+          "type": "text",
+          "id": "name",
+          "label": "Shop name",
+          "info": "Leave blank to hide this shop."
+        },
+        {
+          "type": "textarea",
+          "id": "blurb",
+          "label": "Blurb"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link"
+        },
+        {
+          "type": "text",
+          "id": "cta",
+          "label": "Button text",
+          "default": "Have a look"
+        },
+        {
+          "type": "text",
+          "id": "collection_handle",
+          "label": "Collection handle",
+          "info": "Plain handle, e.g. pickleball. Used only for the live item count — leave blank to hide the count."
+        },
+        {
+          "type": "header",
+          "content": "Mascot"
+        },
+        {
+          "type": "image_picker",
+          "id": "mascot",
+          "label": "Mascot image",
+          "info": "Overrides the built-in art below. Cut out, no background of its own."
+        },
+        {
+          "type": "text",
+          "id": "mascot_asset",
+          "label": "Built-in mascot file",
+          "info": "A file in the theme's assets folder, used when no image is picked above. aj-shop-mascot-kitchen.svg or aj-shop-mascot-skate.svg."
+        },
+        {
+          "type": "range",
+          "id": "mascot_scale",
+          "label": "Mascot size",
+          "min": 60,
+          "max": 140,
+          "step": 5,
+          "unit": "%",
+          "default": 100,
+          "info": "Match the mascots by eye, not by number — a tall thin character needs more height than a wide one to look the same size."
+        },
+        {
+          "type": "header",
+          "content": "Colours",
+          "info": "Match the shop's own page so the card previews where the link goes."
+        },
+        {
+          "type": "color",
+          "id": "bg_color",
+          "label": "Card colour",
+          "default": "#282828"
+        },
+        {
+          "type": "color",
+          "id": "text_color",
+          "label": "Text colour",
+          "default": "#ffffff"
+        },
+        {
+          "type": "color",
+          "id": "accent_color",
+          "label": "Button colour",
+          "default": "#ffe000"
+        },
+        {
+          "type": "color",
+          "id": "accent_text_color",
+          "label": "Button text colour",
+          "default": "#282828",
+          "info": "Check this against the button colour. The accent is a background here, never type."
+        }
+      ]
+    }
+  ],
+  "max_blocks": 4,
+  "presets": [
+    {
+      "name": "AJ Shops",
+      "blocks": [{ "type": "shop" }, { "type": "shop" }]
+    }
+  ]
+}
+{% endschema %}

@@ -148,6 +148,52 @@
         "padding-block-end": 32
       }
     },
+    "aj_shops": {
+      "type": "aj-shops",
+      "blocks": {
+        "kitchen": {
+          "type": "shop",
+          "settings": {
+            "name": "The Kitchen",
+            "blurb": "Paddles, balls, bags and apparel. Everything but the court.",
+            "link": "/pages/pickleball",
+            "cta": "See the menu",
+            "collection_handle": "pickleball",
+            "mascot_asset": "aj-shop-mascot-kitchen.svg",
+            "mascot_scale": 115,
+            "bg_color": "#12332a",
+            "text_color": "#ffffff",
+            "accent_color": "#e4ff4f",
+            "accent_text_color": "#12332a"
+          }
+        },
+        "skate": {
+          "type": "shop",
+          "settings": {
+            "name": "Yoink Skate Shop",
+            "blurb": "Decks, trucks, wheels, hardware. Stocked by independent skate shops, not a warehouse.",
+            "link": "/pages/grind-test-v2",
+            "cta": "See the rack",
+            "collection_handle": "skate-local",
+            "mascot_asset": "aj-shop-mascot-skate.svg",
+            "mascot_scale": 100,
+            "bg_color": "#0f0f11",
+            "text_color": "#ffffff",
+            "accent_color": "#7a3fa0",
+            "accent_text_color": "#ffffff"
+          }
+        }
+      },
+      "block_order": ["kitchen", "skate"],
+      "settings": {
+        "eyebrow": "Shops within the shop",
+        "heading": "We run a couple of specialist shops",
+        "subheading": "Specialist gear, filed where you would expect it. Same cart, same checkout.",
+        "color_scheme": "scheme-1",
+        "padding-block-start": 32,
+        "padding-block-end": 32
+      }
+    },
     "aj_past_deals": {
       "type": "aj-past-deals",
       "settings": {
@@ -186,6 +232,7 @@
     "aj_tee_week",
     "aj_bargain_bin",
     "aj_shop_by_category",
+    "aj_shops",
     "aj_past_deals",
     "aj_story"
   ]
