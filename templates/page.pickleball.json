@@ -16,7 +16,7 @@
         "heading": "The Kitchen",
         "logo_width": 340,
         "subheading": "Serving up piping hot deals on pickleball gear.",
-        "show_ball": true,
+        "show_ball": false,
         "ball_size": 68,
         "ball_height": 190,
         "ball_speed": 32,
