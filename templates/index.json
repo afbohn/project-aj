@@ -173,7 +173,7 @@
           "settings": {
             "name": "Yoink Skate Shop",
             "blurb": "Decks, trucks, wheels, hardware. Stocked by independent skate shops, not a warehouse.",
-            "link": "/pages/grind-test-v2",
+            "link": "/pages/skate",
             "cta": "See the rack",
             "collection_handle": "skate-local",
             "mascot_asset": "aj-shop-mascot-skate.svg",
