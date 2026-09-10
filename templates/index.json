@@ -169,6 +169,7 @@
         },
         "skate": {
           "type": "shop",
+          "disabled": true,
           "settings": {
             "name": "Yoink Skate Shop",
             "blurb": "Decks, trucks, wheels, hardware. Stocked by independent skate shops, not a warehouse.",
@@ -184,7 +185,10 @@
           }
         }
       },
-      "block_order": ["kitchen", "skate"],
+      "block_order": [
+        "kitchen",
+        "skate"
+      ],
       "settings": {
         "eyebrow": "Shops within the shop",
         "heading": "We run a couple of specialist shops",
