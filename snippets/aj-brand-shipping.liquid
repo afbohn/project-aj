@@ -71,13 +71,25 @@
   # reads the number measured for this exact product where one exists.
   assign own_cost = product.metafields.ship.cost.value
   assign checked_at = product.metafields.ship.checked_at.value
-  assign vs = nil
-  for entry in shop.metaobjects.vendor_shipping.values
-    if entry.vendor.value == product.vendor
-      assign vs = entry
-      break
-    endif
-  endfor
+  # By handle first: the app names every entry `vs-` + the vendor handleized,
+  # and a direct lookup needs no loop. A bare `for` over these values stops
+  # at 50 of 183 entries (ordered by handle), so most suppliers were never
+  # found. The paginated walk is the fallback for a handle that does not
+  # match, or past Liquid's 20-unique-handle limit per page. It is not the
+  # primary path because `paginate` reads ?page=, and on a collection's page
+  # 2 the cart drawer would get an empty slice.
+  assign vs_key = 'vs-' | append: product.vendor | handleize
+  assign vs = shop.metaobjects.vendor_shipping[vs_key]
+  if vs == nil
+    paginate shop.metaobjects.vendor_shipping.values by 250
+    for entry in shop.metaobjects.vendor_shipping.values
+      if entry.vendor.value == product.vendor
+        assign vs = entry
+        break
+      endif
+    endfor
+    endpaginate
+  endif
 -%}
 
 {%- liquid
