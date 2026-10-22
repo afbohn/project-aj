@@ -37,6 +37,13 @@
   assign now = 'now' | date: '%s' | plus: 0
   assign deal = null
 
+  comment
+    A bare `for` over metaobject values stops at 50 entries, and Shopify
+    orders them by HANDLE, which is random. With the queue past 50, any day
+    whose handle sorted 51st or later simply had no Yoink. `paginate` raises
+    the ceiling to 250. Every daily_deal walk on the theme does the same.
+  endcomment
+  paginate shop.metaobjects.daily_deal.values by 250
   for entry in shop.metaobjects.daily_deal.values
     assign starts = entry.starts_at.value | date: '%s' | plus: 0
     assign ends = entry.ends_at.value | date: '%s' | plus: 0
@@ -45,6 +52,7 @@
       break
     endif
   endfor
+  endpaginate
 
   comment
     Editor-only fallback. Never applies on the live storefront — a merchant

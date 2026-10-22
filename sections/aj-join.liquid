@@ -71,6 +71,7 @@
       # header-announcements: there is one definition of "today's Yoink" on this
       # store and this is not a second one.
       assign now_ts = 'now' | date: '%s' | plus: 0
+      paginate shop.metaobjects.daily_deal.values by 250
       for entry in shop.metaobjects.daily_deal.values
         assign deal_starts = entry.starts_at.value | date: '%s' | plus: 0
         assign deal_ends = entry.ends_at.value | date: '%s' | plus: 0
@@ -79,6 +80,7 @@
           break
         endif
       endfor
+      endpaginate
       assign deal_variant = deal_product.selected_or_first_available_variant
 
       assign tee_collection = collections['tee-of-the-week']

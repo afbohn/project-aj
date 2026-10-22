@@ -103,6 +103,7 @@
   # rearranging. The setting stays as the fallback for the gap between deals,
   # where there is no product to point at.
   assign daily_href = s.daily_link
+  paginate shop.metaobjects.daily_deal.values by 250
   for entry in shop.metaobjects.daily_deal.values
     assign deal_starts = entry.starts_at.value | date: '%s' | plus: 0
     assign deal_ends = entry.ends_at.value | date: '%s' | plus: 0
@@ -113,6 +114,7 @@
       break
     endif
   endfor
+  endpaginate
 -%}
 
 <script src="{{ 'aj-cadence.js' | asset_url }}" type="module" fetchpriority="low"></script>

@@ -28,6 +28,7 @@
   assign now = 'now' | date: '%s' | plus: 0
   assign deal = null
 
+  paginate shop.metaobjects.daily_deal.values by 250
   for entry in shop.metaobjects.daily_deal.values
     assign starts = entry.starts_at.value | date: '%s' | plus: 0
     assign ends = entry.ends_at.value | date: '%s' | plus: 0
@@ -42,6 +43,7 @@
       break
     endif
   endfor
+  endpaginate
 -%}
 
 {%- if deal != blank -%}

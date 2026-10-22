@@ -49,6 +49,7 @@
       {%- liquid
         assign now = 'now' | date: '%s' | plus: 0
         assign deal = null
+        paginate shop.metaobjects.daily_deal.values by 250
         for entry in shop.metaobjects.daily_deal.values
           assign starts = entry.starts_at.value | date: '%s' | plus: 0
           assign ends = entry.ends_at.value | date: '%s' | plus: 0
@@ -57,6 +58,7 @@
             break
           endif
         endfor
+        endpaginate
         assign deal_product = deal.product.value
         assign deal_variant = deal_product.selected_or_first_available_variant
         assign deal_anchor = deal_variant.compare_at_price

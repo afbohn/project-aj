@@ -46,6 +46,12 @@
   assign week_ago = now | minus: 604800
 -%}
 
+{%- comment -%}
+  Both walks below read the same list, so ONE paginate wraps them (the tag cannot
+  nest). Without it a `for` over metaobject values stops at 50 entries, ordered
+  by handle, and deals past the 50th silently never appear.
+{%- endcomment -%}
+{%- paginate shop.metaobjects.daily_deal.values by 250 -%}
 {%- capture packed -%}
   {%- for entry in shop.metaobjects.daily_deal.values -%}
     {%- assign ends = entry.ends_at.value | date: '%s' | plus: 0 -%}
@@ -232,6 +238,7 @@
     </p>
   </div>
 {%- endif -%}
+{%- endpaginate -%}
 
 {{ 'aj-ships-free.css' | asset_url | stylesheet_tag }}
 
