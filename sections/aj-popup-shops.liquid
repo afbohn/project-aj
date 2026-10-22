@@ -1,0 +1,298 @@
+{%- comment -%}
+  AJ Pop-up Shops — a paper pop-up book whose pop-up is a shop.
+
+  WHAT IT IS FOR. The store's focused shops — skate, pickleball, whatever runs
+  next — need somewhere on the homepage that is not another grid of collection
+  tiles. A tile row says "here are some categories". A pop-up book says these
+  are temporary and there is a new one, which is the same promise the rest of
+  the store already makes: a Yoink for a day, a tee for a week, a bin for a
+  week. The mechanic IS the message, so it is worth the pixels.
+
+  THE WORD MATTERS AND IT IS A COMMITMENT. "Pop-up" tells a customer this shop
+  will not be here forever. If these become permanent categories the section is
+  lying in a small way, and the brand's whole register is not doing that — so
+  either they rotate, or this gets renamed. See the theme note in the schema.
+
+  THE LINKS ARE THE CONTENT; THE BOOK IS DECORATION. Every shop renders as an
+  anchor in the markup before any script runs. No JavaScript, a failed asset
+  load, or a crawler all get a plain readable list of shops. `aj-popup-shops.js`
+  swaps that for the book only once it is actually running. This is deliberate
+  and it is the same reason `aj-cadence` renders real dates server-side before
+  correcting them in the browser.
+
+  NOT ADDED TO templates/index.json. The theme editor holds authority over the
+  settings of sections that have been touched there, and a repo-side edit to
+  that file has been observed not taking on the live theme while CSS from the
+  same commit went live immediately. Add this from the theme editor — Add
+  section, "Pop-up shops" — and it will carry its own settings from there.
+
+  ART PER SHOP, NOT ONE MASCOT. Each block takes its own image, because that is
+  the entire argument for a pop-up book over a sandwich: what rises off the page
+  can be a half-pipe for one shop and a court for the next, so the drawing does
+  the wayfinding instead of a label under an identical icon. With no image the
+  block falls back to the shop's name set in the brand face, which is a
+  legitimate look, not a broken one.
+{%- endcomment -%}
+
+{{ 'aj-popup-shops.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'aj-popup-shops.js' | asset_url }}" defer></script>
+
+{%- liquid
+  assign s = section.settings
+  assign shops = section.blocks
+-%}
+
+{%- if shops.size > 0 -%}
+  <section
+    class="aj-popup"
+    data-aj-popup
+    data-interval="{{ s.interval }}"
+    data-auto="{{ s.auto }}"
+    style="background: {{ s.background }};"
+    aria-label="{{ s.title | default: 'Pop-up shops' | escape }}"
+  >
+    <div class="aj-popup__inner">
+      {%- if s.title != blank or s.subtitle != blank -%}
+        <header class="aj-popup__head">
+          {%- if s.title != blank -%}
+            <h2 class="aj-popup__title" style="font-size: {{ s.title_size }}px;">{{ s.title }}</h2>
+          {%- endif -%}
+          {%- if s.subtitle != blank -%}
+            <p class="aj-popup__sub">{{ s.subtitle }}</p>
+          {%- endif -%}
+        </header>
+      {%- endif -%}
+
+      {%- comment -%}
+        The book. Aria-hidden because everything inside it is duplicated in the
+        plain list below — a screen reader should hear each shop once, and the
+        list is the version that reads correctly.
+      {%- endcomment -%}
+      <div class="aj-popup__spread">
+        <div class="aj-popup__scene" aria-hidden="true">
+        <div class="aj-popup__book">
+        {%- comment -%}
+          ORDER IS THE LAYERING, and it is the order a pop-up book is actually
+          assembled in: the paper, then the braces glued to it, then the piece
+          they hold up. Painting the page last put it in front of the card's
+          feet and swallowed the braces entirely.
+        {%- endcomment -%}
+          <div class="aj-popup__board"></div>
+          <div class="aj-popup__stack"></div>
+          <div class="aj-popup__page aj-popup__page--l"></div>
+          <div class="aj-popup__page aj-popup__page--r"></div>
+          <div class="aj-popup__gutter"></div>
+        <div class="aj-popup__struts" data-aj-struts>
+          <div class="aj-popup__strut aj-popup__strut--left"></div>
+          <div class="aj-popup__strut aj-popup__strut--right"></div>
+        </div>
+        <ul class="aj-popup__stage">
+          {%- for block in shops -%}
+            {%- assign b = block.settings -%}
+            {%- comment -%}
+              ONE SHOP AS AN ARRANGEMENT, NOT A CARD. Six scenery cut-outs in an
+              arc, the shop's own artwork standing in front of them, and a paper
+              tag on the platform. The scenery is deliberately generic paper
+              shapes in the shop's colour — it is the SET, and the artwork is
+              what identifies the shop. Positions are inline custom properties
+              because they are composition, not style: moving a tree is a
+              decision about this shop, and belongs beside it.
+            {%- endcomment -%}
+            <li class="aj-popup__pop" data-aj-pop {{ block.shopify_attributes }}>
+              <div class="aj-popup__vfold"></div>
+
+              {%- if b.scenery != blank -%}
+                <span class="aj-popup__set">
+                  {{ b.scenery | image_url: width: 900 | image_tag: alt: '', widths: '450, 700, 900', loading: 'lazy' }}
+                </span>
+              {%- endif -%}
+              {%- if b.scenery_mid != blank -%}
+                <span class="aj-popup__set aj-popup__set--mid">
+                  {{ b.scenery_mid | image_url: width: 700 | image_tag: alt: '', widths: '350, 520, 700', loading: 'lazy' }}
+                </span>
+              {%- endif -%}
+
+              {%- if b.image != blank -%}
+                <span class="aj-popup__sign">
+                  {{
+                    b.image
+                    | image_url: width: 520
+                    | image_tag:
+                      class: 'aj-popup__art',
+                      alt: b.name,
+                      widths: '260, 380, 520',
+                      loading: 'lazy'
+                  }}
+                </span>
+              {%- endif -%}
+
+              <a class="aj-popup__label" href="{{ b.link | default: '#' }}" tabindex="-1">{{ b.name }}</a>
+            </li>
+          {%- endfor -%}
+        </ul>
+        <div class="aj-popup__cast" data-aj-cast></div>
+
+          <div class="aj-popup__leaf" data-aj-leaf></div>
+        </div>
+      </div>
+
+      {%- comment -%}
+        THE PAGE CONTROLS, AND THEY ARE OUTSIDE THE BOOK ON PURPOSE.
+
+        The book is aria-hidden — every card in it is a duplicate of the list at
+        the bottom, and a screen reader should hear each shop once. Focusable
+        buttons inside an aria-hidden subtree is a genuine accessibility fault
+        (you can tab to a control the assistive tree says is not there), so they
+        sit alongside it and overlay it by position instead.
+      {%- endcomment -%}
+      <div class="aj-popup__controls">
+        <button
+          type="button"
+          class="aj-popup__nav aj-popup__nav--prev"
+          data-aj-prev
+          aria-label="Previous shop"
+        >&#8249;</button>
+        <button
+          type="button"
+          class="aj-popup__nav aj-popup__nav--next"
+          data-aj-next
+          aria-label="Next shop"
+        >&#8250;</button>
+          <span class="aj-popup__count" data-aj-count aria-hidden="true"></span>
+        </div>
+      </div>
+
+      {%- comment -%}
+        Tabs, and they are real buttons: this is a picker, not a decoration.
+      {%- endcomment -%}
+      <ul class="aj-popup__tabs" role="tablist" aria-label="{{ 'Choose a shop' }}">
+        {%- for block in shops -%}
+          <li role="presentation">
+            <button
+              type="button"
+              class="aj-popup__tab"
+              data-aj-tab
+              role="tab"
+              aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+            >
+              {{ block.settings.name }}
+            </button>
+          </li>
+        {%- endfor -%}
+      </ul>
+
+      {%- comment -%}
+        THE ACTUAL CONTENT, AND IT IS NEVER REMOVED.
+
+        Once the book is running this list is hidden from EYES ONLY — clipped,
+        not `display: none`. Display-none would take it out of the accessibility
+        tree, and since the cards inside the book are aria-hidden and
+        unfocusable, that would leave a screen-reader user with no route to any
+        shop at all. This list is that route, and with no JavaScript it is also
+        the visible one.
+      {%- endcomment -%}
+      <ul class="aj-popup__plain">
+        {%- for block in shops -%}
+          <li>
+            <a href="{{ block.settings.link | default: '#' }}">{{ block.settings.name }}</a>
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  </section>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Pop-up shops",
+  "tag": "section",
+  "class": "aj-popup-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "A pop-up book whose pop-up is a shop. Each block is one shop: give it a name, a link and its own artwork. NOTE: calling these pop-ups promises they are temporary — rotate them, or rename the section."
+    },
+    { "type": "text", "id": "title", "label": "Heading", "default": "Pop-up shops" },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Sub-heading",
+      "default": "Here for a while. Then something else."
+    },
+    {
+      "type": "range",
+      "id": "title_size",
+      "label": "Heading size",
+      "min": 24,
+      "max": 72,
+      "step": 2,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "checkbox",
+      "id": "auto",
+      "label": "Turn pages on its own",
+      "default": false,
+      "info": "Off by default: turning the page is the point, and a book that turns itself argues with whoever is reading it. Stops for good the moment anyone touches it."
+    },
+    {
+      "type": "range",
+      "id": "interval",
+      "label": "Seconds per shop, when turning on its own",
+      "min": 3,
+      "max": 12,
+      "step": 1,
+      "unit": "s",
+      "default": 5
+    },
+    {
+      "type": "color",
+      "id": "background",
+      "label": "Background",
+      "default": "#ffffff"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "shop",
+      "name": "Shop",
+      "settings": [
+        { "type": "text", "id": "name", "label": "Shop name", "default": "Skate Shop" },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Artwork",
+          "info": "What pops up. Transparent PNG or SVG reads best against the paper."
+        },
+        { "type": "url", "id": "link", "label": "Link" },
+        {
+          "type": "text",
+          "id": "blurb",
+          "label": "Small line under the name",
+          "default": "Open now"
+        },
+        {
+          "type": "image_picker",
+          "id": "scenery",
+          "label": "Backdrop cut-out",
+          "info": "What this shop IS, in one wide silhouette — a vert ramp, a court, a green and a flagstick. Transparent PNG or SVG; it stands at the back of the set."
+        },
+        {
+          "type": "image_picker",
+          "id": "scenery_mid",
+          "label": "Middle cut-out",
+          "info": "Optional second piece, standing between the backdrop and the logo."
+        }
+      ]
+    }
+  ],
+  "max_blocks": 8,
+  "presets": [
+    {
+      "name": "Pop-up shops",
+      "blocks": [{ "type": "shop" }, { "type": "shop" }, { "type": "shop" }]
+    }
+  ]
+}
+{% endschema %}
