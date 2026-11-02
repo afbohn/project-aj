@@ -126,7 +126,7 @@
       },
       "17510718363206888022": {
         "type": "shopify://apps/ai-smart-search/blocks/chatbot/019d7392-8945-7c18-8fdd-fb945ee8c9ba",
-        "disabled": true,
+        "disabled": false,
         "settings": {
           "button_style": "branded",
           "button_icon": "search",
